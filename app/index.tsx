@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
@@ -16,7 +16,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={require("../assets/fond-home.png")}
+      style={styles.container}
+      resizeMode="cover"
+    >
       <Image
         source={require("../assets/logo-app.png")}
         style={styles.logo}
@@ -27,7 +31,7 @@ export default function HomeScreen() {
       <Pressable style={styles.button} onPress={handleNewGame}>
         <Text style={styles.buttonText}>Nouvelle partie</Text>
       </Pressable>
-    </View>
+    </ImageBackground>
   );
 }
 
