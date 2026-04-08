@@ -2,16 +2,8 @@ import { useEffect } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
-import { useSoundEffect, useLoopingSound } from "../hooks/useSoundEffect";
+import { useNarrator } from "../hooks/useNarrator";
 import { colors } from "../theme/colors";
-
-// Sound assets — set to null when file not yet available
-const SOUNDS = {
-  werewolf: require("../assets/sounds/werewolf.mp3"),
-  seer: null,     // futur: require("../assets/sounds/seer.mp3")
-  witch: null,    // futur: require("../assets/sounds/witch.mp3")
-  ambiance: null, // futur: require("../assets/sounds/night_ambiance.mp3")
-};
 
 const ROLE_LABELS: Record<Role, string> = {
   werewolf: "Loup-Garou",
@@ -25,23 +17,7 @@ export default function NightScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
 
-  const werewolfSound = useSoundEffect(SOUNDS.werewolf);
-  const seerSound = useSoundEffect(SOUNDS.seer);
-  const witchSound = useSoundEffect(SOUNDS.witch);
-  const ambianceSound = useLoopingSound(SOUNDS.ambiance);
-
-  // Play ambiance loop on mount
-  useEffect(() => {
-    ambianceSound.start();
-    return () => { ambianceSound.stop(); };
-  }, []);
-
-  // Play sound effect per night step
-  useEffect(() => {
-    if (state.nightStep === "werewolves") werewolfSound.play();
-    else if (state.nightStep === "seer") seerSound.play();
-    else if (state.nightStep === "witch") witchSound.play();
-  }, [state.nightStep]);
+  useNarrator(state.nightStep);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const aliveNonWolves = alivePlayers.filter((p) => p.role !== "werewolf");
