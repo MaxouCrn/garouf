@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
-import { View, Image, StyleSheet, Dimensions, Animated } from "react-native";
+import { View, Image, StyleSheet, Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { colors } from "../theme/colors";
 
-const { width } = Dimensions.get("window");
-const LOGO_SIZE = width * 0.65;
+const LOGO_SIZE = 220;
 const ANIMATION_DURATION = 800;
 const HOLD_DURATION = 700;
 
@@ -55,5 +54,6 @@ const styles = StyleSheet.create({
   logo: {
     width: LOGO_SIZE,
     height: LOGO_SIZE,
+    borderRadius: LOGO_SIZE / 2,
   },
 });

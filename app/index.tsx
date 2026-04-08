@@ -1,11 +1,10 @@
-import { View, Text, Image, Pressable, StyleSheet, Dimensions } from "react-native";
+import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 
-const { width } = Dimensions.get("window");
-const LOGO_SIZE = width * 0.5;
+const LOGO_SIZE = 160;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -43,6 +42,7 @@ const styles = StyleSheet.create({
   logo: {
     width: LOGO_SIZE,
     height: LOGO_SIZE,
+    borderRadius: LOGO_SIZE / 2,
     marginBottom: 16,
   },
   title: {
