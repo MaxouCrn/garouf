@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
@@ -26,19 +27,12 @@ export default function NightScreen() {
     dispatch({ type: "RESOLVE_NIGHT" });
   };
 
-  // After RESOLVE_NIGHT, phase changes — need to navigate
-  if (state.phase === "hunter") {
-    router.replace("/hunter");
-    return null;
-  }
-  if (state.phase === "day") {
-    router.replace("/day");
-    return null;
-  }
-  if (state.phase === "end") {
-    router.replace("/end");
-    return null;
-  }
+  // After RESOLVE_NIGHT, phase changes — navigate via useEffect
+  useEffect(() => {
+    if (state.phase === "hunter") router.replace("/hunter");
+    else if (state.phase === "day") router.replace("/day");
+    else if (state.phase === "end") router.replace("/end");
+  }, [state.phase]);
 
   return (
     <View style={styles.container}>

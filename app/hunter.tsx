@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
@@ -16,19 +17,12 @@ export default function HunterScreen() {
     dispatch({ type: "HUNTER_SHOOT", playerId });
   };
 
-  // After HUNTER_SHOOT, phase changes — navigate
-  if (state.phase === "day") {
-    router.replace("/day");
-    return null;
-  }
-  if (state.phase === "night") {
-    router.replace("/night");
-    return null;
-  }
-  if (state.phase === "end") {
-    router.replace("/end");
-    return null;
-  }
+  // After HUNTER_SHOOT, phase changes — navigate via useEffect
+  useEffect(() => {
+    if (state.phase === "day") router.replace("/day");
+    else if (state.phase === "night") router.replace("/night");
+    else if (state.phase === "end") router.replace("/end");
+  }, [state.phase]);
 
   return (
     <View style={styles.container}>

@@ -48,19 +48,12 @@ export default function DayScreen() {
     dispatch({ type: "VOTE_ELIMINATE", playerId });
   };
 
-  // After VOTE_ELIMINATE, phase changes — navigate
-  if (state.phase === "hunter") {
-    router.replace("/hunter");
-    return null;
-  }
-  if (state.phase === "night") {
-    router.replace("/night");
-    return null;
-  }
-  if (state.phase === "end") {
-    router.replace("/end");
-    return null;
-  }
+  // After VOTE_ELIMINATE, phase changes — navigate via useEffect
+  useEffect(() => {
+    if (state.phase === "hunter") router.replace("/hunter");
+    else if (state.phase === "night") router.replace("/night");
+    else if (state.phase === "end") router.replace("/end");
+  }, [state.phase]);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
 
