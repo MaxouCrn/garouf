@@ -15,7 +15,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>🐺</Text>
-      <Text style={styles.title}>Loup-Garou</Text>
+      <Text style={styles.title}>Garouf</Text>
       <Text style={styles.subtitle}>Le jeu de la pause midi</Text>
       <Pressable style={styles.button} onPress={handleNewGame}>
         <Text style={styles.buttonText}>Nouvelle partie</Text>

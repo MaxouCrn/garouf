@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Loup Garou",
-    "slug": "loup-garou",
+    "name": "Garouf",
+    "slug": "garouf",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "scheme": "loup-garou",
+    "scheme": "garouf",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
