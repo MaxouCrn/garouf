@@ -1,76 +1,36 @@
-import { useEffect, useRef, useCallback } from "react";
-import { Audio, AVPlaybackSource } from "expo-av";
+import { useCallback } from "react";
+import { useAudioPlayer, AudioSource } from "expo-audio";
 
-export function useSoundEffect(source: AVPlaybackSource | null) {
-  const soundRef = useRef<Audio.Sound | null>(null);
+export function useSoundEffect(source: AudioSource | null) {
+  const player = useAudioPlayer(source);
 
-  useEffect(() => {
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
-  }, []);
-
-  const play = useCallback(async () => {
+  const play = useCallback(() => {
     if (!source) return;
-    try {
-      // Unload previous instance if any
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-      }
-      const { sound } = await Audio.Sound.createAsync(source);
-      soundRef.current = sound;
-      await sound.playAsync();
-    } catch {
-      // Silently ignore — file might not exist yet
-    }
-  }, [source]);
+    player.seekTo(0);
+    player.play();
+  }, [source, player]);
 
-  const stop = useCallback(async () => {
-    try {
-      await soundRef.current?.stopAsync();
-    } catch {
-      // Ignore
-    }
-  }, []);
+  const stop = useCallback(() => {
+    player.pause();
+  }, [player]);
 
   return { play, stop };
 }
 
-export function useLoopingSound(source: AVPlaybackSource | null) {
-  const soundRef = useRef<Audio.Sound | null>(null);
+export function useLoopingSound(source: AudioSource | null) {
+  const player = useAudioPlayer(source);
 
-  useEffect(() => {
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
-  }, []);
-
-  const start = useCallback(async () => {
+  const start = useCallback(() => {
     if (!source) return;
-    try {
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-      }
-      const { sound } = await Audio.Sound.createAsync(source, {
-        isLooping: true,
-        volume: 0.3,
-      });
-      soundRef.current = sound;
-      await sound.playAsync();
-    } catch {
-      // Silently ignore
-    }
-  }, [source]);
+    player.loop = true;
+    player.volume = 0.3;
+    player.seekTo(0);
+    player.play();
+  }, [source, player]);
 
-  const stop = useCallback(async () => {
-    try {
-      await soundRef.current?.stopAsync();
-      await soundRef.current?.unloadAsync();
-      soundRef.current = null;
-    } catch {
-      // Ignore
-    }
-  }, []);
+  const stop = useCallback(() => {
+    player.pause();
+  }, [player]);
 
   return { start, stop };
 }
