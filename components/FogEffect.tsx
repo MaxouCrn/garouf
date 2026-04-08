@@ -1,82 +1,116 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Dimensions } from "react-native";
+import { Animated, StyleSheet, Dimensions, View } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-interface FogLayerConfig {
+const PARTICLE_COUNT = 18;
+
+interface ParticleConfig {
+  startX: number;
+  startY: number;
+  size: number;
   duration: number;
-  top: string;
+  delay: number;
+  drift: number;
   opacity: number;
-  height: number;
-  reverse?: boolean;
 }
 
-const FOG_LAYERS: FogLayerConfig[] = [
-  { duration: 12000, top: "62%", opacity: 0.15, height: 120 },
-  { duration: 18000, top: "68%", opacity: 0.1, height: 100, reverse: true },
-  { duration: 15000, top: "75%", opacity: 0.12, height: 80 },
-  { duration: 20000, top: "55%", opacity: 0.08, height: 140, reverse: true },
-];
+function createParticles(): ParticleConfig[] {
+  return Array.from({ length: PARTICLE_COUNT }, () => ({
+    startX: Math.random() * width,
+    startY: height + Math.random() * 40,
+    size: 2 + Math.random() * 4,
+    duration: 6000 + Math.random() * 8000,
+    delay: Math.random() * 5000,
+    drift: -30 + Math.random() * 60,
+    opacity: 0.3 + Math.random() * 0.5,
+  }));
+}
 
-function FogLayer({ config }: { config: FogLayerConfig }) {
-  const translateX = useRef(new Animated.Value(config.reverse ? 0 : -width)).current;
-  const fadeOpacity = useRef(new Animated.Value(0)).current;
+function Particle({ config }: { config: ParticleConfig }) {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in
-    Animated.timing(fadeOpacity, {
-      toValue: 1,
-      duration: 2000,
-      useNativeDriver: true,
-    }).start();
+    const animate = () => {
+      translateY.setValue(0);
+      translateX.setValue(0);
+      opacity.setValue(0);
 
-    // Drift loop
-    const drift = () => {
-      translateX.setValue(config.reverse ? 0 : -width);
-      Animated.timing(translateX, {
-        toValue: config.reverse ? -width : 0,
-        duration: config.duration,
-        useNativeDriver: true,
-      }).start(() => drift());
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -(height * 0.5 + Math.random() * height * 0.4),
+          duration: config.duration,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateX, {
+          toValue: config.drift,
+          duration: config.duration,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.timing(opacity, {
+            toValue: config.opacity,
+            duration: config.duration * 0.2,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: config.opacity,
+            duration: config.duration * 0.5,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: config.duration * 0.3,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => animate());
     };
-    drift();
+
+    const timeout = setTimeout(animate, config.delay);
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
     <Animated.View
       pointerEvents="none"
       style={[
-        styles.fogLayer,
+        styles.particle,
         {
-          top: config.top as any,
-          height: config.height,
-          opacity: fadeOpacity.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, config.opacity],
-          }),
-          transform: [{ translateX }],
+          left: config.startX,
+          top: config.startY,
+          width: config.size,
+          height: config.size,
+          borderRadius: config.size / 2,
+          opacity,
+          transform: [{ translateY }, { translateX }],
         },
       ]}
     />
   );
 }
 
+const particles = createParticles();
+
 export default function FogEffect() {
   return (
-    <>
-      {FOG_LAYERS.map((config, i) => (
-        <FogLayer key={i} config={config} />
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {particles.map((config, i) => (
+        <Particle key={i} config={config} />
       ))}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fogLayer: {
+  particle: {
     position: "absolute",
-    left: -width * 0.5,
-    width: width * 2.5,
-    borderRadius: 100,
-    backgroundColor: "rgba(200, 210, 220, 1)",
+    backgroundColor: "#D4A017",
+    shadowColor: "#D4A017",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
 });
