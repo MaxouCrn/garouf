@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 
-const LOGO_SIZE = 280;
+const LOGO_SIZE = 550;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -38,7 +38,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 40,
     padding: 24,
   },
   logo: {
