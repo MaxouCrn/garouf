@@ -1,9 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
-import CardFrame from "../components/CardFrame";
 
 const ROLE_LABELS: Record<Role, { label: string; emoji: string }> = {
   werewolf: { label: "Loup-Garou", emoji: "🐺" },
@@ -34,12 +33,18 @@ export default function DistributionScreen() {
   return (
     <>
       <Stack.Screen
-        options={{ title: "Distribution", headerBackVisible: false }}
+        options={{ title: "Distribution", headerShown: false }}
       />
-      <CardFrame
-        title="Distribution"
-        subtitle={`${state.distributionIndex + 1} / ${state.players.length}`}
+      <ImageBackground
+        source={require("../assets/fond-home.png")}
+        style={styles.container}
+        resizeMode="cover"
       >
+        <Text style={styles.title}>Distribution</Text>
+        <Text style={styles.progress}>
+          {state.distributionIndex + 1} / {state.players.length}
+        </Text>
+
         <View style={styles.centered}>
           {!state.revealedRole ? (
             <>
@@ -67,12 +72,36 @@ export default function DistributionScreen() {
             </>
           )}
         </View>
-      </CardFrame>
+      </ImageBackground>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  title: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  progress: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
   centered: {
     flex: 1,
     alignItems: "center",
@@ -82,12 +111,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 18,
     marginBottom: 8,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   playerName: {
     fontFamily: fonts.cinzelBold,
-    color: colors.text,
+    color: colors.white,
     fontSize: 32,
     marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   roleEmoji: {
     fontSize: 80,
@@ -98,6 +133,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 28,
     marginBottom: 48,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   button: {
     backgroundColor: colors.primary,

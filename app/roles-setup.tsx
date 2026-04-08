@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Pressable, ScrollView, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
-import CardFrame from "../components/CardFrame";
+import { fonts } from "../theme/typography";
 import MuteButton from "../components/MuteButton";
 import { useMusicContext } from "../context/MusicContext";
 
@@ -93,9 +93,17 @@ export default function RolesSetupScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Roles" }} />
-      <MuteButton />
-      <CardFrame title="Roles" subtitle={`${playerCount} joueurs`}>
+      <Stack.Screen options={{ title: "Roles", headerShown: false }} />
+      <ImageBackground
+        source={require("../assets/fond-home.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <MuteButton />
+
+        <Text style={styles.title}>Roles</Text>
+        <Text style={styles.subtitle}>{playerCount} joueurs</Text>
+
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
           {ROLE_CONFIGS.map((rc) => (
             <View key={rc.role} style={styles.roleRow}>
@@ -168,12 +176,37 @@ export default function RolesSetupScreen() {
             <Text style={styles.startButtonText}>Distribuer les roles</Text>
           </Pressable>
         </ScrollView>
-      </CardFrame>
+      </ImageBackground>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  title: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 20,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
   scroll: {
     flex: 1,
   },
@@ -181,7 +214,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
@@ -206,7 +239,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   counterBtn: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(15,52,96,0.9)",
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -229,7 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
@@ -244,14 +277,17 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(255,255,255,0.15)",
     marginVertical: 16,
   },
   timerTitle: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 12,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   timerRow: {
     flexDirection: "row",
@@ -262,7 +298,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     alignItems: "center",
   },
   timerOptionActive: {
