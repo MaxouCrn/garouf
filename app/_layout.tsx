@@ -8,6 +8,10 @@ import { colors } from "../theme/colors";
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = {
+  initialRouteName: "splash",
+};
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Cinzel_400Regular,
@@ -35,7 +39,10 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background },
           animation: "slide_from_right",
         }}
-      />
+      >
+        <Stack.Screen name="splash" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
     </GameProvider>
   );
 }

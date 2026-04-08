@@ -4,11 +4,11 @@
     "slug": "garouf",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-app.png",
     "userInterfaceStyle": "dark",
     "scheme": "garouf",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo-app.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
@@ -17,10 +17,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo-app.png",
         "backgroundColor": "#1a1a2e"
       }
     },
-    "plugins": ["expo-router"]
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ]
   }
 }
