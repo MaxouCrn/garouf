@@ -12,6 +12,7 @@ import {
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import CardFrame from "../components/CardFrame";
 
 const MIN_PLAYERS = 4;
 
@@ -31,73 +32,73 @@ export default function PlayersSetupScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Stack.Screen options={{ title: "Joueurs" }} />
+      <CardFrame title="Joueurs" subtitle="Ajoutez les participants">
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom du joueur"
+            placeholderTextColor={colors.textMuted}
+            value={name}
+            onChangeText={setName}
+            onSubmitEditing={addPlayer}
+            autoFocus
+          />
+          <Pressable
+            style={[styles.addButton, !name.trim() && styles.buttonDisabled]}
+            onPress={addPlayer}
+            disabled={!name.trim()}
+          >
+            <Text style={styles.addButtonText}>+</Text>
+          </Pressable>
+        </View>
 
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nom du joueur"
-          placeholderTextColor={colors.textMuted}
-          value={name}
-          onChangeText={setName}
-          onSubmitEditing={addPlayer}
-          autoFocus
+        <Text style={styles.count}>
+          {state.players.length} joueur{state.players.length !== 1 ? "s" : ""}{" "}
+          {state.players.length < MIN_PLAYERS
+            ? `(min. ${MIN_PLAYERS})`
+            : ""}
+        </Text>
+
+        <FlatList
+          data={state.players}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          renderItem={({ item, index }) => (
+            <View style={styles.playerRow}>
+              <Text style={styles.playerName}>
+                {index + 1}. {item.name}
+              </Text>
+              <Pressable
+                onPress={() =>
+                  dispatch({ type: "REMOVE_PLAYER", id: item.id })
+                }
+              >
+                <Text style={styles.removeButton}>✕</Text>
+              </Pressable>
+            </View>
+          )}
         />
+
         <Pressable
-          style={[styles.addButton, !name.trim() && styles.buttonDisabled]}
-          onPress={addPlayer}
-          disabled={!name.trim()}
+          style={[styles.nextButton, !canProceed && styles.buttonDisabled]}
+          onPress={() => router.push("/roles-setup")}
+          disabled={!canProceed}
         >
-          <Text style={styles.addButtonText}>+</Text>
+          <Text style={styles.nextButtonText}>Suivant</Text>
         </Pressable>
-      </View>
-
-      <Text style={styles.count}>
-        {state.players.length} joueur{state.players.length !== 1 ? "s" : ""}{" "}
-        {state.players.length < MIN_PLAYERS
-          ? `(min. ${MIN_PLAYERS})`
-          : ""}
-      </Text>
-
-      <FlatList
-        data={state.players}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        renderItem={({ item, index }) => (
-          <View style={styles.playerRow}>
-            <Text style={styles.playerName}>
-              {index + 1}. {item.name}
-            </Text>
-            <Pressable
-              onPress={() =>
-                dispatch({ type: "REMOVE_PLAYER", id: item.id })
-              }
-            >
-              <Text style={styles.removeButton}>✕</Text>
-            </Pressable>
-          </View>
-        )}
-      />
-
-      <Pressable
-        style={[styles.nextButton, !canProceed && styles.buttonDisabled]}
-        onPress={() => router.push("/roles-setup")}
-        disabled={!canProceed}
-      >
-        <Text style={styles.nextButtonText}>Suivant</Text>
-      </Pressable>
+      </CardFrame>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 16,
   },
   inputRow: {
     flexDirection: "row",
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   addButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 28,
     fontWeight: "bold",
   },
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   nextButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },

@@ -3,6 +3,8 @@ import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import CardFrame from "../components/CardFrame";
 
 export default function HunterScreen() {
   const router = useRouter();
@@ -17,7 +19,6 @@ export default function HunterScreen() {
     dispatch({ type: "HUNTER_SHOOT", playerId });
   };
 
-  // After HUNTER_SHOOT, phase changes — navigate via useEffect
   useEffect(() => {
     if (state.phase === "day") router.replace("/day");
     else if (state.phase === "night") router.replace("/night");
@@ -25,57 +26,53 @@ export default function HunterScreen() {
   }, [state.phase]);
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
         options={{ title: "Chasseur", headerBackVisible: false }}
       />
+      <CardFrame title="Chasseur" subtitle={`${hunter?.name} a ete elimine`}>
+        <View style={styles.header}>
+          <Text style={styles.emoji}>🏹</Text>
+          <Text style={styles.title}>
+            {hunter?.name} etait le Chasseur !
+          </Text>
+          <Text style={styles.subtitle}>
+            Avant de mourir, il peut emporter quelqu'un avec lui.
+          </Text>
+        </View>
 
-      <View style={styles.header}>
-        <Text style={styles.emoji}>🏹</Text>
-        <Text style={styles.title}>
-          {hunter?.name} etait le Chasseur !
-        </Text>
-        <Text style={styles.subtitle}>
-          Avant de mourir, il peut emporter quelqu'un avec lui.
-        </Text>
-      </View>
-
-      <FlatList
-        data={alivePlayers}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.playerOption}
-            onPress={() => handleShoot(item.id)}
-          >
-            <Text style={styles.playerOptionText}>{item.name}</Text>
-          </Pressable>
-        )}
-      />
-    </View>
+        <FlatList
+          data={alivePlayers}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.playerOption}
+              onPress={() => handleShoot(item.id)}
+            >
+              <Text style={styles.playerOptionText}>{item.name}</Text>
+            </Pressable>
+          )}
+        />
+      </CardFrame>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     alignItems: "center",
-    padding: 24,
-    paddingTop: 48,
+    paddingVertical: 16,
   },
   emoji: {
     fontSize: 64,
     marginBottom: 16,
   },
   title: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 8,
     textAlign: "center",
   },
@@ -86,7 +83,6 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    padding: 16,
   },
   listContent: {
     paddingBottom: 32,

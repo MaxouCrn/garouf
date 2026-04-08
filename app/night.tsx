@@ -4,6 +4,8 @@ import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import CardFrame from "../components/CardFrame";
 
 const ROLE_LABELS: Record<Role, string> = {
   werewolf: "Loup-Garou",
@@ -30,106 +32,51 @@ export default function NightScreen() {
     dispatch({ type: "RESOLVE_NIGHT" });
   };
 
-  // After RESOLVE_NIGHT, phase changes — navigate via useEffect
   useEffect(() => {
     if (state.phase === "hunter") router.replace("/hunter");
     else if (state.phase === "day") router.replace("/day");
     else if (state.phase === "end") router.replace("/end");
   }, [state.phase]);
 
+  const nightTitle = `Nuit ${state.turn}`;
+
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
-        options={{ title: `Nuit ${state.turn}`, headerBackVisible: false }}
+        options={{ title: nightTitle, headerBackVisible: false }}
       />
+      <CardFrame title={nightTitle}>
+        {state.nightStep === "intro" && (
+          <View style={styles.centered}>
+            <Text style={styles.emoji}>🌙</Text>
+            <Text style={styles.title}>La nuit tombe...</Text>
+            <Text style={styles.subtitle}>Tout le monde ferme les yeux</Text>
+            <Pressable style={styles.button} onPress={handleNextStep}>
+              <Text style={styles.buttonText}>Continuer</Text>
+            </Pressable>
+          </View>
+        )}
 
-      {state.nightStep === "intro" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>🌙</Text>
-          <Text style={styles.title}>La nuit tombe...</Text>
-          <Text style={styles.subtitle}>Tout le monde ferme les yeux</Text>
-          <Pressable style={styles.button} onPress={handleNextStep}>
-            <Text style={styles.buttonText}>Continuer</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {state.nightStep === "werewolves" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🐺 Les Loups-Garous se reveillent</Text>
-          <Text style={styles.instruction}>
-            Choisissez une victime :
-          </Text>
-          <FlatList
-            data={aliveNonWolves}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                style={[
-                  styles.playerOption,
-                  state.nightActions.werewolvesTarget === item.id &&
-                    styles.playerOptionSelected,
-                ]}
-                onPress={() =>
-                  dispatch({
-                    type: "SET_WEREWOLF_TARGET",
-                    playerId: item.id,
-                  })
-                }
-              >
-                <Text style={styles.playerOptionText}>{item.name}</Text>
-              </Pressable>
-            )}
-          />
-          <Pressable
-            style={[
-              styles.button,
-              !state.nightActions.werewolvesTarget && styles.buttonDisabled,
-            ]}
-            onPress={handleNextStep}
-            disabled={!state.nightActions.werewolvesTarget}
-          >
-            <Text style={styles.buttonText}>Confirmer</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {state.nightStep === "seer" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🔮 La Voyante se reveille</Text>
-          <Text style={styles.instruction}>
-            Choisissez un joueur a inspecter :
-          </Text>
-          {state.nightActions.seerTarget ? (
-            <View style={styles.centered}>
-              <Text style={styles.revealName}>
-                {state.players.find((p) => p.id === state.nightActions.seerTarget)?.name}
-              </Text>
-              <Text style={styles.revealRole}>
-                {ROLE_LABELS[
-                  state.players.find(
-                    (p) => p.id === state.nightActions.seerTarget
-                  )?.role ?? "villager"
-                ]}
-              </Text>
-              <Pressable style={styles.button} onPress={handleNextStep}>
-                <Text style={styles.buttonText}>Continuer</Text>
-              </Pressable>
-            </View>
-          ) : (
+        {state.nightStep === "werewolves" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>🐺 Les Loups-Garous se reveillent</Text>
+            <Text style={styles.instruction}>
+              Choisissez une victime :
+            </Text>
             <FlatList
-              data={alivePlayers.filter(
-                (p) => p.role !== "seer"
-              )}
+              data={aliveNonWolves}
               keyExtractor={(item) => item.id}
               style={styles.list}
               renderItem={({ item }) => (
                 <Pressable
-                  style={styles.playerOption}
+                  style={[
+                    styles.playerOption,
+                    state.nightActions.werewolvesTarget === item.id &&
+                      styles.playerOptionSelected,
+                  ]}
                   onPress={() =>
                     dispatch({
-                      type: "SET_SEER_TARGET",
+                      type: "SET_WEREWOLF_TARGET",
                       playerId: item.id,
                     })
                   }
@@ -138,34 +85,90 @@ export default function NightScreen() {
                 </Pressable>
               )}
             />
-          )}
-        </View>
-      )}
+            <Pressable
+              style={[
+                styles.button,
+                !state.nightActions.werewolvesTarget && styles.buttonDisabled,
+              ]}
+              onPress={handleNextStep}
+              disabled={!state.nightActions.werewolvesTarget}
+            >
+              <Text style={styles.buttonText}>Confirmer</Text>
+            </Pressable>
+          </View>
+        )}
 
-      {state.nightStep === "witch" && (
-        <WitchStep
-          state={state}
-          dispatch={dispatch}
-          onNext={handleNextStep}
-          aliveNonWolves={aliveNonWolves}
-          alivePlayers={alivePlayers}
-        />
-      )}
+        {state.nightStep === "seer" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>🔮 La Voyante se reveille</Text>
+            <Text style={styles.instruction}>
+              Choisissez un joueur a inspecter :
+            </Text>
+            {state.nightActions.seerTarget ? (
+              <View style={styles.centered}>
+                <Text style={styles.revealName}>
+                  {state.players.find((p) => p.id === state.nightActions.seerTarget)?.name}
+                </Text>
+                <Text style={styles.revealRole}>
+                  {ROLE_LABELS[
+                    state.players.find(
+                      (p) => p.id === state.nightActions.seerTarget
+                    )?.role ?? "villager"
+                  ]}
+                </Text>
+                <Pressable style={styles.button} onPress={handleNextStep}>
+                  <Text style={styles.buttonText}>Continuer</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <FlatList
+                data={alivePlayers.filter(
+                  (p) => p.role !== "seer"
+                )}
+                keyExtractor={(item) => item.id}
+                style={styles.list}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={styles.playerOption}
+                    onPress={() =>
+                      dispatch({
+                        type: "SET_SEER_TARGET",
+                        playerId: item.id,
+                      })
+                    }
+                  >
+                    <Text style={styles.playerOptionText}>{item.name}</Text>
+                  </Pressable>
+                )}
+              />
+            )}
+          </View>
+        )}
 
-      {state.nightStep === "resolution" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>☀️</Text>
-          <Text style={styles.title}>Le soleil se leve...</Text>
-          <Pressable style={styles.button} onPress={handleResolve}>
-            <Text style={styles.buttonText}>Reveler les evenements</Text>
-          </Pressable>
-        </View>
-      )}
-    </View>
+        {state.nightStep === "witch" && (
+          <WitchStep
+            state={state}
+            dispatch={dispatch}
+            onNext={handleNextStep}
+            aliveNonWolves={aliveNonWolves}
+            alivePlayers={alivePlayers}
+          />
+        )}
+
+        {state.nightStep === "resolution" && (
+          <View style={styles.centered}>
+            <Text style={styles.emoji}>☀️</Text>
+            <Text style={styles.title}>Le soleil se leve...</Text>
+            <Pressable style={styles.button} onPress={handleResolve}>
+              <Text style={styles.buttonText}>Reveler les evenements</Text>
+            </Pressable>
+          </View>
+        )}
+      </CardFrame>
+    </>
   );
 }
 
-// Witch sub-component (kept in same file — tightly coupled to night flow)
 function WitchStep({
   state,
   dispatch,
@@ -252,28 +255,22 @@ function WitchStep({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   fullContainer: {
     flex: 1,
-    padding: 16,
   },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
   },
   emoji: {
     fontSize: 80,
     marginBottom: 16,
   },
   title: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
@@ -282,9 +279,9 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   stepTitle: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
   },
@@ -320,10 +317,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
-    margin: 16,
+    marginVertical: 16,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -331,15 +328,15 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   revealName: {
+    fontFamily: fonts.cinzelBold,
     color: colors.text,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 8,
   },
   revealRole: {
-    color: colors.warning,
+    fontFamily: fonts.cinzelRegular,
+    color: colors.ember,
     fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 32,
   },
   potionButton: {

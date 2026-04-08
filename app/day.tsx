@@ -3,6 +3,8 @@ import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import CardFrame from "../components/CardFrame";
 
 type DayStep = "announce" | "debate" | "vote";
 
@@ -48,7 +50,6 @@ export default function DayScreen() {
     dispatch({ type: "VOTE_ELIMINATE", playerId });
   };
 
-  // After VOTE_ELIMINATE, phase changes — navigate via useEffect
   useEffect(() => {
     if (state.phase === "hunter") router.replace("/hunter");
     else if (state.phase === "night") router.replace("/night");
@@ -56,109 +57,105 @@ export default function DayScreen() {
   }, [state.phase]);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
+  const dayTitle = `Jour ${state.turn}`;
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
-        options={{ title: `Jour ${state.turn}`, headerBackVisible: false }}
+        options={{ title: dayTitle, headerBackVisible: false }}
       />
-
-      {dayStep === "announce" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>☀️</Text>
-          <Text style={styles.title}>Le village se reveille</Text>
-          {deadNames.length === 0 ? (
-            <Text style={styles.announcement}>
-              Personne n'est mort cette nuit !
-            </Text>
-          ) : (
-            <>
+      <CardFrame title={dayTitle}>
+        {dayStep === "announce" && (
+          <View style={styles.centered}>
+            <Text style={styles.emoji}>☀️</Text>
+            <Text style={styles.title}>Le village se reveille</Text>
+            {deadNames.length === 0 ? (
               <Text style={styles.announcement}>
-                Cette nuit, le village a perdu :
+                Personne n'est mort cette nuit !
               </Text>
-              {deadNames.map((name) => (
-                <Text key={name} style={styles.deadName}>
-                  💀 {name}
+            ) : (
+              <>
+                <Text style={styles.announcement}>
+                  Cette nuit, le village a perdu :
                 </Text>
-              ))}
-            </>
-          )}
-          <Pressable
-            style={styles.button}
-            onPress={() => setDayStep("debate")}
-          >
-            <Text style={styles.buttonText}>Lancer le debat</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {dayStep === "debate" && (
-        <View style={styles.centered}>
-          <Text style={styles.title}>Debat en cours</Text>
-          <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
-          <Text style={styles.subtitle}>
-            Les villageois debattent...
-          </Text>
-          <Pressable
-            style={styles.skipButton}
-            onPress={() => {
-              if (timerRef.current) clearInterval(timerRef.current);
-              setDayStep("vote");
-            }}
-          >
-            <Text style={styles.skipButtonText}>Passer au vote</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {dayStep === "vote" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🗳️ Vote du village</Text>
-          <Text style={styles.instruction}>
-            Qui le village elimine-t-il ?
-          </Text>
-          <FlatList
-            data={alivePlayers}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                style={styles.playerOption}
-                onPress={() => handleVote(item.id)}
-              >
-                <Text style={styles.playerOptionText}>{item.name}</Text>
-              </Pressable>
+                {deadNames.map((name) => (
+                  <Text key={name} style={styles.deadName}>
+                    💀 {name}
+                  </Text>
+                ))}
+              </>
             )}
-          />
-        </View>
-      )}
-    </View>
+            <Pressable
+              style={styles.button}
+              onPress={() => setDayStep("debate")}
+            >
+              <Text style={styles.buttonText}>Lancer le debat</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {dayStep === "debate" && (
+          <View style={styles.centered}>
+            <Text style={styles.title}>Debat en cours</Text>
+            <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
+            <Text style={styles.subtitle}>
+              Les villageois debattent...
+            </Text>
+            <Pressable
+              style={styles.skipButton}
+              onPress={() => {
+                if (timerRef.current) clearInterval(timerRef.current);
+                setDayStep("vote");
+              }}
+            >
+              <Text style={styles.skipButtonText}>Passer au vote</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {dayStep === "vote" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>🗳️ Vote du village</Text>
+            <Text style={styles.instruction}>
+              Qui le village elimine-t-il ?
+            </Text>
+            <FlatList
+              data={alivePlayers}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.playerOption}
+                  onPress={() => handleVote(item.id)}
+                >
+                  <Text style={styles.playerOptionText}>{item.name}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        )}
+      </CardFrame>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   fullContainer: {
     flex: 1,
-    padding: 16,
   },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
   },
   emoji: {
     fontSize: 80,
     marginBottom: 16,
   },
   title: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 16,
   },
   subtitle: {
@@ -173,22 +170,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   deadName: {
+    fontFamily: fonts.cinzelBold,
     color: colors.danger,
     fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 8,
   },
   timer: {
-    color: colors.warning,
+    fontFamily: fonts.cinzelBold,
+    color: colors.ember,
     fontSize: 72,
-    fontWeight: "bold",
     fontVariant: ["tabular-nums"],
     marginBottom: 16,
   },
   stepTitle: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
   },
@@ -220,7 +217,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },

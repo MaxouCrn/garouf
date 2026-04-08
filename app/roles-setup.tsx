@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import CardFrame from "../components/CardFrame";
 
 interface RoleConfig {
   role: Role;
@@ -87,98 +88,89 @@ export default function RolesSetupScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <>
       <Stack.Screen options={{ title: "Roles" }} />
+      <CardFrame title="Roles" subtitle={`${playerCount} joueurs`}>
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          {ROLE_CONFIGS.map((rc) => (
+            <View key={rc.role} style={styles.roleRow}>
+              <View style={styles.roleInfo}>
+                <Text style={styles.roleLabel}>
+                  {rc.emoji} {rc.label}
+                </Text>
+                <Text style={styles.roleDesc}>{rc.description}</Text>
+              </View>
+              <View style={styles.counter}>
+                <Pressable
+                  onPress={() => updateCount(rc.role, -1)}
+                  style={styles.counterBtn}
+                >
+                  <Text style={styles.counterBtnText}>−</Text>
+                </Pressable>
+                <Text style={styles.counterValue}>{counts[rc.role]}</Text>
+                <Pressable
+                  onPress={() => updateCount(rc.role, 1)}
+                  style={styles.counterBtn}
+                >
+                  <Text style={styles.counterBtnText}>+</Text>
+                </Pressable>
+              </View>
+            </View>
+          ))}
 
-      <Text style={styles.header}>
-        {playerCount} joueurs — configurez les roles
-      </Text>
-
-      {ROLE_CONFIGS.map((rc) => (
-        <View key={rc.role} style={styles.roleRow}>
-          <View style={styles.roleInfo}>
-            <Text style={styles.roleLabel}>
-              {rc.emoji} {rc.label}
-            </Text>
-            <Text style={styles.roleDesc}>{rc.description}</Text>
-          </View>
-          <View style={styles.counter}>
-            <Pressable
-              onPress={() => updateCount(rc.role, -1)}
-              style={styles.counterBtn}
-            >
-              <Text style={styles.counterBtnText}>−</Text>
-            </Pressable>
-            <Text style={styles.counterValue}>{counts[rc.role]}</Text>
-            <Pressable
-              onPress={() => updateCount(rc.role, 1)}
-              style={styles.counterBtn}
-            >
-              <Text style={styles.counterBtnText}>+</Text>
-            </Pressable>
-          </View>
-        </View>
-      ))}
-
-      <View style={styles.villagerRow}>
-        <Text style={styles.roleLabel}>🧑‍🌾 Villageois</Text>
-        <Text
-          style={[
-            styles.villagerCount,
-            villagerCount < 0 && styles.errorText,
-          ]}
-        >
-          {villagerCount < 0 ? `${villagerCount} (trop de roles!)` : villagerCount}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.timerTitle}>Timer de debat</Text>
-      <View style={styles.timerRow}>
-        {TIMER_OPTIONS.map((min) => (
-          <Pressable
-            key={min}
-            style={[
-              styles.timerOption,
-              state.debateTimerMinutes === min && styles.timerOptionActive,
-            ]}
-            onPress={() => dispatch({ type: "SET_TIMER", minutes: min })}
-          >
+          <View style={styles.villagerRow}>
+            <Text style={styles.roleLabel}>🧑‍🌾 Villageois</Text>
             <Text
               style={[
-                styles.timerOptionText,
-                state.debateTimerMinutes === min && styles.timerOptionTextActive,
+                styles.villagerCount,
+                villagerCount < 0 && styles.errorText,
               ]}
             >
-              {min} min
+              {villagerCount < 0 ? `${villagerCount} (trop de roles!)` : villagerCount}
             </Text>
-          </Pressable>
-        ))}
-      </View>
+          </View>
 
-      <Pressable
-        style={[styles.startButton, !isValid && styles.buttonDisabled]}
-        onPress={handleStart}
-        disabled={!isValid}
-      >
-        <Text style={styles.startButtonText}>Distribuer les roles</Text>
-      </Pressable>
-    </ScrollView>
+          <View style={styles.divider} />
+
+          <Text style={styles.timerTitle}>Timer de debat</Text>
+          <View style={styles.timerRow}>
+            {TIMER_OPTIONS.map((min) => (
+              <Pressable
+                key={min}
+                style={[
+                  styles.timerOption,
+                  state.debateTimerMinutes === min && styles.timerOptionActive,
+                ]}
+                onPress={() => dispatch({ type: "SET_TIMER", minutes: min })}
+              >
+                <Text
+                  style={[
+                    styles.timerOptionText,
+                    state.debateTimerMinutes === min && styles.timerOptionTextActive,
+                  ]}
+                >
+                  {min} min
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Pressable
+            style={[styles.startButton, !isValid && styles.buttonDisabled]}
+            onPress={handleStart}
+            disabled={!isValid}
+          >
+            <Text style={styles.startButtonText}>Distribuer les roles</Text>
+          </Pressable>
+        </ScrollView>
+      </CardFrame>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: 16,
-  },
-  header: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    marginBottom: 16,
-    textAlign: "center",
   },
   roleRow: {
     flexDirection: "row",
@@ -277,7 +269,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   timerOptionTextActive: {
-    color: colors.white,
+    color: colors.black,
   },
   startButton: {
     backgroundColor: colors.primary,
@@ -287,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   startButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },

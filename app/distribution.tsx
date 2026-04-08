@@ -2,6 +2,8 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import CardFrame from "../components/CardFrame";
 
 const ROLE_LABELS: Record<Role, { label: string; emoji: string }> = {
   werewolf: { label: "Loup-Garou", emoji: "🐺" },
@@ -24,57 +26,57 @@ export default function DistributionScreen() {
 
   const handleNext = () => {
     dispatch({ type: "NEXT_PLAYER" });
-    // If last player, NEXT_PLAYER sets phase to "night" — navigate
     if (state.distributionIndex + 1 >= state.players.length) {
       router.replace("/night");
     }
   };
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
         options={{ title: "Distribution", headerBackVisible: false }}
       />
-
-      {!state.revealedRole ? (
-        <>
-          <Text style={styles.instruction}>
-            Passez le telephone a :
-          </Text>
-          <Text style={styles.playerName}>{currentPlayer.name}</Text>
-          <Text style={styles.hint}>
-            {state.distributionIndex + 1} / {state.players.length}
-          </Text>
-          <Pressable
-            style={styles.button}
-            onPress={() => dispatch({ type: "REVEAL_ROLE" })}
-          >
-            <Text style={styles.buttonText}>Voir mon role</Text>
-          </Pressable>
-        </>
-      ) : (
-        <>
-          <Text style={styles.playerName}>{currentPlayer.name}</Text>
-          <Text style={styles.roleEmoji}>{roleInfo?.emoji}</Text>
-          <Text style={styles.roleName}>
-            {roleInfo?.label}
-          </Text>
-          <Pressable style={styles.button} onPress={handleNext}>
-            <Text style={styles.buttonText}>J'ai compris, suivant</Text>
-          </Pressable>
-        </>
-      )}
-    </View>
+      <CardFrame
+        title="Distribution"
+        subtitle={`${state.distributionIndex + 1} / ${state.players.length}`}
+      >
+        <View style={styles.centered}>
+          {!state.revealedRole ? (
+            <>
+              <Text style={styles.instruction}>
+                Passez le telephone a :
+              </Text>
+              <Text style={styles.playerName}>{currentPlayer.name}</Text>
+              <Pressable
+                style={styles.button}
+                onPress={() => dispatch({ type: "REVEAL_ROLE" })}
+              >
+                <Text style={styles.buttonText}>Voir mon role</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.playerName}>{currentPlayer.name}</Text>
+              <Text style={styles.roleEmoji}>{roleInfo?.emoji}</Text>
+              <Text style={styles.roleName}>
+                {roleInfo?.label}
+              </Text>
+              <Pressable style={styles.button} onPress={handleNext}>
+                <Text style={styles.buttonText}>J'ai compris, suivant</Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </CardFrame>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  centered: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
   },
   instruction: {
     color: colors.textSecondary,
@@ -82,24 +84,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   playerName: {
+    fontFamily: fonts.cinzelBold,
     color: colors.text,
-    fontSize: 36,
-    fontWeight: "bold",
+    fontSize: 32,
     marginBottom: 16,
-  },
-  hint: {
-    color: colors.textMuted,
-    fontSize: 14,
-    marginBottom: 32,
   },
   roleEmoji: {
     fontSize: 80,
     marginBottom: 12,
   },
   roleName: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.primary,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 48,
   },
   button: {
@@ -109,7 +106,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },

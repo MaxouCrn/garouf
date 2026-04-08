@@ -2,6 +2,8 @@ import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import CardFrame from "../components/CardFrame";
 
 const ROLE_LABELS: Record<Role, { label: string; emoji: string }> = {
   werewolf: { label: "Loup-Garou", emoji: "🐺" },
@@ -18,105 +20,95 @@ export default function EndScreen() {
   const isWerewolfWin = state.winner === "werewolves";
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
         options={{ title: "Fin de partie", headerBackVisible: false }}
       />
-
-      <View style={styles.header}>
-        <Text style={styles.emoji}>{isWerewolfWin ? "🐺" : "🎉"}</Text>
-        <Text style={styles.title}>
-          {isWerewolfWin
-            ? "Les Loups-Garous ont gagne !"
-            : "Les Villageois ont gagne !"}
-        </Text>
-        <Text style={styles.subtitle}>
-          Partie terminee en {state.turn} tour{state.turn > 1 ? "s" : ""}
-        </Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Recap des roles</Text>
-      <FlatList
-        data={state.players}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        renderItem={({ item }) => {
-          const roleInfo = item.role ? ROLE_LABELS[item.role] : null;
-          return (
-            <View
-              style={[
-                styles.playerRow,
-                !item.isAlive && styles.playerDead,
-              ]}
-            >
-              <Text style={styles.playerName}>
-                {roleInfo?.emoji} {item.name}
-              </Text>
-              <View style={styles.playerDetails}>
-                <Text style={styles.roleName}>{roleInfo?.label}</Text>
-                <Text
-                  style={[
-                    styles.status,
-                    item.isAlive ? styles.alive : styles.dead,
-                  ]}
-                >
-                  {item.isAlive ? "Survivant" : "Mort"}
-                </Text>
-              </View>
-            </View>
-          );
-        }}
-      />
-
-      <Pressable
-        style={styles.button}
-        onPress={() => {
-          dispatch({ type: "RESET_GAME" });
-          router.replace("/");
-        }}
+      <CardFrame
+        title={isWerewolfWin ? "Victoire des Loups" : "Victoire du Village"}
+        subtitle={`Partie en ${state.turn} tour${state.turn > 1 ? "s" : ""}`}
       >
-        <Text style={styles.buttonText}>Nouvelle partie</Text>
-      </Pressable>
-    </View>
+        <View style={styles.header}>
+          <Text style={styles.emoji}>{isWerewolfWin ? "🐺" : "🎉"}</Text>
+          <Text style={styles.title}>
+            {isWerewolfWin
+              ? "Les Loups-Garous ont gagne !"
+              : "Les Villageois ont gagne !"}
+          </Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Recap des roles</Text>
+        <FlatList
+          data={state.players}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          renderItem={({ item }) => {
+            const roleInfo = item.role ? ROLE_LABELS[item.role] : null;
+            return (
+              <View
+                style={[
+                  styles.playerRow,
+                  !item.isAlive && styles.playerDead,
+                ]}
+              >
+                <Text style={styles.playerName}>
+                  {roleInfo?.emoji} {item.name}
+                </Text>
+                <View style={styles.playerDetails}>
+                  <Text style={styles.roleName}>{roleInfo?.label}</Text>
+                  <Text
+                    style={[
+                      styles.status,
+                      item.isAlive ? styles.alive : styles.dead,
+                    ]}
+                  >
+                    {item.isAlive ? "Survivant" : "Mort"}
+                  </Text>
+                </View>
+              </View>
+            );
+          }}
+        />
+
+        <Pressable
+          style={styles.button}
+          onPress={() => {
+            dispatch({ type: "RESET_GAME" });
+            router.replace("/");
+          }}
+        >
+          <Text style={styles.buttonText}>Nouvelle partie</Text>
+        </Pressable>
+      </CardFrame>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     alignItems: "center",
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   emoji: {
     fontSize: 64,
     marginBottom: 12,
   },
   title: {
+    fontFamily: fonts.cinzelRegular,
     color: colors.text,
-    fontSize: 26,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 8,
     textAlign: "center",
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: 16,
   },
   sectionTitle: {
     color: colors.textSecondary,
     fontSize: 14,
     fontWeight: "600",
     textTransform: "uppercase",
-    paddingHorizontal: 16,
     marginBottom: 8,
   },
   list: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   playerRow: {
     flexDirection: "row",
@@ -138,7 +130,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   roleName: {
-    color: colors.warning,
+    color: colors.ember,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -157,10 +149,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
-    margin: 16,
+    marginTop: 16,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },
