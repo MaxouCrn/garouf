@@ -95,7 +95,7 @@ export default function RolesSetupScreen() {
     <>
       <Stack.Screen options={{ title: "Roles", headerShown: false }} />
       <ImageBackground
-        source={require("../assets/fond-home.png")}
+        source={require("../assets/config-background.png")}
         style={styles.background}
         resizeMode="cover"
       >

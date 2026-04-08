@@ -36,7 +36,7 @@ export default function DistributionScreen() {
         options={{ title: "Distribution", headerShown: false }}
       />
       <ImageBackground
-        source={require("../assets/fond-home.png")}
+        source={require("../assets/config-background.png")}
         style={styles.container}
         resizeMode="cover"
       >

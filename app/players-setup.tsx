@@ -36,7 +36,7 @@ export default function PlayersSetupScreen() {
     <>
       <Stack.Screen options={{ title: "Joueurs", headerShown: false }} />
       <ImageBackground
-        source={require("../assets/fond-home.png")}
+        source={require("../assets/config-background.png")}
         style={styles.background}
         resizeMode="cover"
       >
