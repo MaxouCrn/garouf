@@ -333,11 +333,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         p.id === action.playerId ? { ...p, isAlive: false } : p
       );
 
-      // Hunter shoot: werewolves only win when they strictly outnumber villagers
-      const aliveWolvesH = updatedPlayers.filter((p) => p.isAlive && p.role === "werewolf").length;
-      const aliveVillagersH = updatedPlayers.filter((p) => p.isAlive && p.role !== "werewolf").length;
-      const winner: "werewolves" | "villagers" | null =
-        aliveWolvesH === 0 ? "villagers" : aliveWolvesH > aliveVillagersH ? "werewolves" : null;
+      const winner = checkWinner(updatedPlayers);
 
       if (winner) {
         return { ...state, players: updatedPlayers, phase: "end", winner };

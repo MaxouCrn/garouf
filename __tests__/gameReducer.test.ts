@@ -281,6 +281,7 @@ describe("gameReducer", () => {
           makePlayer("2", "Hunter", "hunter", false),
           makePlayer("3", "V1", "villager", true),
           makePlayer("4", "V2", "villager", true),
+          makePlayer("5", "V3", "villager", true),
         ],
         phase: "hunter",
         hunterContext: "night",
