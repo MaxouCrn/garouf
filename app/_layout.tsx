@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Cinzel_400Regular, Cinzel_700Bold } from "@expo-google-fonts/cinzel";
 import { GameProvider } from "../context/GameContext";
+import { MusicProvider } from "../context/MusicContext";
 import { colors } from "../theme/colors";
 
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +31,7 @@ export default function RootLayout() {
 
   return (
     <GameProvider>
+      <MusicProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -43,6 +45,7 @@ export default function RootLayout() {
         <Stack.Screen name="splash" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
+      </MusicProvider>
     </GameProvider>
   );
 }

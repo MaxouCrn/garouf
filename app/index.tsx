@@ -1,14 +1,22 @@
+import { useEffect } from "react";
 import { Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
+import { useMusicContext } from "../context/MusicContext";
 import { colors } from "../theme/colors";
 import FogEffect from "../components/FogEffect";
+import MuteButton from "../components/MuteButton";
 
 const LOGO_SIZE = 350;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { dispatch } = useGame();
+  const { startMusic } = useMusicContext();
+
+  useEffect(() => {
+    startMusic();
+  }, []);
 
   const handleNewGame = () => {
     dispatch({ type: "RESET_GAME" });
@@ -21,6 +29,7 @@ export default function HomeScreen() {
       style={styles.container}
       resizeMode="cover"
     >
+      <MuteButton />
       <FogEffect />
       <Image
         source={require("../assets/logo-app.png")}

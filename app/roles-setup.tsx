@@ -4,6 +4,8 @@ import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import CardFrame from "../components/CardFrame";
+import MuteButton from "../components/MuteButton";
+import { useMusicContext } from "../context/MusicContext";
 
 interface RoleConfig {
   role: Role;
@@ -54,6 +56,7 @@ const TIMER_OPTIONS = [1, 2, 3, 4, 5];
 export default function RolesSetupScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
+  const { stopMusic } = useMusicContext();
   const playerCount = state.players.length;
 
   const [counts, setCounts] = useState<Record<Role, number>>({
@@ -78,6 +81,7 @@ export default function RolesSetupScreen() {
   };
 
   const handleStart = () => {
+    stopMusic();
     const roles: { role: Role; count: number }[] = [
       ...ROLE_CONFIGS.map((rc) => ({ role: rc.role, count: counts[rc.role] })),
       { role: "villager" as Role, count: villagerCount },
@@ -90,6 +94,7 @@ export default function RolesSetupScreen() {
   return (
     <>
       <Stack.Screen options={{ title: "Roles" }} />
+      <MuteButton />
       <CardFrame title="Roles" subtitle={`${playerCount} joueurs`}>
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
           {ROLE_CONFIGS.map((rc) => (

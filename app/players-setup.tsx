@@ -13,6 +13,7 @@ import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import CardFrame from "../components/CardFrame";
+import MuteButton from "../components/MuteButton";
 
 const MIN_PLAYERS = 4;
 
@@ -36,6 +37,7 @@ export default function PlayersSetupScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Stack.Screen options={{ title: "Joueurs" }} />
+      <MuteButton />
       <CardFrame title="Joueurs" subtitle="Ajoutez les participants">
         <View style={styles.inputRow}>
           <TextInput
