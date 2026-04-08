@@ -14,10 +14,15 @@ export const NARRATOR_SOUNDS: Record<NightStep, AVPlaybackSource> = {
 };
 
 export const AMBIANCE_SOUND: AVPlaybackSource = require("../assets/sounds/ambiance_music.mp3");
+const WEREWOLF_SFX: AVPlaybackSource = require("../assets/sounds/werewolf.mp3");
+
+const NARRATOR_VOLUME = 1.0;
+const SFX_VOLUME = 0.25;
 
 export function useNarrator(nightStep: NightStep): void {
   const ambianceRef = useRef<Audio.Sound | null>(null);
   const narratorRef = useRef<Audio.Sound | null>(null);
+  const sfxRef = useRef<Audio.Sound | null>(null);
 
   // Start ambiance on mount, stop on unmount
   useEffect(() => {
@@ -50,7 +55,7 @@ export function useNarrator(nightStep: NightStep): void {
     };
   }, []);
 
-  // Play narrator on nightStep change, duck ambiance
+  // Play narrator (+ optional SFX) on nightStep change, duck ambiance
   useEffect(() => {
     let mounted = true;
 
@@ -66,6 +71,17 @@ export function useNarrator(nightStep: NightStep): void {
         // Ignore
       }
 
+      // Stop previous SFX
+      try {
+        if (sfxRef.current) {
+          await sfxRef.current.stopAsync();
+          await sfxRef.current.unloadAsync();
+          sfxRef.current = null;
+        }
+      } catch {
+        // Ignore
+      }
+
       const source = NARRATOR_SOUNDS[nightStep];
       if (!source) return;
 
@@ -73,7 +89,9 @@ export function useNarrator(nightStep: NightStep): void {
         // Duck ambiance
         await ambianceRef.current?.setVolumeAsync(DUCKED_VOLUME);
 
-        const { sound } = await Audio.Sound.createAsync(source);
+        const { sound } = await Audio.Sound.createAsync(source, {
+          volume: NARRATOR_VOLUME,
+        });
         if (!mounted) {
           await sound.unloadAsync();
           return;
@@ -86,6 +104,23 @@ export function useNarrator(nightStep: NightStep): void {
             ambianceRef.current?.setVolumeAsync(AMBIANCE_VOLUME);
           }
         });
+
+        // Play werewolf SFX alongside narrator during werewolves step
+        if (nightStep === "werewolves") {
+          try {
+            const { sound: sfx } = await Audio.Sound.createAsync(WEREWOLF_SFX, {
+              volume: SFX_VOLUME,
+            });
+            if (!mounted) {
+              await sfx.unloadAsync();
+            } else {
+              sfxRef.current = sfx;
+              await sfx.playAsync();
+            }
+          } catch {
+            // SFX failure is non-critical
+          }
+        }
 
         await sound.playAsync();
       } catch {
@@ -103,11 +138,15 @@ export function useNarrator(nightStep: NightStep): void {
     };
   }, [nightStep]);
 
-  // Cleanup narrator on unmount
+  // Cleanup narrator + SFX on unmount
   useEffect(() => {
     return () => {
-      const s = narratorRef.current;
+      const n = narratorRef.current;
       narratorRef.current = null;
+      n?.stopAsync().then(() => n.unloadAsync());
+
+      const s = sfxRef.current;
+      sfxRef.current = null;
       s?.stopAsync().then(() => s.unloadAsync());
     };
   }, []);

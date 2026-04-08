@@ -15,6 +15,7 @@ jest.mock("../assets/sounds/narrator/voyante_phase.mp3", () => 3, { virtual: tru
 jest.mock("../assets/sounds/narrator/sorcer_phase.mp3", () => 4, { virtual: true });
 jest.mock("../assets/sounds/narrator/morning_phase.mp3", () => 5, { virtual: true });
 jest.mock("../assets/sounds/ambiance_music.mp3", () => 6, { virtual: true });
+jest.mock("../assets/sounds/werewolf.mp3", () => 7, { virtual: true });
 
 import { NARRATOR_SOUNDS, AMBIANCE_SOUND } from "../hooks/useNarrator";
 
