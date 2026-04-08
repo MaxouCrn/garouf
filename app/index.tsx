@@ -2,6 +2,7 @@ import { Text, Image, ImageBackground, Pressable, StyleSheet } from "react-nativ
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import FogEffect from "../components/FogEffect";
 
 const LOGO_SIZE = 350;
 
@@ -20,6 +21,7 @@ export default function HomeScreen() {
       style={styles.container}
       resizeMode="cover"
     >
+      <FogEffect />
       <Image
         source={require("../assets/logo-app.png")}
         style={styles.logo}
