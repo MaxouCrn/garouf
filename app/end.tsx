@@ -1,17 +1,10 @@
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { View, Text, Image, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useGame, Role } from "../context/GameContext";
+import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import CardFrame from "../components/CardFrame";
-
-const ROLE_LABELS: Record<Role, { label: string; emoji: string }> = {
-  werewolf: { label: "Loup-Garou", emoji: "🐺" },
-  villager: { label: "Villageois", emoji: "🧑‍🌾" },
-  seer: { label: "Voyante", emoji: "🔮" },
-  witch: { label: "Sorciere", emoji: "🧪" },
-  hunter: { label: "Chasseur", emoji: "🏹" },
-};
+import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
 
 export default function EndScreen() {
   const router = useRouter();
@@ -44,6 +37,7 @@ export default function EndScreen() {
           style={styles.list}
           renderItem={({ item }) => {
             const roleInfo = item.role ? ROLE_LABELS[item.role] : null;
+            const cardImage = item.role ? ROLE_CARDS[item.role] : null;
             return (
               <View
                 style={[
@@ -51,9 +45,14 @@ export default function EndScreen() {
                   !item.isAlive && styles.playerDead,
                 ]}
               >
-                <Text style={styles.playerName}>
-                  {roleInfo?.emoji} {item.name}
-                </Text>
+                <View style={styles.playerLeft}>
+                  {cardImage ? (
+                    <Image source={cardImage} style={styles.cardThumb} resizeMode="cover" />
+                  ) : (
+                    <Text style={styles.cardEmoji}>{roleInfo?.emoji}</Text>
+                  )}
+                  <Text style={styles.playerName}>{item.name}</Text>
+                </View>
                 <View style={styles.playerDetails}>
                   <Text style={styles.roleName}>{roleInfo?.label}</Text>
                   <Text
@@ -115,12 +114,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: colors.surface,
-    padding: 14,
+    padding: 10,
     borderRadius: 10,
     marginBottom: 6,
   },
   playerDead: {
     opacity: 0.5,
+  },
+  playerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  cardThumb: {
+    width: 36,
+    height: 50,
+    borderRadius: 6,
+    marginRight: 10,
+  },
+  cardEmoji: {
+    fontSize: 24,
+    marginRight: 10,
   },
   playerName: {
     color: colors.text,

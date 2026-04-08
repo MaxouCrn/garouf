@@ -1,13 +1,14 @@
 import { useEffect } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { View, Text, Image, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import CardFrame from "../components/CardFrame";
+import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
 
-const ROLE_LABELS: Record<Role, string> = {
+const ROLE_LABEL_STRINGS: Record<Role, string> = {
   werewolf: "Loup-Garou",
   villager: "Villageois",
   seer: "Voyante",
@@ -105,21 +106,28 @@ export default function NightScreen() {
               Choisissez un joueur a inspecter :
             </Text>
             {state.nightActions.seerTarget ? (
-              <View style={styles.centered}>
-                <Text style={styles.revealName}>
-                  {state.players.find((p) => p.id === state.nightActions.seerTarget)?.name}
-                </Text>
-                <Text style={styles.revealRole}>
-                  {ROLE_LABELS[
-                    state.players.find(
-                      (p) => p.id === state.nightActions.seerTarget
-                    )?.role ?? "villager"
-                  ]}
-                </Text>
-                <Pressable style={styles.button} onPress={handleNextStep}>
-                  <Text style={styles.buttonText}>Continuer</Text>
-                </Pressable>
-              </View>
+              (() => {
+                const targetPlayer = state.players.find((p) => p.id === state.nightActions.seerTarget);
+                const targetRole = targetPlayer?.role ?? "villager";
+                const targetCard = ROLE_CARDS[targetRole];
+                return (
+                  <View style={styles.centered}>
+                    <Text style={styles.revealName}>
+                      {targetPlayer?.name}
+                    </Text>
+                    {targetCard ? (
+                      <Image source={targetCard} style={styles.seerCard} resizeMode="contain" />
+                    ) : (
+                      <Text style={styles.revealRole}>
+                        {ROLE_LABEL_STRINGS[targetRole]}
+                      </Text>
+                    )}
+                    <Pressable style={styles.button} onPress={handleNextStep}>
+                      <Text style={styles.buttonText}>Continuer</Text>
+                    </Pressable>
+                  </View>
+                );
+              })()
             ) : (
               <FlatList
                 data={alivePlayers.filter(
@@ -326,6 +334,12 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.4,
+  },
+  seerCard: {
+    width: 160,
+    height: 240,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   revealName: {
     fontFamily: fonts.cinzelBold,

@@ -1,16 +1,9 @@
-import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
+import { View, Text, Image, Pressable, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useGame, Role } from "../context/GameContext";
+import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
-
-const ROLE_LABELS: Record<Role, { label: string; emoji: string }> = {
-  werewolf: { label: "Loup-Garou", emoji: "🐺" },
-  villager: { label: "Villageois", emoji: "🧑‍🌾" },
-  seer: { label: "Voyante", emoji: "🔮" },
-  witch: { label: "Sorciere", emoji: "🧪" },
-  hunter: { label: "Chasseur", emoji: "🏹" },
-};
+import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
 
 export default function DistributionScreen() {
   const router = useRouter();
@@ -19,9 +12,9 @@ export default function DistributionScreen() {
   const currentPlayer = state.players[state.distributionIndex];
   if (!currentPlayer) return null;
 
-  const roleInfo = currentPlayer.role
-    ? ROLE_LABELS[currentPlayer.role]
-    : null;
+  const role = currentPlayer.role;
+  const roleInfo = role ? ROLE_LABELS[role] : null;
+  const cardImage = role ? ROLE_CARDS[role] : null;
 
   const handleNext = () => {
     dispatch({ type: "NEXT_PLAYER" });
@@ -62,7 +55,15 @@ export default function DistributionScreen() {
           ) : (
             <>
               <Text style={styles.playerName}>{currentPlayer.name}</Text>
-              <Text style={styles.roleEmoji}>{roleInfo?.emoji}</Text>
+              {cardImage ? (
+                <Image
+                  source={cardImage}
+                  style={styles.cardImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Text style={styles.roleEmoji}>{roleInfo?.emoji}</Text>
+              )}
               <Text style={styles.roleName}>
                 {roleInfo?.label}
               </Text>
@@ -124,6 +125,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },
+  cardImage: {
+    width: 200,
+    height: 300,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
   roleEmoji: {
     fontSize: 80,
     marginBottom: 12,
@@ -132,7 +139,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.cinzelRegular,
     color: colors.primary,
     fontSize: 28,
-    marginBottom: 48,
+    marginBottom: 32,
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
