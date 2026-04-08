@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
+import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import CardFrame from "../components/CardFrame";
+
+const DEBAT_MUSIC = require("../assets/sounds/debat-music.mp3");
+const DEBAT_VOLUME = 0.4;
 
 type DayStep = "announce" | "debate" | "vote";
 
@@ -12,10 +16,64 @@ export default function DayScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
   const [dayStep, setDayStep] = useState<DayStep>("announce");
+  const [isMuted, setIsMuted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(
     state.debateTimerMinutes * 60
   );
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const musicRef = useRef<Audio.Sound | null>(null);
+
+  // Start/stop debate music based on dayStep
+  useEffect(() => {
+    let mounted = true;
+
+    async function startMusic() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(DEBAT_MUSIC, {
+          isLooping: true,
+          volume: isMuted ? 0 : DEBAT_VOLUME,
+        });
+        if (!mounted) {
+          await sound.unloadAsync();
+          return;
+        }
+        musicRef.current = sound;
+        await sound.playAsync();
+      } catch {
+        // Ignore
+      }
+    }
+
+    async function stopMusic() {
+      try {
+        if (musicRef.current) {
+          await musicRef.current.stopAsync();
+          await musicRef.current.unloadAsync();
+          musicRef.current = null;
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    if (dayStep === "debate") {
+      startMusic();
+    } else {
+      stopMusic();
+    }
+
+    return () => {
+      mounted = false;
+      const s = musicRef.current;
+      musicRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
+    };
+  }, [dayStep]);
+
+  // Handle mute toggle
+  useEffect(() => {
+    musicRef.current?.setVolumeAsync(isMuted ? 0 : DEBAT_VOLUME);
+  }, [isMuted]);
 
   useEffect(() => {
     if (dayStep === "debate" && secondsLeft > 0) {
@@ -96,6 +154,12 @@ export default function DayScreen() {
 
         {dayStep === "debate" && (
           <View style={styles.centered}>
+            <Pressable
+              style={styles.muteButton}
+              onPress={() => setIsMuted((m) => !m)}
+            >
+              <Text style={styles.muteIcon}>{isMuted ? "🔇" : "🔊"}</Text>
+            </Pressable>
             <Text style={styles.title}>Debat en cours</Text>
             <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
             <Text style={styles.subtitle}>
@@ -230,5 +294,20 @@ const styles = StyleSheet.create({
   skipButtonText: {
     color: colors.textSecondary,
     fontSize: 16,
+  },
+  muteButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  muteIcon: {
+    fontSize: 22,
   },
 });
