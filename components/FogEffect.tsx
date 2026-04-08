@@ -95,58 +95,11 @@ function Particle({ config }: { config: ParticleConfig }) {
   );
 }
 
-// Glow animé pour le foyer de braises en bas
-function FireGlow() {
-  const glowOpacity = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    const pulse = () => {
-      Animated.sequence([
-        Animated.timing(glowOpacity, {
-          toValue: 0.5 + Math.random() * 0.15,
-          duration: 1500 + Math.random() * 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowOpacity, {
-          toValue: 0.25 + Math.random() * 0.1,
-          duration: 1500 + Math.random() * 1500,
-          useNativeDriver: true,
-        }),
-      ]).start(() => pulse());
-    };
-    pulse();
-  }, []);
-
-  return (
-    <>
-      {/* Lueur orange large — halo du feu */}
-      <Animated.View
-        pointerEvents="none"
-        style={[styles.fireGlowWide, { opacity: glowOpacity }]}
-      />
-      {/* Lueur rouge/orange plus concentrée */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.fireGlowCore,
-          {
-            opacity: glowOpacity.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 0.7],
-            }),
-          },
-        ]}
-      />
-    </>
-  );
-}
-
 const particles = createParticles();
 
 export default function FogEffect() {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <FireGlow />
       {particles.map((config, i) => (
         <Particle key={i} config={config} />
       ))}
@@ -162,31 +115,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
-  },
-  fireGlowWide: {
-    position: "absolute",
-    bottom: -60,
-    left: -width * 0.2,
-    width: width * 1.4,
-    height: 180,
-    borderRadius: 100,
-    backgroundColor: "#E87C2A",
-    shadowColor: "#E87C2A",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.6,
-    shadowRadius: 40,
-  },
-  fireGlowCore: {
-    position: "absolute",
-    bottom: -40,
-    left: width * 0.15,
-    width: width * 0.7,
-    height: 100,
-    borderRadius: 60,
-    backgroundColor: "#D4A017",
-    shadowColor: "#D4A017",
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
   },
 });
