@@ -1,13 +1,6 @@
-import { useEffect } from "react";
-import { View, Image, StyleSheet, Dimensions } from "react-native";
+import { useEffect, useRef } from "react";
+import { View, Image, StyleSheet, Dimensions, Animated } from "react-native";
 import { useRouter } from "expo-router";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-  runOnJS,
-} from "react-native-reanimated";
 import { colors } from "../theme/colors";
 
 const { width } = Dimensions.get("window");
@@ -17,39 +10,31 @@ const HOLD_DURATION = 700;
 
 export default function SplashAnimationScreen() {
   const router = useRouter();
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.85);
-
-  const navigateHome = () => {
-    router.replace("/");
-  };
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
-    opacity.value = withTiming(1, {
-      duration: ANIMATION_DURATION,
-      easing: Easing.out(Easing.cubic),
-    });
-    scale.value = withTiming(
-      1,
-      {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
         duration: ANIMATION_DURATION,
-        easing: Easing.out(Easing.cubic),
-      },
-      () => {
-        // After animation completes, wait then navigate
-        runOnJS(setTimeout)(() => runOnJS(navigateHome)(), HOLD_DURATION);
-      }
-    );
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTimeout(() => {
+        router.replace("/");
+      }, HOLD_DURATION);
+    });
   }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
 
   return (
     <View style={styles.container}>
-      <Animated.View style={animatedStyle}>
+      <Animated.View style={{ opacity, transform: [{ scale }] }}>
         <Image
           source={require("../assets/logo-app.png")}
           style={styles.logo}
