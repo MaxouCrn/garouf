@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { View, Text, Pressable, FlatList, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
@@ -117,6 +117,41 @@ export default function DayScreen() {
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const dayTitle = `Jour ${state.turn}`;
 
+  if (dayStep === "debate") {
+    return (
+      <>
+        <Stack.Screen
+          options={{ title: dayTitle, headerShown: false }}
+        />
+        <ImageBackground
+          source={require("../assets/debat-background.png")}
+          style={styles.debatContainer}
+          resizeMode="cover"
+        >
+          <Pressable
+            style={styles.muteButton}
+            onPress={() => setIsMuted((m) => !m)}
+          >
+            <Text style={styles.muteIcon}>{isMuted ? "🔇" : "🔊"}</Text>
+          </Pressable>
+
+          <Text style={styles.debatDayTitle}>{dayTitle}</Text>
+          <Text style={styles.debatTimer}>{formatTime(secondsLeft)}</Text>
+
+          <Pressable
+            style={styles.skipButton}
+            onPress={() => {
+              if (timerRef.current) clearInterval(timerRef.current);
+              setDayStep("vote");
+            }}
+          >
+            <Text style={styles.skipButtonText}>Passer au vote</Text>
+          </Pressable>
+        </ImageBackground>
+      </>
+    );
+  }
+
   return (
     <>
       <Stack.Screen
@@ -152,31 +187,6 @@ export default function DayScreen() {
           </View>
         )}
 
-        {dayStep === "debate" && (
-          <View style={styles.centered}>
-            <Pressable
-              style={styles.muteButton}
-              onPress={() => setIsMuted((m) => !m)}
-            >
-              <Text style={styles.muteIcon}>{isMuted ? "🔇" : "🔊"}</Text>
-            </Pressable>
-            <Text style={styles.title}>Debat en cours</Text>
-            <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
-            <Text style={styles.subtitle}>
-              Les villageois debattent...
-            </Text>
-            <Pressable
-              style={styles.skipButton}
-              onPress={() => {
-                if (timerRef.current) clearInterval(timerRef.current);
-                setDayStep("vote");
-              }}
-            >
-              <Text style={styles.skipButtonText}>Passer au vote</Text>
-            </Pressable>
-          </View>
-        )}
-
         {dayStep === "vote" && (
           <View style={styles.fullContainer}>
             <Text style={styles.stepTitle}>🗳️ Vote du village</Text>
@@ -204,6 +214,32 @@ export default function DayScreen() {
 }
 
 const styles = StyleSheet.create({
+  debatContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  debatDayTitle: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
+    textAlign: "center",
+    marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  debatTimer: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 80,
+    color: colors.white,
+    fontVariant: ["tabular-nums"],
+    marginBottom: 48,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
   fullContainer: {
     flex: 1,
   },
@@ -286,14 +322,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   skipButton: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(0,0,0,0.5)",
     paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
   },
   skipButtonText: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
+    fontWeight: "600",
   },
   muteButton: {
     position: "absolute",
