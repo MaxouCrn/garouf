@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   logo: {
     width: LOGO_SIZE,
     height: LOGO_SIZE,
-    borderRadius: LOGO_SIZE / 2,
+    borderRadius: 24,
   },
 });
