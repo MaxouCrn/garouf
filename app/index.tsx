@@ -1,10 +1,9 @@
-import { View, Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
+import { Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
-import { fonts } from "../theme/typography";
 
-const LOGO_SIZE = 160;
+const LOGO_SIZE = 280;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -26,7 +25,6 @@ export default function HomeScreen() {
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>Garouf</Text>
       <Text style={styles.subtitle}>Le jeu de la pause midi</Text>
       <Pressable style={styles.button} onPress={handleNewGame}>
         <Text style={styles.buttonText}>Nouvelle partie</Text>
@@ -46,14 +44,8 @@ const styles = StyleSheet.create({
   logo: {
     width: LOGO_SIZE,
     height: LOGO_SIZE,
-    borderRadius: 20,
+    borderRadius: 24,
     marginBottom: 16,
-  },
-  title: {
-    fontSize: 42,
-    fontFamily: fonts.cinzelBold,
-    color: colors.primary,
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
