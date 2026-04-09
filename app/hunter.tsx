@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
+import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import CardFrame from "../components/CardFrame";
+
+const GUNFIRE_SFX = require("../assets/sounds/bruitages/gunfire-chasseur.mp3");
 
 export default function HunterScreen() {
   const router = useRouter();
@@ -15,7 +18,18 @@ export default function HunterScreen() {
     (p) => p.role === "hunter" && !p.isAlive
   );
 
-  const handleShoot = (playerId: string) => {
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  useEffect(() => {
+    return () => {
+      soundRef.current?.unloadAsync();
+    };
+  }, []);
+
+  const handleShoot = async (playerId: string) => {
+    const { sound } = await Audio.Sound.createAsync(GUNFIRE_SFX, { volume: 1.0 });
+    soundRef.current = sound;
+    await sound.playAsync();
     dispatch({ type: "HUNTER_SHOOT", playerId });
   };
 
