@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   ScrollView,
   View,
@@ -10,14 +10,13 @@ import {
   Animated,
   Dimensions,
   Modal,
-  Platform,
 } from "react-native";
-import { DeviceMotion } from "expo-sensors";
 import { Stack, useRouter } from "expo-router";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_REGISTRY, RoleDefinition } from "../game/roles";
 import { ROLE_CARDS } from "../theme/roleCards";
+import { useGyroscopeTilt } from "../hooks/useGyroscopeTilt";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const GRID_GAP = 10;
@@ -27,9 +26,6 @@ const CARD_HEIGHT = CARD_WIDTH * 1.45;
 const EXPANDED_CARD_WIDTH = SCREEN_WIDTH * 0.6;
 const EXPANDED_CARD_HEIGHT = EXPANDED_CARD_WIDTH * 1.45;
 
-const TILT_INTENSITY = 12; // degrees of rotation
-const TILT_DAMPING = 0.15; // smoothing factor (0-1, lower = smoother)
-
 function getInterventionLabel(role: RoleDefinition): string {
   if (role.firstNightOnly) return "1re nuit";
   if (role.nightOrder !== null && role.activeEveryOtherNight) return "Nuit (1/2)";
@@ -37,66 +33,6 @@ function getInterventionLabel(role: RoleDefinition): string {
   if (role.id === "village_idiot") return "Jour";
   if (role.id === "hunter") return "A sa mort";
   return "Passif";
-}
-
-// --- Gyroscope tilt hook ---
-
-function useGyroscopeTilt(active: boolean) {
-  const tiltX = useRef(new Animated.Value(0)).current;
-  const tiltY = useRef(new Animated.Value(0)).current;
-  const currentX = useRef(0);
-  const currentY = useRef(0);
-  const baselineBeta = useRef<number | null>(null);
-  const baselineGamma = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!active || Platform.OS === "web") {
-      tiltX.setValue(0);
-      tiltY.setValue(0);
-      baselineBeta.current = null;
-      baselineGamma.current = null;
-      return;
-    }
-
-    DeviceMotion.setUpdateInterval(32); // ~30fps
-
-    const subscription = DeviceMotion.addListener((data) => {
-      if (!data.rotation) return;
-      const { beta, gamma } = data.rotation;
-
-      // Capture the initial orientation as the "flat" reference point
-      if (baselineBeta.current === null) {
-        baselineBeta.current = beta;
-        baselineGamma.current = gamma;
-        return;
-      }
-
-      // Compute delta from the position the user was holding when they opened the card
-      const deltaGamma = gamma - (baselineGamma.current ?? 0);
-      const deltaBeta = beta - (baselineBeta.current ?? 0);
-
-      const targetX = Math.max(-1, Math.min(1, deltaGamma * 2.5)) * TILT_INTENSITY;
-      const targetY = Math.max(-1, Math.min(1, deltaBeta * 2.5)) * TILT_INTENSITY;
-
-      currentX.current += (targetX - currentX.current) * TILT_DAMPING;
-      currentY.current += (targetY - currentY.current) * TILT_DAMPING;
-
-      tiltX.setValue(currentX.current);
-      tiltY.setValue(-currentY.current);
-    });
-
-    return () => {
-      subscription.remove();
-      tiltX.setValue(0);
-      tiltY.setValue(0);
-      currentX.current = 0;
-      currentY.current = 0;
-      baselineBeta.current = null;
-      baselineGamma.current = null;
-    };
-  }, [active]);
-
-  return { tiltX, tiltY };
 }
 
 // --- Grid Card ---
