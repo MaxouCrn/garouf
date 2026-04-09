@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -10,7 +10,9 @@ import {
   Animated,
   Dimensions,
   Modal,
+  Platform,
 } from "react-native";
+import { DeviceMotion } from "expo-sensors";
 import { Stack, useRouter } from "expo-router";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
@@ -25,6 +27,9 @@ const CARD_HEIGHT = CARD_WIDTH * 1.45;
 const EXPANDED_CARD_WIDTH = SCREEN_WIDTH * 0.6;
 const EXPANDED_CARD_HEIGHT = EXPANDED_CARD_WIDTH * 1.45;
 
+const TILT_INTENSITY = 12; // degrees of rotation
+const TILT_DAMPING = 0.15; // smoothing factor (0-1, lower = smoother)
+
 function getInterventionLabel(role: RoleDefinition): string {
   if (role.firstNightOnly) return "1re nuit";
   if (role.nightOrder !== null && role.activeEveryOtherNight) return "Nuit (1/2)";
@@ -33,6 +38,52 @@ function getInterventionLabel(role: RoleDefinition): string {
   if (role.id === "hunter") return "A sa mort";
   return "Passif";
 }
+
+// --- Gyroscope tilt hook ---
+
+function useGyroscopeTilt(active: boolean) {
+  const tiltX = useRef(new Animated.Value(0)).current;
+  const tiltY = useRef(new Animated.Value(0)).current;
+  const currentX = useRef(0);
+  const currentY = useRef(0);
+
+  useEffect(() => {
+    if (!active || Platform.OS === "web") {
+      tiltX.setValue(0);
+      tiltY.setValue(0);
+      return;
+    }
+
+    DeviceMotion.setUpdateInterval(32); // ~30fps
+
+    const subscription = DeviceMotion.addListener((data) => {
+      if (!data.rotation) return;
+      const { beta, gamma } = data.rotation; // beta = front/back, gamma = left/right
+
+      // Smooth interpolation
+      const targetX = Math.max(-1, Math.min(1, gamma * 2)) * TILT_INTENSITY;
+      const targetY = Math.max(-1, Math.min(1, beta * 2)) * TILT_INTENSITY;
+
+      currentX.current += (targetX - currentX.current) * TILT_DAMPING;
+      currentY.current += (targetY - currentY.current) * TILT_DAMPING;
+
+      tiltX.setValue(currentX.current);
+      tiltY.setValue(-currentY.current);
+    });
+
+    return () => {
+      subscription.remove();
+      tiltX.setValue(0);
+      tiltY.setValue(0);
+      currentX.current = 0;
+      currentY.current = 0;
+    };
+  }, [active]);
+
+  return { tiltX, tiltY };
+}
+
+// --- Grid Card ---
 
 function GridCard({
   role,
@@ -64,6 +115,8 @@ function GridCard({
   );
 }
 
+// --- Expanded Card Modal ---
+
 function ExpandedCardModal({
   role,
   visible,
@@ -75,61 +128,59 @@ function ExpandedCardModal({
 }) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const cardScale = useRef(new Animated.Value(0.3)).current;
-  const cardOpacity = useRef(new Animated.Value(0)).current;
-  const descOpacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const descTranslateY = useRef(new Animated.Value(15)).current;
+
+  const { tiltX, tiltY } = useGyroscopeTilt(visible);
 
   const animateIn = useCallback(() => {
     overlayOpacity.setValue(0);
     cardScale.setValue(0.3);
-    cardOpacity.setValue(0);
-    descOpacity.setValue(0);
+    contentOpacity.setValue(0);
+    descTranslateY.setValue(15);
 
     Animated.parallel([
       Animated.timing(overlayOpacity, {
         toValue: 1,
-        duration: 250,
+        duration: 200,
         useNativeDriver: true,
       }),
       Animated.spring(cardScale, {
         toValue: 1,
-        friction: 8,
-        tension: 65,
+        friction: 7,
+        tension: 80,
         useNativeDriver: true,
       }),
-      Animated.timing(cardOpacity, {
+      Animated.timing(contentOpacity, {
         toValue: 1,
-        duration: 200,
+        duration: 250,
+        delay: 100,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      Animated.timing(descOpacity, {
-        toValue: 1,
+      Animated.timing(descTranslateY, {
+        toValue: 0,
         duration: 300,
+        delay: 100,
         useNativeDriver: true,
-      }).start();
-    });
+      }),
+    ]).start();
   }, []);
 
   const animateOut = useCallback(() => {
     Animated.parallel([
       Animated.timing(overlayOpacity, {
         toValue: 0,
-        duration: 200,
+        duration: 180,
         useNativeDriver: true,
       }),
       Animated.timing(cardScale, {
         toValue: 0.3,
-        duration: 200,
+        duration: 180,
         useNativeDriver: true,
       }),
-      Animated.timing(cardOpacity, {
+      Animated.timing(contentOpacity, {
         toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(descOpacity, {
-        toValue: 0,
-        duration: 150,
+        duration: 120,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -158,15 +209,12 @@ function ExpandedCardModal({
         <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]} />
       </Pressable>
 
-      {/* Content (non-pressable area) */}
+      {/* Content */}
       <View style={styles.modalContent} pointerEvents="box-none">
         <Animated.View
           style={[
             styles.expandedContainer,
-            {
-              opacity: cardOpacity,
-              transform: [{ scale: cardScale }],
-            },
+            { transform: [{ scale: cardScale }] },
           ]}
         >
           {/* Close button */}
@@ -174,8 +222,50 @@ function ExpandedCardModal({
             <Text style={styles.closeButtonText}>✕</Text>
           </Pressable>
 
-          {/* Card */}
-          <View style={[styles.expandedCard, { borderColor: accentColor }]}>
+          {/* Card with gyroscope tilt */}
+          <Animated.View
+            style={[
+              styles.expandedCard,
+              {
+                borderColor: accentColor,
+                transform: [
+                  { perspective: 800 },
+                  {
+                    rotateY: tiltX.interpolate({
+                      inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                      outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                    }),
+                  },
+                  {
+                    rotateX: tiltY.interpolate({
+                      inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                      outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {/* Shine / light reflection overlay */}
+            <Animated.View
+              style={[
+                styles.cardShine,
+                {
+                  opacity: tiltX.interpolate({
+                    inputRange: [-TILT_INTENSITY, 0, TILT_INTENSITY],
+                    outputRange: [0.15, 0, 0.15],
+                  }),
+                  transform: [
+                    {
+                      translateX: tiltX.interpolate({
+                        inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                        outputRange: [-EXPANDED_CARD_WIDTH * 0.5, EXPANDED_CARD_WIDTH * 0.5],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
             {cardImage ? (
               <Image source={cardImage} style={styles.expandedImage} resizeMode="cover" />
             ) : (
@@ -183,10 +273,18 @@ function ExpandedCardModal({
                 <Text style={styles.expandedEmoji}>{role.emoji}</Text>
               </View>
             )}
-          </View>
+          </Animated.View>
 
-          {/* Info below card */}
-          <Animated.View style={[styles.expandedInfo, { opacity: descOpacity }]}>
+          {/* Info below card — appears with card */}
+          <Animated.View
+            style={[
+              styles.expandedInfo,
+              {
+                opacity: contentOpacity,
+                transform: [{ translateY: descTranslateY }],
+              },
+            ]}
+          >
             <Text style={[styles.expandedName, { color: accentColor }]}>{role.label}</Text>
 
             <View style={styles.expandedBadges}>
@@ -210,7 +308,9 @@ function ExpandedCardModal({
   );
 }
 
-function SectionHeader({ title, color, count }: { title: string; color: string; count: number }) {
+// --- Section Header ---
+
+function SectionHeader({ title, color }: { title: string; color: string }) {
   return (
     <View style={styles.sectionHeader}>
       <View style={[styles.sectionLine, { backgroundColor: color }]} />
@@ -221,6 +321,8 @@ function SectionHeader({ title, color, count }: { title: string; color: string; 
     </View>
   );
 }
+
+// --- Main Screen ---
 
 export default function GrimoireScreen() {
   const router = useRouter();
@@ -250,7 +352,6 @@ export default function GrimoireScreen() {
         {row.map((role) => (
           <GridCard key={role.id} role={role} onPress={() => handleCardPress(role)} />
         ))}
-        {/* Fill empty slots to keep grid alignment */}
         {row.length < 3 &&
           Array.from({ length: 3 - row.length }).map((_, i) => (
             <View key={`empty-${i}`} style={styles.gridCard} />
@@ -273,7 +374,6 @@ export default function GrimoireScreen() {
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Text style={styles.backButtonText}>← Retour</Text>
             </Pressable>
@@ -281,12 +381,10 @@ export default function GrimoireScreen() {
             <Text style={styles.title}>Grimoire</Text>
             <Text style={styles.subtitle}>Touche une carte pour decouvrir son pouvoir</Text>
 
-            {/* Village section */}
-            <SectionHeader title="Village" color={colors.primary} count={villageRoles.length} />
+            <SectionHeader title="Village" color={colors.primary} />
             {renderGrid(villageRoles)}
 
-            {/* Werewolves section */}
-            <SectionHeader title="Loups-Garous" color={colors.danger} count={werewolfRoles.length} />
+            <SectionHeader title="Loups-Garous" color={colors.danger} />
             {renderGrid(werewolfRoles)}
 
             <View style={styles.bottomPadding} />
@@ -451,6 +549,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     overflow: "hidden",
     backgroundColor: colors.surface,
+  },
+  cardShine: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.4)",
+    zIndex: 10,
+    width: EXPANDED_CARD_WIDTH * 0.6,
   },
   expandedImage: {
     width: "100%",
