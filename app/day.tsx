@@ -14,13 +14,14 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-type DayStep = "announce" | "debate" | "vote";
+type DayStep = "announce" | "raven_mark" | "debate" | "vote" | "vote_result";
 
 export default function DayScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
   const [dayStep, setDayStep] = useState<DayStep>("announce");
   const [isMuted, setIsMuted] = useState(false);
+  const [voteResultMessage, setVoteResultMessage] = useState<string | null>(null);
   const announceRef = useRef<Audio.Sound | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(
     state.debateTimerMinutes * 60
@@ -131,22 +132,79 @@ export default function DayScreen() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const deadNames = state.nightDeaths
-    .map((id) => state.players.find((p) => p.id === id)?.name)
-    .filter(Boolean);
+  // Build enriched death announcements
+  const buildDeathMessages = (): { key: string; text: string; isSpecial?: boolean }[] => {
+    const messages: { key: string; text: string; isSpecial?: boolean }[] = [];
+
+    for (const id of state.nightDeaths) {
+      const player = state.players.find((p) => p.id === id);
+      if (!player) continue;
+      messages.push({ key: `dead-${id}`, text: `💀 ${player.name}` });
+
+      // Lovers cascade: if this dead player is a lover, find the other
+      if (state.lovers) {
+        const [l1, l2] = state.lovers;
+        let otherLoverId: string | null = null;
+        if (id === l1) otherLoverId = l2;
+        else if (id === l2) otherLoverId = l1;
+
+        if (otherLoverId) {
+          const otherLover = state.players.find((p) => p.id === otherLoverId);
+          // Only show grief death if the other lover is not also in nightDeaths (avoid duplicate)
+          if (otherLover && !state.nightDeaths.includes(otherLoverId)) {
+            messages.push({
+              key: `grief-${otherLoverId}`,
+              text: `💔 ${otherLover.name} est mort(e) de chagrin`,
+              isSpecial: true,
+            });
+          }
+        }
+      }
+    }
+
+    return messages;
+  };
+
+  // Elder survived with 1 life: elderLives < 2 and elder is still alive
+  const elder = state.players.find((p) => p.role === "elder");
+  const elderSurvivedAttack =
+    elder?.isAlive && state.elderLives < 2 && state.nightDeaths.length > 0;
 
   const handleVote = (playerId: string) => {
-    dispatch({ type: "VOTE_ELIMINATE", playerId });
+    const votedPlayer = alivePlayers.find((p) => p.id === playerId);
+
+    if (votedPlayer?.role === "village_idiot" && !state.villageIdiotRevealed) {
+      dispatch({ type: "VOTE_ELIMINATE", playerId });
+      // Reducer sets villageIdiotRevealed=true, does NOT change phase
+      setVoteResultMessage(
+        `🤪 ${votedPlayer.name} est l'Idiot du Village ! Il survit mais perd son droit de vote.`
+      );
+      setDayStep("vote_result");
+    } else {
+      dispatch({ type: "VOTE_ELIMINATE", playerId });
+      // Reducer changes phase, useEffect navigates
+    }
+  };
+
+  const handleIdiotContinue = () => {
+    dispatch({ type: "START_NIGHT" });
+    router.replace("/night");
   };
 
   useEffect(() => {
+    if (dayStep === "vote_result") return; // Don't auto-navigate during vote_result
     if (state.phase === "hunter") router.replace("/hunter");
     else if (state.phase === "night") router.replace("/night");
     else if (state.phase === "end") router.replace("/end");
-  }, [state.phase]);
+  }, [state.phase, dayStep]);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const dayTitle = `Jour ${state.turn}`;
+
+  const deathMessages = buildDeathMessages();
+  const ravenMarkedPlayer = state.ravenTarget
+    ? state.players.find((p) => p.id === state.ravenTarget)
+    : null;
 
   if (dayStep === "debate") {
     return (
@@ -197,7 +255,7 @@ export default function DayScreen() {
         {dayStep === "announce" && (
           <View style={styles.centered}>
             <Text style={styles.title}>Le village se reveille</Text>
-            {deadNames.length === 0 ? (
+            {deathMessages.length === 0 ? (
               <Text style={styles.announcement}>
                 Personne n'est mort cette nuit !
               </Text>
@@ -206,18 +264,55 @@ export default function DayScreen() {
                 <Text style={styles.announcement}>
                   Cette nuit, le village a perdu :
                 </Text>
-                {deadNames.map((name) => (
-                  <Text key={name} style={styles.deadName}>
-                    💀 {name}
+                {deathMessages.map((msg) => (
+                  <Text
+                    key={msg.key}
+                    style={msg.isSpecial ? styles.griefName : styles.deadName}
+                  >
+                    {msg.text}
                   </Text>
                 ))}
               </>
             )}
+            {elderSurvivedAttack && (
+              <Text style={styles.elderMessage}>
+                L'Ancien a été attaqué mais résiste !
+              </Text>
+            )}
+            {state.elderKilledByVillage && (
+              <Text style={styles.warningMessage}>
+                ⚠️ Les pouvoirs spéciaux du village sont perdus.
+              </Text>
+            )}
+            <Pressable
+              style={styles.button}
+              onPress={() => {
+                if (state.ravenTarget != null) {
+                  setDayStep("raven_mark");
+                } else {
+                  setDayStep("debate");
+                }
+              }}
+            >
+              <Text style={styles.buttonText}>Lancer le debat</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {dayStep === "raven_mark" && (
+          <View style={styles.centered}>
+            <Text style={styles.title}>🐦‍⬛ Un joueur porte la marque du Corbeau</Text>
+            {ravenMarkedPlayer && (
+              <Text style={styles.ravenMarkedName}>{ravenMarkedPlayer.name}</Text>
+            )}
+            <Text style={styles.announcement}>
+              Il commence le vote avec 2 voix contre lui.
+            </Text>
             <Pressable
               style={styles.button}
               onPress={() => setDayStep("debate")}
             >
-              <Text style={styles.buttonText}>Lancer le debat</Text>
+              <Text style={styles.buttonText}>Lancer le débat</Text>
             </Pressable>
           </View>
         )}
@@ -237,10 +332,27 @@ export default function DayScreen() {
                   style={styles.playerOption}
                   onPress={() => handleVote(item.id)}
                 >
-                  <Text style={styles.playerOptionText}>{item.name}</Text>
+                  <View style={styles.playerOptionRow}>
+                    <Text style={styles.playerOptionText}>{item.name}</Text>
+                    {item.id === state.ravenTarget && (
+                      <Text style={styles.ravenBadge}>(+2 voix)</Text>
+                    )}
+                  </View>
                 </Pressable>
               )}
             />
+          </View>
+        )}
+
+        {dayStep === "vote_result" && (
+          <View style={styles.centered}>
+            <Text style={styles.idiotMessage}>{voteResultMessage}</Text>
+            <Pressable
+              style={styles.button}
+              onPress={handleIdiotContinue}
+            >
+              <Text style={styles.buttonText}>Continuer</Text>
+            </Pressable>
           </View>
         )}
         </View>
@@ -321,6 +433,57 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },
+  griefName: {
+    fontFamily: fonts.cinzelBold,
+    color: "#f472b6",
+    fontSize: 20,
+    marginBottom: 8,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  elderMessage: {
+    color: "#fbbf24",
+    fontSize: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: "center",
+    fontStyle: "italic",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  warningMessage: {
+    color: "#f87171",
+    fontSize: 15,
+    marginTop: 4,
+    marginBottom: 8,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  ravenMarkedName: {
+    fontFamily: fonts.cinzelBold,
+    color: "#c084fc",
+    fontSize: 32,
+    marginVertical: 16,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  idiotMessage: {
+    color: colors.white,
+    fontSize: 20,
+    textAlign: "center",
+    marginBottom: 24,
+    paddingHorizontal: 16,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
   stepTitle: {
     fontFamily: fonts.cinzelBold,
     color: colors.white,
@@ -349,10 +512,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 6,
   },
+  playerOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   playerOptionText: {
     color: colors.white,
     fontSize: 18,
     textAlign: "center",
+  },
+  ravenBadge: {
+    color: "#c084fc",
+    fontSize: 14,
+    marginLeft: 8,
+    fontStyle: "italic",
   },
   button: {
     backgroundColor: "rgba(255,255,255,0.15)",

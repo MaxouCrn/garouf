@@ -246,15 +246,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "START_NIGHT": {
+      // Increment turn when called manually from day phase (e.g. village idiot survival)
+      const nextTurn = state.phase === "day" ? state.turn + 1 : state.turn;
       const steps = buildNightSteps(
         state.players,
         state.isFirstNight,
-        state.turn,
+        nextTurn,
         state.elderKilledByVillage
       );
       return {
         ...state,
         phase: "night",
+        turn: nextTurn,
         nightStep: steps[0],
         nightActions: { ...emptyNightActions },
         nightDeaths: [],
