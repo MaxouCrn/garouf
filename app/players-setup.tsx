@@ -36,7 +36,7 @@ export default function PlayersSetupScreen() {
     <>
       <Stack.Screen options={{ title: "Joueurs", headerShown: false }} />
       <ImageBackground
-        source={require("../assets/config-background.png")}
+        source={require("../assets/inscription-joueur-background.png")}
         style={styles.background}
         resizeMode="cover"
       >
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.white,
     textAlign: "center",
     marginTop: 4,
     marginBottom: 20,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   count: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 14,
     marginBottom: 8,
     textShadowColor: "rgba(0,0,0,0.6)",
