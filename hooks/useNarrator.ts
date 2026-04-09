@@ -5,11 +5,16 @@ import type { NightStep } from "../context/GameContext";
 const AMBIANCE_VOLUME = 0.3;
 const DUCKED_VOLUME = 0.05;
 
-export const NARRATOR_SOUNDS: Record<NightStep, AVPlaybackSource> = {
+export const NARRATOR_SOUNDS: Record<NightStep, AVPlaybackSource | null> = {
   intro: require("../assets/sounds/narrator/night/nightfall_phase.mp3"),
-  werewolves: require("../assets/sounds/narrator/night/loup_garou_phase.mp3"),
+  cupid: null,
+  lovers_reveal: null,
   seer: require("../assets/sounds/narrator/night/voyante_phase.mp3"),
+  savior: null,
+  werewolves: require("../assets/sounds/narrator/night/loup_garou_phase.mp3"),
   witch: require("../assets/sounds/narrator/night/sorcer_phase.mp3"),
+  raven: null,
+  little_girl: null,
   resolution: require("../assets/sounds/narrator/night/morning_phase.mp3"),
 };
 
