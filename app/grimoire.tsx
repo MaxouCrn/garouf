@@ -46,11 +46,15 @@ function useGyroscopeTilt(active: boolean) {
   const tiltY = useRef(new Animated.Value(0)).current;
   const currentX = useRef(0);
   const currentY = useRef(0);
+  const baselineBeta = useRef<number | null>(null);
+  const baselineGamma = useRef<number | null>(null);
 
   useEffect(() => {
     if (!active || Platform.OS === "web") {
       tiltX.setValue(0);
       tiltY.setValue(0);
+      baselineBeta.current = null;
+      baselineGamma.current = null;
       return;
     }
 
@@ -58,11 +62,21 @@ function useGyroscopeTilt(active: boolean) {
 
     const subscription = DeviceMotion.addListener((data) => {
       if (!data.rotation) return;
-      const { beta, gamma } = data.rotation; // beta = front/back, gamma = left/right
+      const { beta, gamma } = data.rotation;
 
-      // Smooth interpolation
-      const targetX = Math.max(-1, Math.min(1, gamma * 2)) * TILT_INTENSITY;
-      const targetY = Math.max(-1, Math.min(1, beta * 2)) * TILT_INTENSITY;
+      // Capture the initial orientation as the "flat" reference point
+      if (baselineBeta.current === null) {
+        baselineBeta.current = beta;
+        baselineGamma.current = gamma;
+        return;
+      }
+
+      // Compute delta from the position the user was holding when they opened the card
+      const deltaGamma = gamma - (baselineGamma.current ?? 0);
+      const deltaBeta = beta - (baselineBeta.current ?? 0);
+
+      const targetX = Math.max(-1, Math.min(1, deltaGamma * 2.5)) * TILT_INTENSITY;
+      const targetY = Math.max(-1, Math.min(1, deltaBeta * 2.5)) * TILT_INTENSITY;
 
       currentX.current += (targetX - currentX.current) * TILT_DAMPING;
       currentY.current += (targetY - currentY.current) * TILT_DAMPING;
@@ -77,6 +91,8 @@ function useGyroscopeTilt(active: boolean) {
       tiltY.setValue(0);
       currentX.current = 0;
       currentY.current = 0;
+      baselineBeta.current = null;
+      baselineGamma.current = null;
     };
   }, [active]);
 
