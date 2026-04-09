@@ -156,16 +156,16 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   roleImageContainer: {
-    width: 90,
-    minHeight: 90,
+    width: 80,
+    height: 110,
   },
   roleImage: {
-    width: 90,
-    height: "100%",
+    width: 80,
+    height: 110,
   },
   roleEmojiContainer: {
-    width: 90,
-    minHeight: 90,
+    width: 80,
+    height: 110,
     backgroundColor: colors.surfaceLight,
     alignItems: "center",
     justifyContent: "center",
