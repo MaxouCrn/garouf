@@ -1,8 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { View, Text, Pressable, FlatList, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
+import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import { ANNONCE_DEATH, ANNONCE_NO_DEATH } from "../assets/sounds/narrator/day/sounds";
+
+const DEBAT_MUSIC = require("../assets/sounds/debat-music.mp3");
+const DEBAT_VOLUME = 0.4;
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 type DayStep = "announce" | "debate" | "vote";
 
@@ -10,10 +20,91 @@ export default function DayScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
   const [dayStep, setDayStep] = useState<DayStep>("announce");
+  const [isMuted, setIsMuted] = useState(false);
+  const announceRef = useRef<Audio.Sound | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(
     state.debateTimerMinutes * 60
   );
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const musicRef = useRef<Audio.Sound | null>(null);
+
+  // Start/stop debate music based on dayStep
+  useEffect(() => {
+    let mounted = true;
+
+    async function startMusic() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(DEBAT_MUSIC, {
+          isLooping: true,
+          volume: isMuted ? 0 : DEBAT_VOLUME,
+        });
+        if (!mounted) {
+          await sound.unloadAsync();
+          return;
+        }
+        musicRef.current = sound;
+        await sound.playAsync();
+      } catch {
+        // Ignore
+      }
+    }
+
+    async function stopMusic() {
+      try {
+        if (musicRef.current) {
+          await musicRef.current.stopAsync();
+          await musicRef.current.unloadAsync();
+          musicRef.current = null;
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    if (dayStep === "debate") {
+      startMusic();
+    } else {
+      stopMusic();
+    }
+
+    return () => {
+      mounted = false;
+      const s = musicRef.current;
+      musicRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
+    };
+  }, [dayStep]);
+
+  // Play random announcement (death or no-death)
+  useEffect(() => {
+    if (dayStep !== "announce") return;
+    const hasDeath = state.nightDeaths.length > 0;
+    const source = hasDeath ? ANNONCE_DEATH : ANNONCE_NO_DEATH;
+    if (source.length === 0) return;
+    let mounted = true;
+
+    async function playAnnounce() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(pickRandom(source));
+        if (!mounted) { await sound.unloadAsync(); return; }
+        announceRef.current = sound;
+        await sound.playAsync();
+      } catch { /* ignore */ }
+    }
+
+    playAnnounce();
+    return () => {
+      mounted = false;
+      const s = announceRef.current;
+      announceRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
+    };
+  }, [dayStep]);
+
+  // Handle mute toggle
+  useEffect(() => {
+    musicRef.current?.setVolumeAsync(isMuted ? 0 : DEBAT_VOLUME);
+  }, [isMuted]);
 
   useEffect(() => {
     if (dayStep === "debate" && secondsLeft > 0) {
@@ -48,7 +139,6 @@ export default function DayScreen() {
     dispatch({ type: "VOTE_ELIMINATE", playerId });
   };
 
-  // After VOTE_ELIMINATE, phase changes — navigate via useEffect
   useEffect(() => {
     if (state.phase === "hunter") router.replace("/hunter");
     else if (state.phase === "night") router.replace("/night");
@@ -56,49 +146,29 @@ export default function DayScreen() {
   }, [state.phase]);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
+  const dayTitle = `Jour ${state.turn}`;
 
-  return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{ title: `Jour ${state.turn}`, headerBackVisible: false }}
-      />
-
-      {dayStep === "announce" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>☀️</Text>
-          <Text style={styles.title}>Le village se reveille</Text>
-          {deadNames.length === 0 ? (
-            <Text style={styles.announcement}>
-              Personne n'est mort cette nuit !
-            </Text>
-          ) : (
-            <>
-              <Text style={styles.announcement}>
-                Cette nuit, le village a perdu :
-              </Text>
-              {deadNames.map((name) => (
-                <Text key={name} style={styles.deadName}>
-                  💀 {name}
-                </Text>
-              ))}
-            </>
-          )}
+  if (dayStep === "debate") {
+    return (
+      <>
+        <Stack.Screen
+          options={{ title: dayTitle, headerShown: false }}
+        />
+        <ImageBackground
+          source={require("../assets/debat-background.png")}
+          style={styles.debatContainer}
+          resizeMode="cover"
+        >
           <Pressable
-            style={styles.button}
-            onPress={() => setDayStep("debate")}
+            style={styles.muteButton}
+            onPress={() => setIsMuted((m) => !m)}
           >
-            <Text style={styles.buttonText}>Lancer le debat</Text>
+            <Text style={styles.muteIcon}>{isMuted ? "🔇" : "🔊"}</Text>
           </Pressable>
-        </View>
-      )}
 
-      {dayStep === "debate" && (
-        <View style={styles.centered}>
-          <Text style={styles.title}>Debat en cours</Text>
-          <Text style={styles.timer}>{formatTime(secondsLeft)}</Text>
-          <Text style={styles.subtitle}>
-            Les villageois debattent...
-          </Text>
+          <Text style={styles.debatDayTitle}>{dayTitle}</Text>
+          <Text style={styles.debatTimer}>{formatTime(secondsLeft)}</Text>
+
           <Pressable
             style={styles.skipButton}
             onPress={() => {
@@ -108,130 +178,222 @@ export default function DayScreen() {
           >
             <Text style={styles.skipButtonText}>Passer au vote</Text>
           </Pressable>
-        </View>
-      )}
+        </ImageBackground>
+      </>
+    );
+  }
 
-      {dayStep === "vote" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🗳️ Vote du village</Text>
-          <Text style={styles.instruction}>
-            Qui le village elimine-t-il ?
-          </Text>
-          <FlatList
-            data={alivePlayers}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                style={styles.playerOption}
-                onPress={() => handleVote(item.id)}
-              >
-                <Text style={styles.playerOptionText}>{item.name}</Text>
-              </Pressable>
+  return (
+    <>
+      <Stack.Screen
+        options={{ title: dayTitle, headerShown: false }}
+      />
+      <ImageBackground
+        source={require("../assets/debat-background.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+        {dayStep === "announce" && (
+          <View style={styles.centered}>
+            <Text style={styles.title}>Le village se reveille</Text>
+            {deadNames.length === 0 ? (
+              <Text style={styles.announcement}>
+                Personne n'est mort cette nuit !
+              </Text>
+            ) : (
+              <>
+                <Text style={styles.announcement}>
+                  Cette nuit, le village a perdu :
+                </Text>
+                {deadNames.map((name) => (
+                  <Text key={name} style={styles.deadName}>
+                    💀 {name}
+                  </Text>
+                ))}
+              </>
             )}
-          />
+            <Pressable
+              style={styles.button}
+              onPress={() => setDayStep("debate")}
+            >
+              <Text style={styles.buttonText}>Lancer le debat</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {dayStep === "vote" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>Vote du village</Text>
+            <Text style={styles.instruction}>
+              Qui le village elimine-t-il ?
+            </Text>
+            <FlatList
+              data={alivePlayers}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.playerOption}
+                  onPress={() => handleVote(item.id)}
+                >
+                  <Text style={styles.playerOptionText}>{item.name}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        )}
         </View>
-      )}
-    </View>
+      </ImageBackground>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  fullContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  centered: {
+  debatContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
-  emoji: {
-    fontSize: 80,
+  debatDayTitle: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
+    textAlign: "center",
     marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  debatTimer: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 80,
+    color: colors.white,
+    fontVariant: ["tabular-nums"],
+    marginBottom: 48,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  fullContainer: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 16,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: 18,
-    marginBottom: 32,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   announcement: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 18,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   deadName: {
-    color: colors.danger,
+    fontFamily: fonts.cinzelBold,
+    color: "#ff6b6b",
     fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 8,
-  },
-  timer: {
-    color: colors.warning,
-    fontSize: 72,
-    fontWeight: "bold",
-    fontVariant: ["tabular-nums"],
-    marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   stepTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
+    fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   instruction: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   list: {
     flex: 1,
   },
   playerOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.8)",
     padding: 16,
     borderRadius: 10,
     marginBottom: 6,
   },
   playerOptionText: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 18,
     textAlign: "center",
   },
   button: {
-    backgroundColor: colors.primary,
+    backgroundColor: "rgba(255,255,255,0.15)",
     paddingHorizontal: 48,
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
   },
   buttonText: {
     color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
   },
   skipButton: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(0,0,0,0.5)",
     paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
   },
   skipButtonText: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
+    fontWeight: "600",
+  },
+  muteButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  muteIcon: {
+    fontSize: 22,
   },
 });

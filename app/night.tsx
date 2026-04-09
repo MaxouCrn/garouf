@@ -1,19 +1,13 @@
-import { useEffect } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { useEffect, useRef } from "react";
+import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
-import { useSoundEffect, useLoopingSound } from "../hooks/useSoundEffect";
+import { useNarrator } from "../hooks/useNarrator";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
 
-// Sound assets — set to null when file not yet available
-const SOUNDS = {
-  werewolf: require("../assets/sounds/werewolf.mp3"),
-  seer: null,     // futur: require("../assets/sounds/seer.mp3")
-  witch: null,    // futur: require("../assets/sounds/witch.mp3")
-  ambiance: null, // futur: require("../assets/sounds/night_ambiance.mp3")
-};
-
-const ROLE_LABELS: Record<Role, string> = {
+const ROLE_LABEL_STRINGS: Record<Role, string> = {
   werewolf: "Loup-Garou",
   villager: "Villageois",
   seer: "Voyante",
@@ -24,24 +18,10 @@ const ROLE_LABELS: Record<Role, string> = {
 export default function NightScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
+  const nightOpacity = useRef(new Animated.Value(0)).current;
+  const sunriseOpacity = useRef(new Animated.Value(0)).current;
 
-  const werewolfSound = useSoundEffect(SOUNDS.werewolf);
-  const seerSound = useSoundEffect(SOUNDS.seer);
-  const witchSound = useSoundEffect(SOUNDS.witch);
-  const ambianceSound = useLoopingSound(SOUNDS.ambiance);
-
-  // Play ambiance loop on mount
-  useEffect(() => {
-    ambianceSound.start();
-    return () => { ambianceSound.stop(); };
-  }, []);
-
-  // Play sound effect per night step
-  useEffect(() => {
-    if (state.nightStep === "werewolves") werewolfSound.play();
-    else if (state.nightStep === "seer") seerSound.play();
-    else if (state.nightStep === "witch") witchSound.play();
-  }, [state.nightStep]);
+  useNarrator(state.nightStep);
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const aliveNonWolves = alivePlayers.filter((p) => p.role !== "werewolf");
@@ -54,106 +34,91 @@ export default function NightScreen() {
     dispatch({ type: "RESOLVE_NIGHT" });
   };
 
-  // After RESOLVE_NIGHT, phase changes — navigate via useEffect
   useEffect(() => {
     if (state.phase === "hunter") router.replace("/hunter");
     else if (state.phase === "day") router.replace("/day");
     else if (state.phase === "end") router.replace("/end");
   }, [state.phase]);
 
+  useEffect(() => {
+    if (state.nightStep === "intro") {
+      nightOpacity.setValue(0);
+      sunriseOpacity.setValue(0);
+      Animated.timing(nightOpacity, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    } else if (state.nightStep === "resolution") {
+      sunriseOpacity.setValue(0);
+      Animated.timing(sunriseOpacity, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [state.nightStep]);
+
+  const nightTitle = `Nuit ${state.turn}`;
+
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen
-        options={{ title: `Nuit ${state.turn}`, headerBackVisible: false }}
+        options={{ title: nightTitle, headerShown: false }}
       />
-
-      {state.nightStep === "intro" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>🌙</Text>
-          <Text style={styles.title}>La nuit tombe...</Text>
-          <Text style={styles.subtitle}>Tout le monde ferme les yeux</Text>
-          <Pressable style={styles.button} onPress={handleNextStep}>
-            <Text style={styles.buttonText}>Continuer</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {state.nightStep === "werewolves" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🐺 Les Loups-Garous se reveillent</Text>
-          <Text style={styles.instruction}>
-            Choisissez une victime :
-          </Text>
-          <FlatList
-            data={aliveNonWolves}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                style={[
-                  styles.playerOption,
-                  state.nightActions.werewolvesTarget === item.id &&
-                    styles.playerOptionSelected,
-                ]}
-                onPress={() =>
-                  dispatch({
-                    type: "SET_WEREWOLF_TARGET",
-                    playerId: item.id,
-                  })
-                }
-              >
-                <Text style={styles.playerOptionText}>{item.name}</Text>
-              </Pressable>
-            )}
+      <View style={styles.backgroundContainer}>
+        <ImageBackground
+          source={require("../assets/sunset-background.png")}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: state.nightStep === "intro" ? nightOpacity : 1 }]}>
+          <ImageBackground
+            source={require("../assets/night-transition-background.png")}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
           />
-          <Pressable
-            style={[
-              styles.button,
-              !state.nightActions.werewolvesTarget && styles.buttonDisabled,
-            ]}
-            onPress={handleNextStep}
-            disabled={!state.nightActions.werewolvesTarget}
-          >
-            <Text style={styles.buttonText}>Confirmer</Text>
-          </Pressable>
-        </View>
-      )}
+        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: sunriseOpacity }]}>
+          <ImageBackground
+            source={require("../assets/sun-transition-background.png")}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+        </Animated.View>
+        <View style={styles.overlay}>
+        {state.nightStep === "intro" && (
+          <View style={styles.centered}>
+            <Text style={styles.title}>La nuit tombe...</Text>
+            <Text style={styles.subtitle}>Tout le monde ferme les yeux</Text>
+            <Pressable style={styles.button} onPress={handleNextStep}>
+              <Text style={styles.buttonText}>Continuer</Text>
+            </Pressable>
+          </View>
+        )}
 
-      {state.nightStep === "seer" && (
-        <View style={styles.fullContainer}>
-          <Text style={styles.stepTitle}>🔮 La Voyante se reveille</Text>
-          <Text style={styles.instruction}>
-            Choisissez un joueur a inspecter :
-          </Text>
-          {state.nightActions.seerTarget ? (
-            <View style={styles.centered}>
-              <Text style={styles.revealName}>
-                {state.players.find((p) => p.id === state.nightActions.seerTarget)?.name}
-              </Text>
-              <Text style={styles.revealRole}>
-                {ROLE_LABELS[
-                  state.players.find(
-                    (p) => p.id === state.nightActions.seerTarget
-                  )?.role ?? "villager"
-                ]}
-              </Text>
-              <Pressable style={styles.button} onPress={handleNextStep}>
-                <Text style={styles.buttonText}>Continuer</Text>
-              </Pressable>
-            </View>
-          ) : (
+        {state.nightStep === "werewolves" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>🐺 Les Loups-Garous se reveillent</Text>
+            <Text style={styles.instruction}>
+              Choisissez une victime :
+            </Text>
             <FlatList
-              data={alivePlayers.filter(
-                (p) => p.role !== "seer"
-              )}
+              data={aliveNonWolves}
               keyExtractor={(item) => item.id}
               style={styles.list}
               renderItem={({ item }) => (
                 <Pressable
-                  style={styles.playerOption}
+                  style={[
+                    styles.playerOption,
+                    state.nightActions.werewolvesTarget === item.id &&
+                      styles.playerOptionSelected,
+                  ]}
                   onPress={() =>
                     dispatch({
-                      type: "SET_SEER_TARGET",
+                      type: "SET_WEREWOLF_TARGET",
                       playerId: item.id,
                     })
                   }
@@ -162,34 +127,97 @@ export default function NightScreen() {
                 </Pressable>
               )}
             />
-          )}
-        </View>
-      )}
+            <Pressable
+              style={[
+                styles.button,
+                !state.nightActions.werewolvesTarget && styles.buttonDisabled,
+              ]}
+              onPress={handleNextStep}
+              disabled={!state.nightActions.werewolvesTarget}
+            >
+              <Text style={styles.buttonText}>Confirmer</Text>
+            </Pressable>
+          </View>
+        )}
 
-      {state.nightStep === "witch" && (
-        <WitchStep
-          state={state}
-          dispatch={dispatch}
-          onNext={handleNextStep}
-          aliveNonWolves={aliveNonWolves}
-          alivePlayers={alivePlayers}
-        />
-      )}
+        {state.nightStep === "seer" && (
+          <View style={styles.fullContainer}>
+            <Text style={styles.stepTitle}>🔮 La Voyante se reveille</Text>
+            <Text style={styles.instruction}>
+              Choisissez un joueur a inspecter :
+            </Text>
+            {state.nightActions.seerTarget ? (
+              (() => {
+                const targetPlayer = state.players.find((p) => p.id === state.nightActions.seerTarget);
+                const targetRole = targetPlayer?.role ?? "villager";
+                const targetCard = ROLE_CARDS[targetRole];
+                return (
+                  <View style={styles.centered}>
+                    <Text style={styles.revealName}>
+                      {targetPlayer?.name}
+                    </Text>
+                    {targetCard ? (
+                      <Image source={targetCard} style={styles.seerCard} resizeMode="contain" />
+                    ) : (
+                      <Text style={styles.revealRole}>
+                        {ROLE_LABEL_STRINGS[targetRole]}
+                      </Text>
+                    )}
+                    <Pressable style={styles.button} onPress={handleNextStep}>
+                      <Text style={styles.buttonText}>Continuer</Text>
+                    </Pressable>
+                  </View>
+                );
+              })()
+            ) : (
+              <FlatList
+                data={alivePlayers.filter(
+                  (p) => p.role !== "seer"
+                )}
+                keyExtractor={(item) => item.id}
+                style={styles.list}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={styles.playerOption}
+                    onPress={() =>
+                      dispatch({
+                        type: "SET_SEER_TARGET",
+                        playerId: item.id,
+                      })
+                    }
+                  >
+                    <Text style={styles.playerOptionText}>{item.name}</Text>
+                  </Pressable>
+                )}
+              />
+            )}
+          </View>
+        )}
 
-      {state.nightStep === "resolution" && (
-        <View style={styles.centered}>
-          <Text style={styles.emoji}>☀️</Text>
-          <Text style={styles.title}>Le soleil se leve...</Text>
-          <Pressable style={styles.button} onPress={handleResolve}>
-            <Text style={styles.buttonText}>Reveler les evenements</Text>
-          </Pressable>
+        {state.nightStep === "witch" && (
+          <WitchStep
+            state={state}
+            dispatch={dispatch}
+            onNext={handleNextStep}
+            aliveNonWolves={aliveNonWolves}
+            alivePlayers={alivePlayers}
+          />
+        )}
+
+        {state.nightStep === "resolution" && (
+          <View style={styles.centered}>
+            <Text style={styles.title}>Le soleil se leve...</Text>
+            <Pressable style={styles.button} onPress={handleResolve}>
+              <Text style={styles.buttonText}>Reveler les evenements</Text>
+            </Pressable>
+          </View>
+        )}
         </View>
-      )}
-    </View>
+      </View>
+    </>
   );
 }
 
-// Witch sub-component (kept in same file — tightly coupled to night flow)
 function WitchStep({
   state,
   dispatch,
@@ -276,54 +304,66 @@ function WitchStep({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   fullContainer: {
     flex: 1,
-    padding: 16,
   },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
-  },
-  emoji: {
-    fontSize: 80,
-    marginBottom: 16,
   },
   title: {
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 8,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   subtitle: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 18,
     marginBottom: 48,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   stepTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
+    fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   instruction: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   list: {
     flex: 1,
     marginBottom: 12,
   },
   playerOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.8)",
     padding: 16,
     borderRadius: 10,
     marginBottom: 6,
@@ -344,26 +384,35 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
-    margin: 16,
+    marginVertical: 16,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },
   buttonDisabled: {
     opacity: 0.4,
   },
+  seerCard: {
+    width: 160,
+    height: 240,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
   revealName: {
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 28,
-    fontWeight: "bold",
     marginBottom: 8,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   revealRole: {
-    color: colors.warning,
+    fontFamily: fonts.cinzelRegular,
+    color: colors.ember,
     fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 32,
   },
   potionButton: {

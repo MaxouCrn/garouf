@@ -1,11 +1,22 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import { Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
+import { useMusicContext } from "../context/MusicContext";
 import { colors } from "../theme/colors";
+import FogEffect from "../components/FogEffect";
+import MuteButton from "../components/MuteButton";
+
+const LOGO_SIZE = 350;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { dispatch } = useGame();
+  const { startMusic } = useMusicContext();
+
+  useEffect(() => {
+    startMusic();
+  }, []);
 
   const handleNewGame = () => {
     dispatch({ type: "RESET_GAME" });
@@ -13,14 +24,23 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>🐺</Text>
-      <Text style={styles.title}>Garouf</Text>
-      <Text style={styles.subtitle}>Le jeu de la pause midi</Text>
+    <ImageBackground
+      source={require("../assets/fond-home.png")}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <MuteButton />
+      <FogEffect />
+      <Image
+        source={require("../assets/logo-app.png")}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+      <Text style={styles.subtitle}>Le jeu de la pause du midi</Text>
       <Pressable style={styles.button} onPress={handleNewGame}>
         <Text style={styles.buttonText}>Nouvelle partie</Text>
       </Pressable>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -29,23 +49,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+    justifyContent: "flex-start",
+    paddingTop: 100,
   },
-  icon: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 42,
-    fontWeight: "bold",
-    color: colors.text,
-    marginBottom: 8,
+  logo: {
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
   },
   subtitle: {
     fontSize: 18,
     color: colors.textSecondary,
     marginBottom: 48,
+    marginTop: 48,
   },
   button: {
     backgroundColor: colors.primary,
@@ -54,7 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 20,
     fontWeight: "bold",
   },

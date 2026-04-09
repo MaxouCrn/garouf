@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   FlatList,
+  ImageBackground,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +13,8 @@ import {
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import MuteButton from "../components/MuteButton";
 
 const MIN_PLAYERS = 4;
 
@@ -30,74 +33,114 @@ export default function PlayersSetupScreen() {
   const canProceed = state.players.length >= MIN_PLAYERS;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <Stack.Screen options={{ title: "Joueurs" }} />
-
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nom du joueur"
-          placeholderTextColor={colors.textMuted}
-          value={name}
-          onChangeText={setName}
-          onSubmitEditing={addPlayer}
-          autoFocus
-        />
-        <Pressable
-          style={[styles.addButton, !name.trim() && styles.buttonDisabled]}
-          onPress={addPlayer}
-          disabled={!name.trim()}
+    <>
+      <Stack.Screen options={{ title: "Joueurs", headerShown: false }} />
+      <ImageBackground
+        source={require("../assets/inscription-joueur-background.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <Text style={styles.addButtonText}>+</Text>
-        </Pressable>
-      </View>
+          <MuteButton />
 
-      <Text style={styles.count}>
-        {state.players.length} joueur{state.players.length !== 1 ? "s" : ""}{" "}
-        {state.players.length < MIN_PLAYERS
-          ? `(min. ${MIN_PLAYERS})`
-          : ""}
-      </Text>
+          <Text style={styles.title}>Joueurs</Text>
+          <Text style={styles.subtitle}>Ajoutez les participants</Text>
 
-      <FlatList
-        data={state.players}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        renderItem={({ item, index }) => (
-          <View style={styles.playerRow}>
-            <Text style={styles.playerName}>
-              {index + 1}. {item.name}
+          <View style={styles.content}>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="Nom du joueur"
+                placeholderTextColor={colors.textMuted}
+                value={name}
+                onChangeText={setName}
+                onSubmitEditing={addPlayer}
+                autoFocus
+              />
+              <Pressable
+                style={[styles.addButton, !name.trim() && styles.buttonDisabled]}
+                onPress={addPlayer}
+                disabled={!name.trim()}
+              >
+                <Text style={styles.addButtonText}>+</Text>
+              </Pressable>
+            </View>
+
+            <Text style={styles.count}>
+              {state.players.length} joueur{state.players.length !== 1 ? "s" : ""}{" "}
+              {state.players.length < MIN_PLAYERS
+                ? `(min. ${MIN_PLAYERS})`
+                : ""}
             </Text>
+
+            <FlatList
+              data={state.players}
+              keyExtractor={(item) => item.id}
+              style={styles.list}
+              renderItem={({ item, index }) => (
+                <View style={styles.playerRow}>
+                  <Text style={styles.playerName}>
+                    {index + 1}. {item.name}
+                  </Text>
+                  <Pressable
+                    onPress={() =>
+                      dispatch({ type: "REMOVE_PLAYER", id: item.id })
+                    }
+                  >
+                    <Text style={styles.removeButton}>✕</Text>
+                  </Pressable>
+                </View>
+              )}
+            />
+
             <Pressable
-              onPress={() =>
-                dispatch({ type: "REMOVE_PLAYER", id: item.id })
-              }
+              style={[styles.nextButton, !canProceed && styles.buttonDisabled]}
+              onPress={() => router.push("/roles-setup")}
+              disabled={!canProceed}
             >
-              <Text style={styles.removeButton}>✕</Text>
+              <Text style={styles.nextButtonText}>Suivant</Text>
             </Pressable>
           </View>
-        )}
-      />
-
-      <Pressable
-        style={[styles.nextButton, !canProceed && styles.buttonDisabled]}
-        onPress={() => router.push("/roles-setup")}
-        disabled={!canProceed}
-      >
-        <Text style={styles.nextButtonText}>Suivant</Text>
-      </Pressable>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: 16,
+  },
+  flex: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  title: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: colors.white,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 20,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  content: {
+    flex: 1,
   },
   inputRow: {
     flexDirection: "row",
@@ -106,7 +149,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     color: colors.text,
     fontSize: 18,
     padding: 14,
@@ -120,7 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   addButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 28,
     fontWeight: "bold",
   },
@@ -128,9 +171,12 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   count: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 14,
     marginBottom: 8,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   list: {
     flex: 1,
@@ -139,7 +185,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     padding: 14,
     borderRadius: 10,
     marginBottom: 6,
@@ -161,7 +207,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   nextButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },

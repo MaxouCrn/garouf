@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Pressable, ScrollView, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import MuteButton from "../components/MuteButton";
+import { useMusicContext } from "../context/MusicContext";
 
 interface RoleConfig {
   role: Role;
@@ -53,6 +56,7 @@ const TIMER_OPTIONS = [1, 2, 3, 4, 5];
 export default function RolesSetupScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
+  const { stopMusic } = useMusicContext();
   const playerCount = state.players.length;
 
   const [counts, setCounts] = useState<Record<Role, number>>({
@@ -77,6 +81,7 @@ export default function RolesSetupScreen() {
   };
 
   const handleStart = () => {
+    stopMusic();
     const roles: { role: Role; count: number }[] = [
       ...ROLE_CONFIGS.map((rc) => ({ role: rc.role, count: counts[rc.role] })),
       { role: "villager" as Role, count: villagerCount },
@@ -87,104 +92,129 @@ export default function RolesSetupScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Stack.Screen options={{ title: "Roles" }} />
+    <>
+      <Stack.Screen options={{ title: "Roles", headerShown: false }} />
+      <ImageBackground
+        source={require("../assets/inscription-joueur-background.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <MuteButton />
 
-      <Text style={styles.header}>
-        {playerCount} joueurs — configurez les roles
-      </Text>
+        <Text style={styles.title}>Roles</Text>
+        <Text style={styles.subtitle}>{playerCount} joueurs</Text>
 
-      {ROLE_CONFIGS.map((rc) => (
-        <View key={rc.role} style={styles.roleRow}>
-          <View style={styles.roleInfo}>
-            <Text style={styles.roleLabel}>
-              {rc.emoji} {rc.label}
-            </Text>
-            <Text style={styles.roleDesc}>{rc.description}</Text>
-          </View>
-          <View style={styles.counter}>
-            <Pressable
-              onPress={() => updateCount(rc.role, -1)}
-              style={styles.counterBtn}
-            >
-              <Text style={styles.counterBtnText}>−</Text>
-            </Pressable>
-            <Text style={styles.counterValue}>{counts[rc.role]}</Text>
-            <Pressable
-              onPress={() => updateCount(rc.role, 1)}
-              style={styles.counterBtn}
-            >
-              <Text style={styles.counterBtnText}>+</Text>
-            </Pressable>
-          </View>
-        </View>
-      ))}
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          {ROLE_CONFIGS.map((rc) => (
+            <View key={rc.role} style={styles.roleRow}>
+              <View style={styles.roleInfo}>
+                <Text style={styles.roleLabel}>
+                  {rc.emoji} {rc.label}
+                </Text>
+                <Text style={styles.roleDesc}>{rc.description}</Text>
+              </View>
+              <View style={styles.counter}>
+                <Pressable
+                  onPress={() => updateCount(rc.role, -1)}
+                  style={styles.counterBtn}
+                >
+                  <Text style={styles.counterBtnText}>−</Text>
+                </Pressable>
+                <Text style={styles.counterValue}>{counts[rc.role]}</Text>
+                <Pressable
+                  onPress={() => updateCount(rc.role, 1)}
+                  style={styles.counterBtn}
+                >
+                  <Text style={styles.counterBtnText}>+</Text>
+                </Pressable>
+              </View>
+            </View>
+          ))}
 
-      <View style={styles.villagerRow}>
-        <Text style={styles.roleLabel}>🧑‍🌾 Villageois</Text>
-        <Text
-          style={[
-            styles.villagerCount,
-            villagerCount < 0 && styles.errorText,
-          ]}
-        >
-          {villagerCount < 0 ? `${villagerCount} (trop de roles!)` : villagerCount}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.timerTitle}>Timer de debat</Text>
-      <View style={styles.timerRow}>
-        {TIMER_OPTIONS.map((min) => (
-          <Pressable
-            key={min}
-            style={[
-              styles.timerOption,
-              state.debateTimerMinutes === min && styles.timerOptionActive,
-            ]}
-            onPress={() => dispatch({ type: "SET_TIMER", minutes: min })}
-          >
+          <View style={styles.villagerRow}>
+            <Text style={styles.roleLabel}>🧑‍🌾 Villageois</Text>
             <Text
               style={[
-                styles.timerOptionText,
-                state.debateTimerMinutes === min && styles.timerOptionTextActive,
+                styles.villagerCount,
+                villagerCount < 0 && styles.errorText,
               ]}
             >
-              {min} min
+              {villagerCount < 0 ? `${villagerCount} (trop de roles!)` : villagerCount}
             </Text>
-          </Pressable>
-        ))}
-      </View>
+          </View>
 
-      <Pressable
-        style={[styles.startButton, !isValid && styles.buttonDisabled]}
-        onPress={handleStart}
-        disabled={!isValid}
-      >
-        <Text style={styles.startButtonText}>Distribuer les roles</Text>
-      </Pressable>
-    </ScrollView>
+          <View style={styles.divider} />
+
+          <Text style={styles.timerTitle}>Timer de debat</Text>
+          <View style={styles.timerRow}>
+            {TIMER_OPTIONS.map((min) => (
+              <Pressable
+                key={min}
+                style={[
+                  styles.timerOption,
+                  state.debateTimerMinutes === min && styles.timerOptionActive,
+                ]}
+                onPress={() => dispatch({ type: "SET_TIMER", minutes: min })}
+              >
+                <Text
+                  style={[
+                    styles.timerOptionText,
+                    state.debateTimerMinutes === min && styles.timerOptionTextActive,
+                  ]}
+                >
+                  {min} min
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Pressable
+            style={[styles.startButton, !isValid && styles.buttonDisabled]}
+            onPress={handleStart}
+            disabled={!isValid}
+          >
+            <Text style={styles.startButtonText}>Distribuer les roles</Text>
+          </Pressable>
+        </ScrollView>
+      </ImageBackground>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: 16,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  header: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    marginBottom: 16,
+  title: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
+    color: colors.white,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 20,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  scroll: {
+    flex: 1,
   },
   roleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
@@ -209,7 +239,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   counterBtn: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(15,52,96,0.9)",
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -232,7 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
@@ -247,14 +277,17 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: "rgba(255,255,255,0.15)",
     marginVertical: 16,
   },
   timerTitle: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 12,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   timerRow: {
     flexDirection: "row",
@@ -265,7 +298,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.85)",
     alignItems: "center",
   },
   timerOptionActive: {
@@ -277,7 +310,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   timerOptionTextActive: {
-    color: colors.white,
+    color: colors.black,
   },
   startButton: {
     backgroundColor: colors.primary,
@@ -287,7 +320,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   startButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },
