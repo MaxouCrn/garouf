@@ -5,10 +5,18 @@ import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
-import CardFrame from "../components/CardFrame";
 
 const DEBAT_MUSIC = require("../assets/sounds/debat-music.mp3");
 const DEBAT_VOLUME = 0.4;
+
+// Library of no-death announcements — add new require() entries here when adding files
+const ANNONCE_NO_DEATH = [
+  require("../assets/sounds/narrator/day/no-death/annonce-no-death-1.mp3"),
+];
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 type DayStep = "announce" | "debate" | "vote";
 
@@ -17,6 +25,7 @@ export default function DayScreen() {
   const { state, dispatch } = useGame();
   const [dayStep, setDayStep] = useState<DayStep>("announce");
   const [isMuted, setIsMuted] = useState(false);
+  const announceRef = useRef<Audio.Sound | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(
     state.debateTimerMinutes * 60
   );
@@ -66,6 +75,29 @@ export default function DayScreen() {
       mounted = false;
       const s = musicRef.current;
       musicRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
+    };
+  }, [dayStep]);
+
+  // Play random no-death announcement
+  useEffect(() => {
+    if (dayStep !== "announce" || state.nightDeaths.length > 0) return;
+    let mounted = true;
+
+    async function playAnnounce() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(pickRandom(ANNONCE_NO_DEATH));
+        if (!mounted) { await sound.unloadAsync(); return; }
+        announceRef.current = sound;
+        await sound.playAsync();
+      } catch { /* ignore */ }
+    }
+
+    playAnnounce();
+    return () => {
+      mounted = false;
+      const s = announceRef.current;
+      announceRef.current = null;
       s?.stopAsync().then(() => s.unloadAsync());
     };
   }, [dayStep]);
@@ -155,12 +187,16 @@ export default function DayScreen() {
   return (
     <>
       <Stack.Screen
-        options={{ title: dayTitle, headerBackVisible: false }}
+        options={{ title: dayTitle, headerShown: false }}
       />
-      <CardFrame title={dayTitle}>
+      <ImageBackground
+        source={require("../assets/debat-background.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
         {dayStep === "announce" && (
           <View style={styles.centered}>
-            <Text style={styles.emoji}>☀️</Text>
             <Text style={styles.title}>Le village se reveille</Text>
             {deadNames.length === 0 ? (
               <Text style={styles.announcement}>
@@ -189,7 +225,7 @@ export default function DayScreen() {
 
         {dayStep === "vote" && (
           <View style={styles.fullContainer}>
-            <Text style={styles.stepTitle}>🗳️ Vote du village</Text>
+            <Text style={styles.stepTitle}>Vote du village</Text>
             <Text style={styles.instruction}>
               Qui le village elimine-t-il ?
             </Text>
@@ -208,7 +244,8 @@ export default function DayScreen() {
             />
           </View>
         )}
-      </CardFrame>
+        </View>
+      </ImageBackground>
     </>
   );
 }
@@ -240,6 +277,15 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
   fullContainer: {
     flex: 1,
   },
@@ -248,78 +294,80 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  emoji: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
   title: {
-    fontFamily: fonts.cinzelRegular,
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 28,
     marginBottom: 16,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: 18,
-    marginBottom: 32,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   announcement: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 18,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   deadName: {
     fontFamily: fonts.cinzelBold,
-    color: colors.danger,
+    color: "#ff6b6b",
     fontSize: 24,
     marginBottom: 8,
-  },
-  timer: {
-    fontFamily: fonts.cinzelBold,
-    color: colors.ember,
-    fontSize: 72,
-    fontVariant: ["tabular-nums"],
-    marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   stepTitle: {
-    fontFamily: fonts.cinzelRegular,
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   instruction: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   list: {
     flex: 1,
   },
   playerOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.8)",
     padding: 16,
     borderRadius: 10,
     marginBottom: 6,
   },
   playerOptionText: {
-    color: colors.text,
+    color: colors.white,
     fontSize: 18,
     textAlign: "center",
   },
   button: {
-    backgroundColor: colors.primary,
+    backgroundColor: "rgba(255,255,255,0.15)",
     paddingHorizontal: 48,
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
   },
   buttonText: {
-    color: colors.black,
+    color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
   },
   skipButton: {
     backgroundColor: "rgba(0,0,0,0.5)",

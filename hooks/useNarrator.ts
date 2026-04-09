@@ -6,11 +6,11 @@ const AMBIANCE_VOLUME = 0.3;
 const DUCKED_VOLUME = 0.05;
 
 export const NARRATOR_SOUNDS: Record<NightStep, AVPlaybackSource> = {
-  intro: require("../assets/sounds/narrator/nightfall_phase.mp3"),
-  werewolves: require("../assets/sounds/narrator/loup_garou_phase.mp3"),
-  seer: require("../assets/sounds/narrator/voyante_phase.mp3"),
-  witch: require("../assets/sounds/narrator/sorcer_phase.mp3"),
-  resolution: require("../assets/sounds/narrator/morning_phase.mp3"),
+  intro: require("../assets/sounds/narrator/night/nightfall_phase.mp3"),
+  werewolves: require("../assets/sounds/narrator/night/loup_garou_phase.mp3"),
+  seer: require("../assets/sounds/narrator/night/voyante_phase.mp3"),
+  witch: require("../assets/sounds/narrator/night/sorcer_phase.mp3"),
+  resolution: require("../assets/sounds/narrator/night/morning_phase.mp3"),
 };
 
 export const AMBIANCE_SOUND: AVPlaybackSource = require("../assets/sounds/ambiance_music.mp3");

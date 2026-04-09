@@ -9,11 +9,11 @@ jest.mock("expo-av", () => ({
 }));
 
 // Mock mp3 requires to return a number (metro asset ID)
-jest.mock("../assets/sounds/narrator/nightfall_phase.mp3", () => 1, { virtual: true });
-jest.mock("../assets/sounds/narrator/loup_garou_phase.mp3", () => 2, { virtual: true });
-jest.mock("../assets/sounds/narrator/voyante_phase.mp3", () => 3, { virtual: true });
-jest.mock("../assets/sounds/narrator/sorcer_phase.mp3", () => 4, { virtual: true });
-jest.mock("../assets/sounds/narrator/morning_phase.mp3", () => 5, { virtual: true });
+jest.mock("../assets/sounds/narrator/night/nightfall_phase.mp3", () => 1, { virtual: true });
+jest.mock("../assets/sounds/narrator/night/loup_garou_phase.mp3", () => 2, { virtual: true });
+jest.mock("../assets/sounds/narrator/night/voyante_phase.mp3", () => 3, { virtual: true });
+jest.mock("../assets/sounds/narrator/night/sorcer_phase.mp3", () => 4, { virtual: true });
+jest.mock("../assets/sounds/narrator/night/morning_phase.mp3", () => 5, { virtual: true });
 jest.mock("../assets/sounds/ambiance_music.mp3", () => 6, { virtual: true });
 jest.mock("../assets/sounds/werewolf.mp3", () => 7, { virtual: true });
 
