@@ -5,14 +5,10 @@ import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
+import { ANNONCE_DEATH, ANNONCE_NO_DEATH } from "../assets/sounds/narrator/day/sounds";
 
 const DEBAT_MUSIC = require("../assets/sounds/debat-music.mp3");
 const DEBAT_VOLUME = 0.4;
-
-// Library of no-death announcements — add new require() entries here when adding files
-const ANNONCE_NO_DEATH = [
-  require("../assets/sounds/narrator/day/no-death/annonce-no-death-1.mp3"),
-];
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -79,14 +75,17 @@ export default function DayScreen() {
     };
   }, [dayStep]);
 
-  // Play random no-death announcement
+  // Play random announcement (death or no-death)
   useEffect(() => {
-    if (dayStep !== "announce" || state.nightDeaths.length > 0) return;
+    if (dayStep !== "announce") return;
+    const hasDeath = state.nightDeaths.length > 0;
+    const source = hasDeath ? ANNONCE_DEATH : ANNONCE_NO_DEATH;
+    if (source.length === 0) return;
     let mounted = true;
 
     async function playAnnounce() {
       try {
-        const { sound } = await Audio.Sound.createAsync(pickRandom(ANNONCE_NO_DEATH));
+        const { sound } = await Audio.Sound.createAsync(pickRandom(source));
         if (!mounted) { await sound.unloadAsync(); return; }
         announceRef.current = sound;
         await sound.playAsync();
