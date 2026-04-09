@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { Animated, Platform } from "react-native";
 import { DeviceMotion } from "expo-sensors";
 
@@ -13,6 +13,15 @@ export function useGyroscopeTilt(active: boolean) {
   const baselineBeta = useRef<number | null>(null);
   const baselineGamma = useRef<number | null>(null);
 
+  const recalibrate = useCallback(() => {
+    baselineBeta.current = null;
+    baselineGamma.current = null;
+    currentX.current = 0;
+    currentY.current = 0;
+    tiltX.setValue(0);
+    tiltY.setValue(0);
+  }, []);
+
   useEffect(() => {
     if (!active || Platform.OS === "web") {
       tiltX.setValue(0);
@@ -21,6 +30,9 @@ export function useGyroscopeTilt(active: boolean) {
       baselineGamma.current = null;
       return;
     }
+
+    // Reset baseline each time active becomes true
+    recalibrate();
 
     DeviceMotion.setUpdateInterval(32);
 
@@ -58,5 +70,5 @@ export function useGyroscopeTilt(active: boolean) {
     };
   }, [active]);
 
-  return { tiltX, tiltY, TILT_INTENSITY };
+  return { tiltX, tiltY, TILT_INTENSITY, recalibrate };
 }

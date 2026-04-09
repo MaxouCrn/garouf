@@ -290,7 +290,7 @@ export default function DistributionScreen() {
   const [detailVisible, setDetailVisible] = useState(false);
 
   // Gyroscope tilt on the card (back and revealed)
-  const { tiltX, tiltY, TILT_INTENSITY } = useGyroscopeTilt(!detailVisible);
+  const { tiltX, tiltY, TILT_INTENSITY, recalibrate } = useGyroscopeTilt(!detailVisible);
 
   const currentPlayer = state.players[state.distributionIndex];
   if (!currentPlayer) return null;
@@ -301,10 +301,12 @@ export default function DistributionScreen() {
 
   useEffect(() => {
     flipAnim.setValue(0);
+    recalibrate();
   }, [state.distributionIndex]);
 
   const handleFlip = () => {
     dispatch({ type: "REVEAL_ROLE" });
+    recalibrate();
     Animated.timing(flipAnim, {
       toValue: 1,
       duration: 600,
