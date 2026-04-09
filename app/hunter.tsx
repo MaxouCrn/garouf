@@ -13,6 +13,8 @@ export default function HunterScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
 
+  const elderPowerLost = state.elderKilledByVillage;
+
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const hunter = state.players.find(
     (p) => p.role === "hunter" && !p.isAlive
@@ -26,6 +28,17 @@ export default function HunterScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (elderPowerLost) {
+      // Hunter lost power due to Elder killed by village, skip shooting
+      if (state.hunterContext === "night") {
+        dispatch({ type: "START_DAY" });
+      } else {
+        dispatch({ type: "START_NIGHT" });
+      }
+    }
+  }, [elderPowerLost]);
+
   const handleShoot = async (playerId: string) => {
     const { sound } = await Audio.Sound.createAsync(GUNFIRE_SFX, { volume: 1.0 });
     soundRef.current = sound;
@@ -38,6 +51,22 @@ export default function HunterScreen() {
     else if (state.phase === "night") router.replace("/night");
     else if (state.phase === "end") router.replace("/end");
   }, [state.phase]);
+
+  if (elderPowerLost) {
+    return (
+      <>
+        <Stack.Screen
+          options={{ title: "Chasseur", headerBackVisible: false }}
+        />
+        <CardFrame title="Chasseur" subtitle={`${hunter?.name} a ete elimine`}>
+          <View style={styles.header}>
+            <Text style={styles.emoji}>🏹</Text>
+            <Text style={styles.title}>Le Chasseur a perdu son pouvoir...</Text>
+          </View>
+        </CardFrame>
+      </>
+    );
+  }
 
   return (
     <>
