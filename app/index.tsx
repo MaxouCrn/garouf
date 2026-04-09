@@ -40,6 +40,9 @@ export default function HomeScreen() {
       <Pressable style={styles.button} onPress={handleNewGame}>
         <Text style={styles.buttonText}>Nouvelle partie</Text>
       </Pressable>
+      <Pressable style={styles.outlineButton} onPress={() => router.push("/grimoire")}>
+        <Text style={styles.outlineButtonText}>Grimoire des Rôles</Text>
+      </Pressable>
     </ImageBackground>
   );
 }
@@ -71,6 +74,19 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.black,
     fontSize: 20,
+    fontWeight: "bold",
+  },
+  outlineButton: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: 48,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  outlineButtonText: {
+    color: colors.primary,
+    fontSize: 18,
     fontWeight: "bold",
   },
 });
