@@ -1,57 +1,29 @@
 import { useState } from "react";
 import { View, Text, Pressable, ScrollView, ImageBackground, StyleSheet } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useGame, Role } from "../context/GameContext";
+import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import MuteButton from "../components/MuteButton";
 import { useMusicContext } from "../context/MusicContext";
-
-interface RoleConfig {
-  role: Role;
-  label: string;
-  emoji: string;
-  description: string;
-  min: number;
-  max: number;
-}
-
-const ROLE_CONFIGS: RoleConfig[] = [
-  {
-    role: "werewolf",
-    label: "Loup-Garou",
-    emoji: "🐺",
-    description: "Se reveille la nuit pour eliminer un villageois",
-    min: 1,
-    max: 4,
-  },
-  {
-    role: "seer",
-    label: "Voyante",
-    emoji: "🔮",
-    description: "Peut voir le role d'un joueur chaque nuit",
-    min: 0,
-    max: 1,
-  },
-  {
-    role: "witch",
-    label: "Sorciere",
-    emoji: "🧪",
-    description: "Potion de vie et potion de mort",
-    min: 0,
-    max: 1,
-  },
-  {
-    role: "hunter",
-    label: "Chasseur",
-    emoji: "🏹",
-    description: "Emporte un joueur en mourant",
-    min: 0,
-    max: 1,
-  },
-];
+import { getPreset, getBalanceWarnings } from "../game/balance";
+import { ROLE_REGISTRY } from "../game/roles";
+import type { Role } from "../game/roles";
 
 const TIMER_OPTIONS = [1, 2, 3, 4, 5];
+
+const WEREWOLF_ROLES: Role[] = ["werewolf"];
+const SPECIAL_ROLES: Role[] = [
+  "seer",
+  "witch",
+  "hunter",
+  "cupid",
+  "little_girl",
+  "savior",
+  "elder",
+  "raven",
+  "village_idiot",
+];
 
 export default function RolesSetupScreen() {
   const router = useRouter();
@@ -59,36 +31,72 @@ export default function RolesSetupScreen() {
   const { stopMusic } = useMusicContext();
   const playerCount = state.players.length;
 
-  const [counts, setCounts] = useState<Record<Role, number>>({
-    werewolf: 2,
-    villager: 0,
-    seer: 1,
-    witch: 1,
-    hunter: 1,
-  });
+  const [counts, setCounts] = useState<Record<Role, number>>(
+    () => getPreset(playerCount)
+  );
 
-  const specialCount = ROLE_CONFIGS.reduce(
-    (sum, rc) => sum + (counts[rc.role] || 0),
+  const nonVillagerCount = [...WEREWOLF_ROLES, ...SPECIAL_ROLES].reduce(
+    (sum, role) => sum + (counts[role] || 0),
     0
   );
-  const villagerCount = playerCount - specialCount;
+  const villagerCount = playerCount - nonVillagerCount;
   const isValid = villagerCount >= 0 && counts.werewolf >= 1;
 
+  const balanceWarnings = getBalanceWarnings(playerCount, {
+    ...counts,
+    villager: villagerCount,
+  });
+
   const updateCount = (role: Role, delta: number) => {
-    const config = ROLE_CONFIGS.find((rc) => rc.role === role)!;
-    const newVal = Math.max(config.min, Math.min(config.max, counts[role] + delta));
+    const def = ROLE_REGISTRY[role];
+    const newVal = Math.max(def.min, Math.min(def.max, (counts[role] || 0) + delta));
     setCounts({ ...counts, [role]: newVal });
+  };
+
+  const getShortDescription = (description: string): string => {
+    const firstSentence = description.split(".")[0];
+    return firstSentence.length > 0 ? firstSentence + "." : description;
   };
 
   const handleStart = () => {
     stopMusic();
-    const roles: { role: Role; count: number }[] = [
-      ...ROLE_CONFIGS.map((rc) => ({ role: rc.role, count: counts[rc.role] })),
-      { role: "villager" as Role, count: villagerCount },
-    ];
+    const allRoles: Role[] = ["werewolf", ...SPECIAL_ROLES, "villager"];
+    const roles = allRoles.map((role) => ({
+      role,
+      count: role === "villager" ? villagerCount : counts[role],
+    }));
     dispatch({ type: "SET_ROLES", roles });
     dispatch({ type: "START_DISTRIBUTION" });
     router.push("/distribution");
+  };
+
+  const renderRoleRow = (role: Role) => {
+    const def = ROLE_REGISTRY[role];
+    return (
+      <View key={role} style={styles.roleRow}>
+        <View style={styles.roleInfo}>
+          <Text style={styles.roleLabel}>
+            {def.emoji} {def.label}
+          </Text>
+          <Text style={styles.roleDesc}>{getShortDescription(def.description)}</Text>
+        </View>
+        <View style={styles.counter}>
+          <Pressable
+            onPress={() => updateCount(role, -1)}
+            style={styles.counterBtn}
+          >
+            <Text style={styles.counterBtnText}>−</Text>
+          </Pressable>
+          <Text style={styles.counterValue}>{counts[role]}</Text>
+          <Pressable
+            onPress={() => updateCount(role, 1)}
+            style={styles.counterBtn}
+          >
+            <Text style={styles.counterBtnText}>+</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -104,35 +112,28 @@ export default function RolesSetupScreen() {
         <Text style={styles.title}>Roles</Text>
         <Text style={styles.subtitle}>{playerCount} joueurs</Text>
 
+        <View style={styles.presetBadge}>
+          <Text style={styles.presetBadgeText}>
+            Composition recommandée pour {playerCount} joueurs
+          </Text>
+        </View>
+
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          {ROLE_CONFIGS.map((rc) => (
-            <View key={rc.role} style={styles.roleRow}>
-              <View style={styles.roleInfo}>
-                <Text style={styles.roleLabel}>
-                  {rc.emoji} {rc.label}
-                </Text>
-                <Text style={styles.roleDesc}>{rc.description}</Text>
-              </View>
-              <View style={styles.counter}>
-                <Pressable
-                  onPress={() => updateCount(rc.role, -1)}
-                  style={styles.counterBtn}
-                >
-                  <Text style={styles.counterBtnText}>−</Text>
-                </Pressable>
-                <Text style={styles.counterValue}>{counts[rc.role]}</Text>
-                <Pressable
-                  onPress={() => updateCount(rc.role, 1)}
-                  style={styles.counterBtn}
-                >
-                  <Text style={styles.counterBtnText}>+</Text>
-                </Pressable>
-              </View>
-            </View>
-          ))}
+          <Text style={styles.sectionHeaderDanger}>Loups-Garous</Text>
+          {WEREWOLF_ROLES.map(renderRoleRow)}
+
+          <Text style={styles.sectionHeaderGold}>Rôles spéciaux</Text>
+          {SPECIAL_ROLES.map(renderRoleRow)}
 
           <View style={styles.villagerRow}>
-            <Text style={styles.roleLabel}>🧑‍🌾 Villageois</Text>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleLabel}>
+                {ROLE_REGISTRY.villager.emoji} {ROLE_REGISTRY.villager.label}
+              </Text>
+              <Text style={styles.roleDesc}>
+                {getShortDescription(ROLE_REGISTRY.villager.description)}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.villagerCount,
@@ -142,6 +143,16 @@ export default function RolesSetupScreen() {
               {villagerCount < 0 ? `${villagerCount} (trop de roles!)` : villagerCount}
             </Text>
           </View>
+
+          {balanceWarnings.length > 0 && (
+            <View style={styles.warningZone}>
+              {balanceWarnings.map((warning, index) => (
+                <Text key={index} style={styles.warningText}>
+                  ⚠️ {warning}
+                </Text>
+              ))}
+            </View>
+          )}
 
           <View style={styles.divider} />
 
@@ -202,13 +213,54 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 8,
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
+  presetBadge: {
+    alignSelf: "center",
+    backgroundColor: "rgba(212,160,23,0.2)",
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    marginBottom: 16,
+  },
+  presetBadgeText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
   scroll: {
     flex: 1,
+  },
+  sectionHeaderDanger: {
+    color: colors.danger,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginTop: 4,
+    marginBottom: 8,
+    marginLeft: 2,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  sectionHeaderGold: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginTop: 12,
+    marginBottom: 8,
+    marginLeft: 2,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   roleRow: {
     flexDirection: "row",
@@ -266,6 +318,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
+    marginTop: 12,
   },
   villagerCount: {
     color: colors.success,
@@ -274,6 +327,20 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: colors.danger,
+  },
+  warningZone: {
+    backgroundColor: "rgba(232,124,42,0.15)",
+    borderWidth: 1,
+    borderColor: colors.warning,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    gap: 6,
+  },
+  warningText: {
+    color: colors.warning,
+    fontSize: 13,
+    lineHeight: 18,
   },
   divider: {
     height: 1,
