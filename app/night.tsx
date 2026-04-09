@@ -19,6 +19,7 @@ export default function NightScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
   const nightOpacity = useRef(new Animated.Value(0)).current;
+  const sunriseOpacity = useRef(new Animated.Value(0)).current;
 
   useNarrator(state.nightStep);
 
@@ -42,7 +43,16 @@ export default function NightScreen() {
   useEffect(() => {
     if (state.nightStep === "intro") {
       nightOpacity.setValue(0);
+      sunriseOpacity.setValue(0);
       Animated.timing(nightOpacity, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    } else if (state.nightStep === "resolution") {
+      sunriseOpacity.setValue(0);
+      Animated.timing(sunriseOpacity, {
         toValue: 1,
         duration: 3000,
         easing: Easing.inOut(Easing.ease),
@@ -67,6 +77,13 @@ export default function NightScreen() {
         <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: state.nightStep === "intro" ? nightOpacity : 1 }]}>
           <ImageBackground
             source={require("../assets/night-transition-background.png")}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: sunriseOpacity }]}>
+          <ImageBackground
+            source={require("../assets/sun-transition-background.png")}
             style={StyleSheet.absoluteFillObject}
             resizeMode="cover"
           />
