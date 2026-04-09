@@ -11,6 +11,8 @@ export default function EndScreen() {
   const { state, dispatch } = useGame();
 
   const isWerewolfWin = state.winner === "werewolves";
+  const isLoversWin = state.winner === "lovers";
+  const loverNames = state.lovers ? state.lovers.map(id => state.players.find(p => p.id === id)?.name).filter(Boolean) : [];
 
   return (
     <>
@@ -18,13 +20,15 @@ export default function EndScreen() {
         options={{ title: "Fin de partie", headerBackVisible: false }}
       />
       <CardFrame
-        title={isWerewolfWin ? "Victoire des Loups" : "Victoire du Village"}
+        title={isLoversWin ? "Victoire de l'Amour" : isWerewolfWin ? "Victoire des Loups" : "Victoire du Village"}
         subtitle={`Partie en ${state.turn} tour${state.turn > 1 ? "s" : ""}`}
       >
         <View style={styles.header}>
-          <Text style={styles.emoji}>{isWerewolfWin ? "🐺" : "🎉"}</Text>
+          <Text style={styles.emoji}>{isLoversWin ? "💘" : isWerewolfWin ? "🐺" : "🎉"}</Text>
           <Text style={styles.title}>
-            {isWerewolfWin
+            {isLoversWin
+              ? `${loverNames.join(" et ")} ont survécu ensemble contre tous !`
+              : isWerewolfWin
               ? "Les Loups-Garous ont gagne !"
               : "Les Villageois ont gagne !"}
           </Text>

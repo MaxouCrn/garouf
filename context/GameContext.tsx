@@ -1,8 +1,17 @@
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
+import { Role } from "../game/roles";
+import { NightStep, buildNightSteps } from "../game/nightEngine";
+import {
+  resolveNight as resolveNightFn,
+  resolveVote as resolveVoteFn,
+  generateLittleGirlClue,
+} from "../game/resolution";
+
+// Re-export so existing consumers keep working
+export type { Role } from "../game/roles";
+export type { NightStep } from "../game/nightEngine";
 
 // --- Types ---
-
-export type Role = "werewolf" | "villager" | "seer" | "witch" | "hunter";
 
 export interface Player {
   id: string;
@@ -20,13 +29,6 @@ export type GamePhase =
   | "hunter"
   | "end";
 
-export type NightStep =
-  | "intro"
-  | "werewolves"
-  | "seer"
-  | "witch"
-  | "resolution";
-
 export interface NightActions {
   werewolvesTarget: string | null;
   seerTarget: string | null;
@@ -41,13 +43,24 @@ export interface GameState {
   nightStep: NightStep;
   nightActions: NightActions;
   witchPotions: { life: boolean; death: boolean };
-  winner: "werewolves" | "villagers" | null;
+  winner: "werewolves" | "villagers" | "lovers" | null;
   debateTimerMinutes: number;
   selectedRoles: { role: Role; count: number }[];
   distributionIndex: number;
   revealedRole: boolean;
   nightDeaths: string[];
   hunterContext: "night" | "day" | null;
+  lovers: [string, string] | null;
+  saviorTarget: string | null;
+  lastSaviorTarget: string | null;
+  elderLives: number;
+  ravenTarget: string | null;
+  littleGirlClue: string[] | null;
+  villageIdiotRevealed: boolean;
+  isFirstNight: boolean;
+  elderKilledByVillage: boolean;
+  nightSteps: NightStep[];
+  nightStepIndex: number;
 }
 
 const emptyNightActions: NightActions = {
@@ -71,6 +84,17 @@ export const initialState: GameState = {
   revealedRole: false,
   nightDeaths: [],
   hunterContext: null,
+  lovers: null,
+  saviorTarget: null,
+  lastSaviorTarget: null,
+  elderLives: 2,
+  ravenTarget: null,
+  littleGirlClue: null,
+  villageIdiotRevealed: false,
+  isFirstNight: true,
+  elderKilledByVillage: false,
+  nightSteps: [],
+  nightStepIndex: 0,
 };
 
 // --- Actions ---
@@ -94,18 +118,44 @@ export type GameAction =
   | { type: "VOTE_ELIMINATE"; playerId: string }
   | { type: "HUNTER_SHOOT"; playerId: string }
   | { type: "CHECK_WINNER" }
-  | { type: "RESET_GAME" };
+  | { type: "RESET_GAME" }
+  | { type: "SET_LOVERS"; player1Id: string; player2Id: string }
+  | { type: "SET_SAVIOR_TARGET"; playerId: string }
+  | { type: "SET_RAVEN_TARGET"; playerId: string | null }
+  | { type: "SET_LITTLE_GIRL_CLUE"; clue: string[] };
 
 // --- Helper functions ---
 
 export function checkWinner(
-  players: Player[]
-): "werewolves" | "villagers" | null {
-  const aliveWolves = players.filter(
-    (p) => p.isAlive && p.role === "werewolf"
+  players: Player[],
+  lovers?: [string, string] | null
+): "werewolves" | "villagers" | "lovers" | null {
+  const alivePlayers = players.filter((p) => p.isAlive);
+
+  // Check lovers win condition first: mixed couple are the only 2 alive
+  if (lovers) {
+    const [id1, id2] = lovers;
+    const lover1 = players.find((p) => p.id === id1);
+    const lover2 = players.find((p) => p.id === id2);
+    if (
+      lover1?.isAlive &&
+      lover2?.isAlive &&
+      alivePlayers.length === 2
+    ) {
+      const isWolf1 = lover1.role === "werewolf";
+      const isWolf2 = lover2.role === "werewolf";
+      // Mixed couple: one wolf + one non-wolf
+      if (isWolf1 !== isWolf2) {
+        return "lovers";
+      }
+    }
+  }
+
+  const aliveWolves = alivePlayers.filter(
+    (p) => p.role === "werewolf"
   ).length;
-  const aliveVillagers = players.filter(
-    (p) => p.isAlive && p.role !== "werewolf"
+  const aliveVillagers = alivePlayers.filter(
+    (p) => p.role !== "werewolf"
   ).length;
 
   if (aliveWolves === 0) return "villagers";
@@ -132,22 +182,6 @@ export function assignRoles(
   }
 
   return players.map((p, idx) => ({ ...p, role: shuffled[idx] }));
-}
-
-export function getNextNightStep(
-  currentStep: NightStep,
-  players: Player[]
-): NightStep | null {
-  const steps: NightStep[] = ["intro", "werewolves", "seer", "witch", "resolution"];
-  const currentIndex = steps.indexOf(currentStep);
-
-  for (let i = currentIndex + 1; i < steps.length; i++) {
-    const step = steps[i];
-    if (step === "intro" || step === "werewolves" || step === "resolution") return step;
-    if (step === "seer" && players.some((p) => p.role === "seer" && p.isAlive)) return step;
-    if (step === "witch" && players.some((p) => p.role === "witch" && p.isAlive)) return step;
-  }
-  return null;
 }
 
 // --- Reducer ---
@@ -193,7 +227,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "NEXT_PLAYER": {
       const nextIndex = state.distributionIndex + 1;
       if (nextIndex >= state.players.length) {
-        return { ...state, phase: "night", nightStep: "intro", turn: 1 };
+        const steps = buildNightSteps(state.players, true, 1, false);
+        return {
+          ...state,
+          phase: "night",
+          turn: 1,
+          isFirstNight: true,
+          nightSteps: steps,
+          nightStepIndex: 0,
+          nightStep: steps[0],
+        };
       }
       return {
         ...state,
@@ -202,14 +245,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case "START_NIGHT":
+    case "START_NIGHT": {
+      // Increment turn when called manually from day phase (e.g. village idiot survival)
+      const nextTurn = state.phase === "day" ? state.turn + 1 : state.turn;
+      const steps = buildNightSteps(
+        state.players,
+        state.isFirstNight,
+        nextTurn,
+        state.elderKilledByVillage
+      );
       return {
         ...state,
         phase: "night",
-        nightStep: "intro",
+        turn: nextTurn,
+        nightStep: steps[0],
         nightActions: { ...emptyNightActions },
         nightDeaths: [],
+        nightSteps: steps,
+        nightStepIndex: 0,
+        saviorTarget: null,
+        ravenTarget: null,
+        littleGirlClue: null,
       };
+    }
 
     case "SET_WEREWOLF_TARGET":
       return {
@@ -236,61 +294,63 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
 
     case "NEXT_NIGHT_STEP": {
-      const nextStep = getNextNightStep(state.nightStep, state.players);
-      if (nextStep === null) return state;
-      return { ...state, nightStep: nextStep };
+      const nextIdx = state.nightStepIndex + 1;
+      if (nextIdx >= state.nightSteps.length) return state;
+      const nextStep = state.nightSteps[nextIdx];
+      let clue = state.littleGirlClue;
+      if (nextStep === "little_girl") {
+        clue = generateLittleGirlClue(state.players);
+      }
+      return {
+        ...state,
+        nightStepIndex: nextIdx,
+        nightStep: nextStep,
+        littleGirlClue: clue,
+      };
     }
 
     case "RESOLVE_NIGHT": {
-      const deaths: string[] = [];
-      let updatedPlayers = [...state.players];
-      let updatedPotions = { ...state.witchPotions };
-
-      // Werewolf kill (unless healed by witch)
-      if (state.nightActions.werewolvesTarget) {
-        if (state.nightActions.witchHeal) {
-          updatedPotions.life = false;
-        } else {
-          deaths.push(state.nightActions.werewolvesTarget);
-        }
-      }
-
-      // Witch poison
-      if (state.nightActions.witchKill) {
-        deaths.push(state.nightActions.witchKill);
-        updatedPotions.death = false;
-      }
+      const resolution = resolveNightFn({
+        players: state.players,
+        nightActions: state.nightActions,
+        witchPotions: state.witchPotions,
+        saviorTarget: state.saviorTarget,
+        elderLives: state.elderLives,
+        lovers: state.lovers,
+        elderKilledByVillage: state.elderKilledByVillage,
+      });
 
       // Apply deaths
-      updatedPlayers = updatedPlayers.map((p) =>
-        deaths.includes(p.id) ? { ...p, isAlive: false } : p
+      const updatedPlayers = state.players.map((p) =>
+        resolution.deaths.includes(p.id) ? { ...p, isAlive: false } : p
       );
 
-      // Check if hunter died
-      const hunterDied = deaths.some(
-        (id) => state.players.find((p) => p.id === id)?.role === "hunter"
-      );
+      const winner = checkWinner(updatedPlayers, state.lovers);
 
-      const winner = checkWinner(updatedPlayers);
-
-      if (hunterDied && !winner) {
+      if (resolution.hunterTriggered && !winner && !state.elderKilledByVillage) {
         return {
           ...state,
           players: updatedPlayers,
-          witchPotions: updatedPotions,
-          nightDeaths: deaths,
+          witchPotions: resolution.updatedPotions,
+          nightDeaths: resolution.deaths,
+          elderLives: resolution.newElderLives,
           phase: "hunter",
           hunterContext: "night",
+          lastSaviorTarget: state.saviorTarget,
+          isFirstNight: false,
         };
       }
 
       return {
         ...state,
         players: updatedPlayers,
-        witchPotions: updatedPotions,
-        nightDeaths: deaths,
+        witchPotions: resolution.updatedPotions,
+        nightDeaths: resolution.deaths,
+        elderLives: resolution.newElderLives,
         phase: winner ? "end" : "day",
         winner,
+        lastSaviorTarget: state.saviorTarget,
+        isFirstNight: false,
       };
     }
 
@@ -298,21 +358,39 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, phase: "day" };
 
     case "VOTE_ELIMINATE": {
-      const updatedPlayers = state.players.map((p) =>
-        p.id === action.playerId ? { ...p, isAlive: false } : p
+      const voteResult = resolveVoteFn(
+        {
+          players: state.players,
+          lovers: state.lovers,
+          villageIdiotRevealed: state.villageIdiotRevealed,
+          elderKilledByVillage: state.elderKilledByVillage,
+        },
+        action.playerId
       );
 
-      const eliminated = state.players.find((p) => p.id === action.playerId);
-      const hunterDied = eliminated?.role === "hunter";
+      // Village idiot survives
+      if (voteResult.villageIdiotSurvived) {
+        return {
+          ...state,
+          villageIdiotRevealed: true,
+        };
+      }
 
-      const winner = checkWinner(updatedPlayers);
+      // Apply deaths
+      const updatedPlayers = state.players.map((p) =>
+        voteResult.deaths.includes(p.id) ? { ...p, isAlive: false } : p
+      );
 
-      if (hunterDied && !winner) {
+      const winner = checkWinner(updatedPlayers, state.lovers);
+
+      // Hunter check: only trigger if NOT elderKilledByVillage
+      if (voteResult.hunterTriggered && !winner && !voteResult.elderKilledByVillage) {
         return {
           ...state,
           players: updatedPlayers,
           phase: "hunter",
           hunterContext: "day",
+          elderKilledByVillage: voteResult.elderKilledByVillage,
         };
       }
 
@@ -325,15 +403,30 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nightDeaths: [],
         turn: winner ? state.turn : state.turn + 1,
         winner,
+        elderKilledByVillage: voteResult.elderKilledByVillage,
       };
     }
 
     case "HUNTER_SHOOT": {
-      const updatedPlayers = state.players.map((p) =>
+      let updatedPlayers = state.players.map((p) =>
         p.id === action.playerId ? { ...p, isAlive: false } : p
       );
 
-      const winner = checkWinner(updatedPlayers);
+      // Lovers cascade: if target is a lover, kill the other too
+      if (state.lovers) {
+        const [l1, l2] = state.lovers;
+        if (action.playerId === l1) {
+          updatedPlayers = updatedPlayers.map((p) =>
+            p.id === l2 ? { ...p, isAlive: false } : p
+          );
+        } else if (action.playerId === l2) {
+          updatedPlayers = updatedPlayers.map((p) =>
+            p.id === l1 ? { ...p, isAlive: false } : p
+          );
+        }
+      }
+
+      const winner = checkWinner(updatedPlayers, state.lovers);
 
       if (winner) {
         return { ...state, players: updatedPlayers, phase: "end", winner };
@@ -348,7 +441,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      // hunterContext === "day" → go to night
+      // hunterContext === "day" -> go to night
       return {
         ...state,
         players: updatedPlayers,
@@ -362,12 +455,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "CHECK_WINNER": {
-      const winner = checkWinner(state.players);
+      const winner = checkWinner(state.players, state.lovers);
       if (winner) {
         return { ...state, phase: "end", winner };
       }
       return state;
     }
+
+    case "SET_LOVERS":
+      return { ...state, lovers: [action.player1Id, action.player2Id] };
+
+    case "SET_SAVIOR_TARGET":
+      return { ...state, saviorTarget: action.playerId };
+
+    case "SET_RAVEN_TARGET":
+      return { ...state, ravenTarget: action.playerId };
+
+    case "SET_LITTLE_GIRL_CLUE":
+      return { ...state, littleGirlClue: action.clue };
 
     case "RESET_GAME":
       return { ...initialState };

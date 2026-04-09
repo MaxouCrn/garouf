@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
@@ -13,6 +13,12 @@ const ROLE_LABEL_STRINGS: Record<Role, string> = {
   seer: "Voyante",
   witch: "Sorciere",
   hunter: "Chasseur",
+  cupid: "Cupidon",
+  little_girl: "Petite Fille",
+  savior: "Salvateur",
+  elder: "Ancien",
+  raven: "Corbeau",
+  village_idiot: "Idiot du Village",
 };
 
 export default function NightScreen() {
@@ -194,6 +200,30 @@ export default function NightScreen() {
           </View>
         )}
 
+        {state.nightStep === "cupid" && (
+          <CupidStep
+            alivePlayers={alivePlayers}
+            dispatch={dispatch}
+            onNext={handleNextStep}
+          />
+        )}
+
+        {state.nightStep === "lovers_reveal" && (
+          <LoversRevealStep
+            state={state}
+            onNext={handleNextStep}
+          />
+        )}
+
+        {state.nightStep === "savior" && (
+          <SaviorStep
+            alivePlayers={alivePlayers}
+            lastSaviorTarget={state.lastSaviorTarget}
+            dispatch={dispatch}
+            onNext={handleNextStep}
+          />
+        )}
+
         {state.nightStep === "witch" && (
           <WitchStep
             state={state}
@@ -201,6 +231,21 @@ export default function NightScreen() {
             onNext={handleNextStep}
             aliveNonWolves={aliveNonWolves}
             alivePlayers={alivePlayers}
+          />
+        )}
+
+        {state.nightStep === "raven" && (
+          <RavenStep
+            alivePlayers={alivePlayers}
+            dispatch={dispatch}
+            onNext={handleNextStep}
+          />
+        )}
+
+        {state.nightStep === "little_girl" && (
+          <LittleGirlStep
+            state={state}
+            onNext={handleNextStep}
           />
         )}
 
@@ -298,6 +343,261 @@ function WitchStep({
 
       <Pressable style={styles.button} onPress={onNext}>
         <Text style={styles.buttonText}>Continuer</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function CupidStep({
+  alivePlayers,
+  dispatch,
+  onNext,
+}: {
+  alivePlayers: ReturnType<typeof useGame>["state"]["players"];
+  dispatch: ReturnType<typeof useGame>["dispatch"];
+  onNext: () => void;
+}) {
+  const [cupidSelections, setCupidSelections] = useState<string[]>([]);
+
+  const toggleSelection = (id: string) => {
+    setCupidSelections((prev) => {
+      if (prev.includes(id)) return prev.filter((s) => s !== id);
+      if (prev.length >= 2) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const handleConfirm = () => {
+    if (cupidSelections.length === 2) {
+      dispatch({
+        type: "SET_LOVERS",
+        player1Id: cupidSelections[0],
+        player2Id: cupidSelections[1],
+      });
+      onNext();
+    }
+  };
+
+  return (
+    <View style={styles.fullContainer}>
+      <Text style={styles.stepTitle}>💘 Cupidon se réveille</Text>
+      <Text style={styles.instruction}>
+        Désigne 2 joueurs qui seront liés par l'amour.
+      </Text>
+      <FlatList
+        data={alivePlayers}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        renderItem={({ item }) => (
+          <Pressable
+            style={[
+              styles.playerOption,
+              cupidSelections.includes(item.id) && styles.playerOptionSelected,
+            ]}
+            onPress={() => toggleSelection(item.id)}
+          >
+            <Text style={styles.playerOptionText}>{item.name}</Text>
+          </Pressable>
+        )}
+      />
+      <Pressable
+        style={[
+          styles.button,
+          cupidSelections.length !== 2 && styles.buttonDisabled,
+        ]}
+        onPress={handleConfirm}
+        disabled={cupidSelections.length !== 2}
+      >
+        <Text style={styles.buttonText}>Confirmer</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function LoversRevealStep({
+  state,
+  onNext,
+}: {
+  state: ReturnType<typeof useGame>["state"];
+  onNext: () => void;
+}) {
+  const lover1 = state.players.find((p) => p.id === state.lovers?.[0]);
+  const lover2 = state.players.find((p) => p.id === state.lovers?.[1]);
+
+  const isMixed =
+    lover1 && lover2 &&
+    ((lover1.role === "werewolf") !== (lover2.role === "werewolf"));
+
+  return (
+    <View style={styles.centered}>
+      <Text style={styles.stepTitle}>💘 Les Amoureux se découvrent</Text>
+      <Text style={styles.revealName}>{lover1?.name}</Text>
+      <Text style={styles.instruction}>&</Text>
+      <Text style={styles.revealName}>{lover2?.name}</Text>
+      {isMixed ? (
+        <Text style={styles.warningText}>
+          Votre amour est interdit... Vous devez être les derniers survivants
+          pour gagner.
+        </Text>
+      ) : (
+        <Text style={styles.instruction}>
+          Votre amour est pur. Protégez-vous mutuellement.
+        </Text>
+      )}
+      <Pressable style={styles.button} onPress={onNext}>
+        <Text style={styles.buttonText}>Compris</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function SaviorStep({
+  alivePlayers,
+  lastSaviorTarget,
+  dispatch,
+  onNext,
+}: {
+  alivePlayers: ReturnType<typeof useGame>["state"]["players"];
+  lastSaviorTarget: string | null;
+  dispatch: ReturnType<typeof useGame>["dispatch"];
+  onNext: () => void;
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handleConfirm = () => {
+    if (selected) {
+      dispatch({ type: "SET_SAVIOR_TARGET", playerId: selected });
+      onNext();
+    }
+  };
+
+  return (
+    <View style={styles.fullContainer}>
+      <Text style={styles.stepTitle}>🛡️ Le Salvateur se réveille</Text>
+      <Text style={styles.instruction}>
+        Désigne un joueur à protéger cette nuit.
+      </Text>
+      <FlatList
+        data={alivePlayers}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        renderItem={({ item }) => {
+          const isDisabled = item.id === lastSaviorTarget;
+          return (
+            <Pressable
+              style={[
+                styles.playerOption,
+                selected === item.id && styles.playerOptionSelected,
+                isDisabled && styles.playerOptionDisabled,
+              ]}
+              onPress={() => !isDisabled && setSelected(item.id)}
+              disabled={isDisabled}
+            >
+              <Text
+                style={[
+                  styles.playerOptionText,
+                  isDisabled && styles.playerOptionTextDisabled,
+                ]}
+              >
+                {item.name}
+              </Text>
+            </Pressable>
+          );
+        }}
+      />
+      <Pressable
+        style={[styles.button, !selected && styles.buttonDisabled]}
+        onPress={handleConfirm}
+        disabled={!selected}
+      >
+        <Text style={styles.buttonText}>Confirmer</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function RavenStep({
+  alivePlayers,
+  dispatch,
+  onNext,
+}: {
+  alivePlayers: ReturnType<typeof useGame>["state"]["players"];
+  dispatch: ReturnType<typeof useGame>["dispatch"];
+  onNext: () => void;
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handleConfirm = () => {
+    dispatch({ type: "SET_RAVEN_TARGET", playerId: selected });
+    onNext();
+  };
+
+  const handleSkip = () => {
+    dispatch({ type: "SET_RAVEN_TARGET", playerId: null });
+    onNext();
+  };
+
+  return (
+    <View style={styles.fullContainer}>
+      <Text style={styles.stepTitle}>🐦‍⬛ Le Corbeau se réveille</Text>
+      <Text style={styles.instruction}>
+        Désigne un joueur qui portera ta marque.
+      </Text>
+      <FlatList
+        data={alivePlayers}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        renderItem={({ item }) => (
+          <Pressable
+            style={[
+              styles.playerOption,
+              selected === item.id && styles.playerOptionSelected,
+            ]}
+            onPress={() => setSelected(item.id)}
+          >
+            <Text style={styles.playerOptionText}>{item.name}</Text>
+          </Pressable>
+        )}
+      />
+      <Pressable style={styles.buttonSecondary} onPress={handleSkip}>
+        <Text style={styles.buttonSecondaryText}>Passer</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.button, !selected && styles.buttonDisabled]}
+        onPress={handleConfirm}
+        disabled={!selected}
+      >
+        <Text style={styles.buttonText}>Confirmer</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function LittleGirlStep({
+  state,
+  onNext,
+}: {
+  state: ReturnType<typeof useGame>["state"];
+  onNext: () => void;
+}) {
+  const clueNames = (state.littleGirlClue ?? []).map((id) => {
+    const player = state.players.find((p) => p.id === id);
+    return player?.name ?? "???";
+  });
+
+  return (
+    <View style={styles.centered}>
+      <Text style={styles.stepTitle}>👧 La Petite Fille entrouvre les yeux...</Text>
+      <Text style={styles.instruction}>
+        Tu aperçois des silhouettes dans la nuit...
+      </Text>
+      {clueNames.map((name, idx) => (
+        <View key={idx} style={styles.clueCard}>
+          <Text style={styles.clueCardText}>{name}</Text>
+        </View>
+      ))}
+      <Pressable style={styles.button} onPress={onNext}>
+        <Text style={styles.buttonText}>Refermer les yeux</Text>
       </Pressable>
     </View>
   );
@@ -430,5 +730,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 16,
+  },
+  warningText: {
+    color: "#fbbf24",
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 16,
+    paddingHorizontal: 20,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  playerOptionDisabled: {
+    backgroundColor: "rgba(22,33,62,0.4)",
+    opacity: 0.5,
+  },
+  playerOptionTextDisabled: {
+    color: "rgba(255,255,255,0.4)",
+  },
+  buttonSecondary: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  buttonSecondaryText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  clueCard: {
+    backgroundColor: "rgba(22,33,62,0.8)",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  clueCardText: {
+    color: colors.white,
+    fontSize: 18,
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
