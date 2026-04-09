@@ -29,7 +29,16 @@ export default function HunterScreen() {
   const handleShoot = async (playerId: string) => {
     const { sound } = await Audio.Sound.createAsync(GUNFIRE_SFX, { volume: 1.0 });
     soundRef.current = sound;
-    await sound.playAsync();
+
+    await new Promise<void>((resolve) => {
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          resolve();
+        }
+      });
+      sound.playAsync();
+    });
+
     dispatch({ type: "HUNTER_SHOOT", playerId });
   };
 
