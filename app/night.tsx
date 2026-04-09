@@ -1,11 +1,10 @@
-import { useEffect } from "react";
-import { View, Text, Image, Pressable, FlatList, StyleSheet } from "react-native";
+import { useEffect, useRef } from "react";
+import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
-import CardFrame from "../components/CardFrame";
 import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
 
 const ROLE_LABEL_STRINGS: Record<Role, string> = {
@@ -19,6 +18,7 @@ const ROLE_LABEL_STRINGS: Record<Role, string> = {
 export default function NightScreen() {
   const router = useRouter();
   const { state, dispatch } = useGame();
+  const nightOpacity = useRef(new Animated.Value(0)).current;
 
   useNarrator(state.nightStep);
 
@@ -39,17 +39,41 @@ export default function NightScreen() {
     else if (state.phase === "end") router.replace("/end");
   }, [state.phase]);
 
+  useEffect(() => {
+    if (state.nightStep === "intro") {
+      nightOpacity.setValue(0);
+      Animated.timing(nightOpacity, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [state.nightStep]);
+
   const nightTitle = `Nuit ${state.turn}`;
 
   return (
     <>
       <Stack.Screen
-        options={{ title: nightTitle, headerBackVisible: false }}
+        options={{ title: nightTitle, headerShown: false }}
       />
-      <CardFrame title={nightTitle}>
+      <View style={styles.backgroundContainer}>
+        <ImageBackground
+          source={require("../assets/sunset-background.png")}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: state.nightStep === "intro" ? nightOpacity : 1 }]}>
+          <ImageBackground
+            source={require("../assets/night-transition-background.png")}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+        </Animated.View>
+        <View style={styles.overlay}>
         {state.nightStep === "intro" && (
           <View style={styles.centered}>
-            <Text style={styles.emoji}>🌙</Text>
             <Text style={styles.title}>La nuit tombe...</Text>
             <Text style={styles.subtitle}>Tout le monde ferme les yeux</Text>
             <Pressable style={styles.button} onPress={handleNextStep}>
@@ -165,14 +189,14 @@ export default function NightScreen() {
 
         {state.nightStep === "resolution" && (
           <View style={styles.centered}>
-            <Text style={styles.emoji}>☀️</Text>
             <Text style={styles.title}>Le soleil se leve...</Text>
             <Pressable style={styles.button} onPress={handleResolve}>
               <Text style={styles.buttonText}>Reveler les evenements</Text>
             </Pressable>
           </View>
         )}
-      </CardFrame>
+        </View>
+      </View>
     </>
   );
 }
@@ -263,6 +287,15 @@ function WitchStep({
 }
 
 const styles = StyleSheet.create({
+  backgroundContainer: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
   fullContainer: {
     flex: 1,
   },
@@ -271,40 +304,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  emoji: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
   title: {
-    fontFamily: fonts.cinzelRegular,
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 28,
     marginBottom: 8,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   subtitle: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 18,
     marginBottom: 48,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   stepTitle: {
-    fontFamily: fonts.cinzelRegular,
-    color: colors.text,
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
     fontSize: 22,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   instruction: {
-    color: colors.textSecondary,
+    color: colors.white,
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   list: {
     flex: 1,
     marginBottom: 12,
   },
   playerOption: {
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(22,33,62,0.8)",
     padding: 16,
     borderRadius: 10,
     marginBottom: 6,
@@ -343,9 +385,12 @@ const styles = StyleSheet.create({
   },
   revealName: {
     fontFamily: fonts.cinzelBold,
-    color: colors.text,
+    color: colors.white,
     fontSize: 28,
     marginBottom: 8,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   revealRole: {
     fontFamily: fonts.cinzelRegular,
