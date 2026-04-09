@@ -289,8 +289,8 @@ export default function DistributionScreen() {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [detailVisible, setDetailVisible] = useState(false);
 
-  // Gyroscope tilt on the revealed card (not in modal)
-  const { tiltX, tiltY, TILT_INTENSITY } = useGyroscopeTilt(state.revealedRole);
+  // Gyroscope tilt on the card (back and revealed)
+  const { tiltX, tiltY, TILT_INTENSITY } = useGyroscopeTilt(!detailVisible);
 
   const currentPlayer = state.players[state.distributionIndex];
   if (!currentPlayer) return null;
@@ -368,11 +368,31 @@ export default function DistributionScreen() {
               </Text>
               <Text style={styles.playerName}>{currentPlayer.name}</Text>
               <Pressable onPress={handleFlip}>
-                <Image
-                  source={require("../assets/cards/back-card.png")}
-                  style={styles.card}
-                  resizeMode="contain"
-                />
+                <Animated.View
+                  style={{
+                    transform: [
+                      { perspective: 800 },
+                      {
+                        rotateY: tiltX.interpolate({
+                          inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                          outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                        }),
+                      },
+                      {
+                        rotateX: tiltY.interpolate({
+                          inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                          outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <Image
+                    source={require("../assets/cards/back-card.png")}
+                    style={styles.card}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
               </Pressable>
               <Text style={styles.hint}>Appuyez sur la carte</Text>
             </>

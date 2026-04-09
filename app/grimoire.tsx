@@ -83,7 +83,7 @@ function ExpandedCardModal({
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const descTranslateY = useRef(new Animated.Value(15)).current;
 
-  const { tiltX, tiltY } = useGyroscopeTilt(visible);
+  const { tiltX, tiltY, TILT_INTENSITY } = useGyroscopeTilt(visible);
 
   const animateIn = useCallback(() => {
     overlayOpacity.setValue(0);
