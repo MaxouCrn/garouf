@@ -1,4 +1,5 @@
 import type { Role } from "../game/roles";
+import type { NightStep } from "../game/nightEngine";
 
 // ── Database row types ──────────────────────────────────────────────────────
 
@@ -54,6 +55,106 @@ export interface LobbyPlayer {
 
 export interface LobbyUpdatePayload {
   players: LobbyPlayer[];
+}
+
+// ── Game phase payloads (public) ────────────────────────────────────────────
+
+export interface GamePhasePayload {
+  phase: string;
+  turn: number;
+  nightStep?: NightStep;
+}
+
+export interface GameStatePayload {
+  alivePlayers: { id: string; name: string }[];
+  nightDeaths: { id: string; name: string }[];
+  voteResult?: { eliminatedId: string; eliminatedName: string; votes: Record<string, string> } | null;
+  winner?: "werewolves" | "villagers" | "lovers" | null;
+}
+
+export interface NightStepPayload {
+  step: NightStep;
+}
+
+export interface VoteStatusPayload {
+  votedCount: number;
+  totalVoters: number;
+}
+
+export interface VoteResultPayload {
+  eliminated: { id: string; name: string } | null;
+  voteDetails: Record<string, string>;
+  villageIdiotSurvived: boolean;
+}
+
+export interface TimerStartPayload {
+  startedAt: number;
+  durationMs: number;
+}
+
+export interface GamePausedPayload {
+  reason: string;
+  disconnectedPlayer: string;
+  resumeIn: number;
+}
+
+// ── Private message payloads ────────────────────────────────────────────────
+
+export interface RoleAssignPayload {
+  role: string;
+  description: string;
+}
+
+export interface NightActionRequiredPayload {
+  step: NightStep;
+  targets: { id: string; name: string }[];
+  instruction: string;
+  timerSeconds: number;
+  werewolfTarget?: { id: string; name: string } | null;
+  potions?: { life: boolean; death: boolean };
+}
+
+export interface NightActionResultPayload {
+  result: Record<string, unknown>;
+}
+
+export interface LoversRevealPayload {
+  partnerName: string;
+  isMixed: boolean;
+}
+
+export interface WolfVoteUpdatePayload {
+  votes: Record<string, number>;
+}
+
+export interface LittleGirlCluePayload {
+  clueNames: string[];
+}
+
+// ── Online game client state ────────────────────────────────────────────────
+
+export interface OnlineGameState {
+  gameId: string;
+  playerId: string;
+  isHost: boolean;
+  phase: "distribution" | "night" | "day" | "hunter" | "end" | "paused";
+  turn: number;
+  nightStep: NightStep | null;
+  myRole: string | null;
+  myRoleDescription: string | null;
+  isAlive: boolean;
+  alivePlayers: { id: string; name: string }[];
+  nightDeaths: { id: string; name: string }[];
+  winner: "werewolves" | "villagers" | "lovers" | null;
+  actionRequired: NightActionRequiredPayload | null;
+  actionResult: NightActionResultPayload | null;
+  wolfVotes: Record<string, number>;
+  littleGirlClue: string[];
+  loversReveal: LoversRevealPayload | null;
+  voteStatus: VoteStatusPayload | null;
+  voteResult: VoteResultPayload | null;
+  debateTimer: TimerStartPayload | null;
+  pauseInfo: GamePausedPayload | null;
 }
 
 // ── Join code ───────────────────────────────────────────────────────────────
