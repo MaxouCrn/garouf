@@ -2,156 +2,356 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
   StyleSheet,
+  ImageBackground,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useGame, GameState } from "../context/GameContext";
-import {
-  DEV_PRESETS,
-  PHASE_ROUTE_MAP,
-  ONLINE_ROUTE_MAP,
-} from "../game/devPresets";
 import { colors } from "../theme/colors";
 
+// Online view components
+import DistributionView from "../components/online/DistributionView";
+import NightWaitView from "../components/online/NightWaitView";
+import NightActionView from "../components/online/NightActionView";
+import WitchActionView from "../components/online/WitchActionView";
+import WolfVoteView from "../components/online/WolfVoteView";
+import LittleGirlView from "../components/online/LittleGirlView";
+import DayAnnouncementView from "../components/online/DayAnnouncementView";
+import DayDebateView from "../components/online/DayDebateView";
+import DayVoteView from "../components/online/DayVoteView";
+import HunterView from "../components/online/HunterView";
+import SpectatorView from "../components/online/SpectatorView";
+import EndView from "../components/online/EndView";
+import PausedView from "../components/online/PausedView";
+
+import type { NightActionRequiredPayload } from "../types/online";
+
+// ── Mock data ────────────────────────────────────────────────────────────────
+
+const MOCK_PLAYERS = [
+  { id: "1", name: "Alice" },
+  { id: "2", name: "Bob" },
+  { id: "3", name: "Claire" },
+  { id: "4", name: "David" },
+  { id: "5", name: "Emma" },
+];
+
+const mockSeerAction: NightActionRequiredPayload = {
+  step: "seer",
+  targets: MOCK_PLAYERS,
+  instruction: "Voyante, choisis un joueur a inspecter",
+  timerSeconds: 30,
+};
+
+const mockWitchAction: NightActionRequiredPayload = {
+  step: "witch",
+  targets: MOCK_PLAYERS,
+  instruction: "Sorciere, utilise tes potions",
+  timerSeconds: 30,
+  werewolfTarget: { id: "3", name: "Claire" },
+  potions: { life: true, death: true },
+};
+
+const mockWolfAction: NightActionRequiredPayload = {
+  step: "werewolves",
+  targets: MOCK_PLAYERS.filter((p) => p.id !== "1" && p.id !== "2"),
+  instruction: "Loups-Garous, choisissez votre victime",
+  timerSeconds: 30,
+};
+
+const noop = () => {};
+const noopAsync = async () => {};
+
+// ── Preview registry ─────────────────────────────────────────────────────────
+
+interface PreviewEntry {
+  label: string;
+  section: string;
+  render: () => React.ReactNode;
+}
+
+const PREVIEWS: PreviewEntry[] = [
+  // ── Distribution ──
+  {
+    label: "Distribution (role caché)",
+    section: "Distribution",
+    render: () => (
+      <DistributionView
+        role="seer"
+        description="Chaque nuit, la Voyante peut decouvrir la veritable identite d'un joueur."
+        isHost={false}
+        onStartNight={noop}
+        onReady={noop}
+        readyCount={3}
+        totalPlayers={6}
+      />
+    ),
+  },
+  {
+    label: "Distribution (host)",
+    section: "Distribution",
+    render: () => (
+      <DistributionView
+        role="werewolf"
+        description="Chaque nuit, les Loups-Garous designent une victime."
+        isHost={true}
+        onStartNight={noop}
+        onReady={noop}
+        readyCount={6}
+        totalPlayers={6}
+      />
+    ),
+  },
+
+  // ── Nuit ──
+  {
+    label: "Nuit: Attente",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+          <NightWaitView step="werewolves" />
+        </View>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Voyante",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+          <NightActionView action={mockSeerAction} onSubmit={noop} />
+        </View>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Loups-Garous",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+          <WolfVoteView
+            action={mockWolfAction}
+            wolfVotes={{ "3": 1, "4": 2 }}
+            onSubmit={noop}
+          />
+        </View>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Sorcière",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+          <WitchActionView action={mockWitchAction} onSubmit={noop} />
+        </View>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Petite Fille",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+          <LittleGirlView
+            clueNames={["Alice", "Bob"]}
+            timerSeconds={15}
+            onDone={noop}
+          />
+        </View>
+      </ImageBackground>
+    ),
+  },
+
+  // ── Jour ──
+  {
+    label: "Jour: Annonce des morts",
+    section: "Jour",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sun-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <DayAnnouncementView
+          nightDeaths={[{ id: "3", name: "Claire" }]}
+          isHost={false}
+          myPlayerId="1"
+          onContinue={noop}
+        />
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Jour: Débat",
+    section: "Jour",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/debat-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <DayDebateView
+          timer={{ startedAt: Date.now(), durationMs: 180000 }}
+          isHost={true}
+          onStartVote={noop}
+        />
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Jour: Vote",
+    section: "Jour",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sun-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <DayVoteView
+          alivePlayers={MOCK_PLAYERS}
+          myPlayerId="1"
+          onVote={noopAsync}
+          voteLogs={[
+            { voter: "Bob", target: "Claire" },
+            { voter: "David", target: "Claire" },
+          ]}
+          voteStatus={{ votedCount: 2, totalVoters: 5 }}
+        />
+      </ImageBackground>
+    ),
+  },
+
+  // ── Spécial ──
+  {
+    label: "Chasseur",
+    section: "Special",
+    render: () => (
+      <HunterView
+        isHunter={true}
+        alivePlayers={MOCK_PLAYERS}
+        myPlayerId="5"
+        onShoot={noopAsync}
+      />
+    ),
+  },
+  {
+    label: "Spectateur (éliminé)",
+    section: "Special",
+    render: () => <SpectatorView phase="night" nightStep="werewolves" />,
+  },
+  {
+    label: "Pause (déconnexion)",
+    section: "Special",
+    render: () => (
+      <PausedView
+        info={{
+          reason: "player_disconnected",
+          disconnectedPlayer: "Bob",
+          resumeIn: 45,
+        }}
+      />
+    ),
+  },
+
+  // ── Fin ──
+  {
+    label: "Victoire Village",
+    section: "Fin",
+    render: () => <EndView winner="villagers" />,
+  },
+  {
+    label: "Victoire Loups",
+    section: "Fin",
+    render: () => <EndView winner="werewolves" />,
+  },
+  {
+    label: "Victoire Amoureux",
+    section: "Fin",
+    render: () => <EndView winner="lovers" />,
+  },
+];
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 export default function DevScreen() {
-  const router = useRouter();
-  const { dispatch } = useGame();
-  const [json, setJson] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const loadPreset = (key: string) => {
-    const preset = DEV_PRESETS[key];
-    setJson(JSON.stringify(preset.state, null, 2));
-    setError(null);
-    setActivePreset(key);
-  };
+  // Full-screen preview mode
+  if (activeIndex !== null) {
+    const preview = PREVIEWS[activeIndex];
+    return (
+      <View style={styles.previewContainer}>
+        {preview.render()}
+        <Pressable
+          style={styles.backButton}
+          onPress={() => setActiveIndex(null)}
+        >
+          <Text style={styles.backText}>← Retour</Text>
+        </Pressable>
+        <Text style={styles.previewLabel}>{preview.label}</Text>
+      </View>
+    );
+  }
 
-  const launch = () => {
-    let parsed: GameState;
-    try {
-      parsed = JSON.parse(json);
-    } catch (e) {
-      setError("JSON invalide: " + (e as Error).message);
-      return;
-    }
-
-    if (!parsed.phase) {
-      setError("Le state doit contenir un champ 'phase'");
-      return;
-    }
-
-    dispatch({ type: "SET_STATE", payload: parsed });
-
-    // Determine route
-    let route: string | undefined;
-    if (activePreset && ONLINE_ROUTE_MAP[activePreset]) {
-      route = ONLINE_ROUTE_MAP[activePreset];
-    } else {
-      route = PHASE_ROUTE_MAP[parsed.phase];
-    }
-
-    if (!route) {
-      setError("Phase inconnue: " + parsed.phase);
-      return;
-    }
-
-    router.replace(route as any);
-  };
-
-  const localPresets = Object.entries(DEV_PRESETS).filter(
-    ([key]) => !key.startsWith("online_")
+  // Catalog mode
+  const sections = PREVIEWS.reduce<Record<string, { index: number; label: string }[]>>(
+    (acc, entry, index) => {
+      if (!acc[entry.section]) acc[entry.section] = [];
+      acc[entry.section].push({ index, label: entry.label });
+      return acc;
+    },
+    {}
   );
-  const onlinePresets = Object.entries(DEV_PRESETS).filter(([key]) =>
-    key.startsWith("online_")
-  );
-
-  const isValid = (() => {
-    try {
-      JSON.parse(json);
-      return true;
-    } catch {
-      return false;
-    }
-  })();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Dev Tools</Text>
-      <Text style={styles.sectionTitle}>Local</Text>
-      <View style={styles.presetRow}>
-        {localPresets.map(([key, { label }]) => (
-          <Pressable
-            key={key}
-            style={[
-              styles.presetButton,
-              activePreset === key && styles.presetButtonActive,
-            ]}
-            onPress={() => loadPreset(key)}
-          >
-            <Text
-              style={[
-                styles.presetText,
-                activePreset === key && styles.presetTextActive,
-              ]}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <Text style={styles.subtitle}>
+        Catalogue de composants — tap pour preview plein ecran
+      </Text>
 
-      <Text style={styles.sectionTitle}>Online</Text>
-      <View style={styles.presetRow}>
-        {onlinePresets.map(([key, { label }]) => (
-          <Pressable
-            key={key}
-            style={[
-              styles.presetButton,
-              activePreset === key && styles.presetButtonActive,
-            ]}
-            onPress={() => loadPreset(key)}
-          >
-            <Text
-              style={[
-                styles.presetText,
-                activePreset === key && styles.presetTextActive,
-              ]}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>State JSON</Text>
-      <TextInput
-        style={styles.editor}
-        value={json}
-        onChangeText={(text) => {
-          setJson(text);
-          setError(null);
-          setActivePreset(null);
-        }}
-        multiline
-        textAlignVertical="top"
-        autoCapitalize="none"
-        autoCorrect={false}
-        spellCheck={false}
-      />
-
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      <Pressable
-        style={[styles.launchButton, !isValid && styles.launchButtonDisabled]}
-        onPress={launch}
-        disabled={!isValid}
-      >
-        <Text style={styles.launchText}>Lancer</Text>
-      </Pressable>
+      {Object.entries(sections).map(([section, items]) => (
+        <View key={section}>
+          <Text style={styles.sectionTitle}>{section}</Text>
+          <View style={styles.presetRow}>
+            {items.map(({ index, label }) => (
+              <Pressable
+                key={index}
+                style={styles.presetButton}
+                onPress={() => setActiveIndex(index)}
+              >
+                <Text style={styles.presetText}>{label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ))}
     </ScrollView>
   );
 }
@@ -164,18 +364,24 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingTop: 60,
+    paddingBottom: 60,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: colors.primary,
-    marginBottom: 24,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: colors.text,
-    marginTop: 16,
+    marginTop: 20,
     marginBottom: 8,
   },
   presetRow: {
@@ -190,46 +396,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  presetButtonActive: {
-    backgroundColor: colors.primary,
-  },
   presetText: {
     color: colors.primary,
     fontSize: 14,
   },
-  presetTextActive: {
-    color: colors.black,
+  // Preview mode
+  previewContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  editor: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-    fontFamily: "monospace",
-    fontSize: 12,
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 16,
+    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 8,
-    padding: 12,
-    minHeight: 300,
-    borderWidth: 1,
-    borderColor: colors.surfaceLight,
   },
-  error: {
-    color: colors.danger,
-    marginTop: 8,
-    fontSize: 14,
-  },
-  launchButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 16,
-    marginBottom: 40,
-  },
-  launchButtonDisabled: {
-    opacity: 0.4,
-  },
-  launchText: {
-    color: colors.black,
-    fontSize: 18,
+  backText: {
+    color: colors.white,
+    fontSize: 16,
     fontWeight: "bold",
+  },
+  previewLabel: {
+    position: "absolute",
+    top: 52,
+    right: 16,
+    zIndex: 100,
+    color: colors.textMuted,
+    fontSize: 12,
   },
 });
