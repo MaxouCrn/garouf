@@ -1,14 +1,16 @@
-import { useState, useCallback } from "react";
-import { View, StyleSheet, ImageBackground } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useOnlineGame } from "../../hooks/useOnlineGame";
 import { useNarrator } from "../../hooks/useNarrator";
+import { useMusicContext } from "../../context/MusicContext";
 import type { NightStep } from "../../game/nightEngine";
 import { colors } from "../../theme/colors";
 
 import DistributionView from "../../components/online/DistributionView";
 import NightWaitView from "../../components/online/NightWaitView";
 import NightActionView from "../../components/online/NightActionView";
+import WitchActionView from "../../components/online/WitchActionView";
 import WolfVoteView from "../../components/online/WolfVoteView";
 import LittleGirlView from "../../components/online/LittleGirlView";
 import DayAnnouncementView from "../../components/online/DayAnnouncementView";
@@ -36,6 +38,12 @@ export default function OnlineGameScreen() {
   });
 
   const [daySubPhase, setDaySubPhase] = useState<DaySubPhase>("announcement");
+  const { stopMusic } = useMusicContext();
+
+  // Stop home music when entering the game
+  useEffect(() => {
+    stopMusic();
+  }, []);
 
   // Host plays narrator audio during night phase
   const narratorEnabled = isHost && state.phase === "night";
@@ -156,6 +164,24 @@ export default function OnlineGameScreen() {
       );
     }
 
+    // Seer result: show inspected role after action
+    if (state.nightStep === "seer" && state.myRole === "seer" && state.actionResult) {
+      const result = state.actionResult.result as { name?: string; role?: string };
+      return (
+        <ImageBackground
+          source={require("../../assets/night-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
+          <View style={styles.centeredContent}>
+            <Text style={styles.resultLabel}>Le role de {result.name} est :</Text>
+            <Text style={styles.resultRole}>{result.role}</Text>
+            <Text style={styles.resultWait}>En attente de la phase suivante...</Text>
+          </View>
+        </ImageBackground>
+      );
+    }
+
     // Witch special handling
     if (state.actionRequired && state.nightStep === "witch" && state.myRole === "witch") {
       return (
@@ -164,9 +190,9 @@ export default function OnlineGameScreen() {
           style={styles.container}
           resizeMode="cover"
         >
-          <NightActionView
+          <WitchActionView
             action={state.actionRequired}
-            onSubmit={(_, payload) => handleNightAction("witch_action", payload)}
+            onSubmit={handleNightAction}
           />
         </ImageBackground>
       );
@@ -215,6 +241,8 @@ export default function OnlineGameScreen() {
               ? [{ id: state.voteResult.eliminated.id, name: state.voteResult.eliminated.name }]
               : []
             }
+            isHost={isHost}
+            myPlayerId={params.playerId}
             onContinue={() => {}}
           />
         </ImageBackground>
@@ -230,6 +258,8 @@ export default function OnlineGameScreen() {
         >
           <DayAnnouncementView
             nightDeaths={state.nightDeaths}
+            isHost={isHost}
+            myPlayerId={params.playerId}
             onContinue={handleStartDebate}
           />
         </ImageBackground>
@@ -243,7 +273,7 @@ export default function OnlineGameScreen() {
           style={styles.container}
           resizeMode="cover"
         >
-          <DayDebateView timer={state.debateTimer} />
+          <DayDebateView timer={state.debateTimer} isHost={isHost} onStartVote={handleStartVote} />
         </ImageBackground>
       );
     }
@@ -277,5 +307,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  centeredContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  resultLabel: {
+    fontSize: 18,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  resultRole: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: colors.primary,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  resultWait: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
   },
 });
