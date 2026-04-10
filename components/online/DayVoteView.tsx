@@ -27,7 +27,7 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote }: Props)
 
   const others = useMemo(
     () => alivePlayers.filter((p) => p.id !== myPlayerId),
-    [alivePlayers.map((p) => p.id).join(","), myPlayerId]
+    [alivePlayers, myPlayerId]
   );
 
   if (voted) {

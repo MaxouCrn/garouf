@@ -24,37 +24,13 @@ import SpectatorView from "../../components/online/SpectatorView";
 import EndView from "../../components/online/EndView";
 import PausedView from "../../components/online/PausedView";
 
-/** Fires onAdvance once after 4 seconds. Host-only helper. */
-function IntroAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
+/** Invisible component that fires onAdvance once after delayMs. */
+function AutoAdvance({ delayMs, onAdvance }: { delayMs: number; onAdvance: () => void }) {
   const fired = useRef(false);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!fired.current) { fired.current = true; onAdvance(); }
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
-  return null;
-}
-
-/** Fires onAdvance once after 4 seconds. Seer card display helper. */
-function SeerAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
-  const fired = useRef(false);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!fired.current) { fired.current = true; onAdvance(); }
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
-  return null;
-}
-
-/** Fires onAdvance once after 3 seconds (sunrise animation duration). */
-function ResolutionAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
-  const fired = useRef(false);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!fired.current) { fired.current = true; onAdvance(); }
-    }, 3000);
+    }, delayMs);
     return () => clearTimeout(timer);
   }, []);
   return null;
@@ -207,7 +183,7 @@ export default function OnlineGameScreen() {
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>La nuit tombe...</Text>
               <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
-              {isHost && <IntroAutoAdvance onAdvance={() => handleNightAction("advance_intro", {})} />}
+              {isHost && <AutoAdvance delayMs={4000} onAdvance={() => handleNightAction("advance_intro", {})} />}
             </View>
           </View>
         </View>
@@ -222,7 +198,7 @@ export default function OnlineGameScreen() {
           <View style={styles.overlay}>
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>Le soleil se leve...</Text>
-              {isHost && <ResolutionAutoAdvance onAdvance={() => handleNightAction("resolve_night", {})} />}
+              {isHost && <AutoAdvance delayMs={3000} onAdvance={() => handleNightAction("resolve_night", {})} />}
             </View>
           </View>
         </View>
@@ -272,7 +248,7 @@ export default function OnlineGameScreen() {
                 </View>
               )}
               <Text style={styles.seerRoleName}>{roleLabel?.label ?? seerResult.role}</Text>
-              <SeerAutoAdvance onAdvance={() => { handleNightAction("seer_done", {}); setSeerResult(null); }} />
+              <AutoAdvance delayMs={4000} onAdvance={() => { handleNightAction("seer_done", {}); setSeerResult(null); }} />
             </View>
           </View>
         </View>
