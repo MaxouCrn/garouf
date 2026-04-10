@@ -16,10 +16,12 @@ interface Props {
 
 export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
   const [remaining, setRemaining] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
   const musicRef = useRef<Audio.Sound | null>(null);
 
-  // Play debate music
+  // Only the host plays debate music
   useEffect(() => {
+    if (!isHost) return;
     let mounted = true;
 
     async function startMusic() {
@@ -44,7 +46,12 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
       musicRef.current = null;
       s?.stopAsync().then(() => s.unloadAsync());
     };
-  }, []);
+  }, [isHost]);
+
+  // Handle mute toggle
+  useEffect(() => {
+    musicRef.current?.setVolumeAsync(isMuted ? 0 : DEBAT_VOLUME);
+  }, [isMuted]);
 
   useEffect(() => {
     if (!timer) return;
@@ -72,9 +79,14 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
         <Text style={styles.hint}>Discutez et trouvez les loups !</Text>
       )}
       {isHost && (
-        <Pressable style={styles.button} onPress={onStartVote}>
-          <Text style={styles.buttonText}>Passer au vote</Text>
-        </Pressable>
+        <>
+          <Pressable style={styles.muteButton} onPress={() => setIsMuted((m) => !m)}>
+            <Text style={styles.muteButtonText}>{isMuted ? "Reactiver la musique" : "Couper la musique"}</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={onStartVote}>
+            <Text style={styles.buttonText}>Passer au vote</Text>
+          </Pressable>
+        </>
       )}
       {isOver && !isHost && (
         <Text style={styles.waiting}>En attente du vote...</Text>
@@ -89,7 +101,9 @@ const styles = StyleSheet.create({
   timer: { fontSize: 64, fontWeight: "bold", color: colors.text },
   timerOver: { color: colors.danger },
   hint: { fontSize: 16, color: colors.textSecondary, marginTop: 24 },
-  button: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 12, marginTop: 32 },
+  muteButton: { backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10, marginTop: 24 },
+  muteButtonText: { color: colors.textSecondary, fontSize: 14 },
+  button: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 12, marginTop: 16 },
   buttonText: { color: colors.black, fontSize: 20, fontWeight: "bold" },
   waiting: { fontSize: 16, color: colors.textSecondary, marginTop: 32, textAlign: "center" },
 });
