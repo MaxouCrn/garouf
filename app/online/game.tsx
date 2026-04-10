@@ -5,7 +5,10 @@ import { useOnlineGame } from "../../hooks/useOnlineGame";
 import { useNarrator } from "../../hooks/useNarrator";
 import { useMusicContext } from "../../context/MusicContext";
 import type { NightStep } from "../../game/nightEngine";
+import { ROLE_LABELS } from "../../theme/roleCards";
 import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/typography";
+import type { Role } from "../../game/roles";
 
 import DistributionView from "../../components/online/DistributionView";
 import NightWaitView from "../../components/online/NightWaitView";
@@ -21,8 +24,6 @@ import SpectatorView from "../../components/online/SpectatorView";
 import EndView from "../../components/online/EndView";
 import PausedView from "../../components/online/PausedView";
 
-type DaySubPhase = "announcement" | "debate" | "vote";
-
 export default function OnlineGameScreen() {
   const params = useLocalSearchParams<{
     gameId: string;
@@ -37,20 +38,31 @@ export default function OnlineGameScreen() {
     isHost,
   });
 
-  const [daySubPhase, setDaySubPhase] = useState<DaySubPhase>("announcement");
   const { stopMusic } = useMusicContext();
+
+  // Seer result stored locally after HTTP response
+  const [seerResult, setSeerResult] = useState<{ name: string; role: string } | null>(null);
 
   // Stop home music when entering the game
   useEffect(() => {
     stopMusic();
   }, []);
 
+  // Reset seer result when night step changes
+  useEffect(() => {
+    setSeerResult(null);
+  }, [state.nightStep]);
+
   // Host plays narrator audio during night phase
   const narratorEnabled = isHost && state.phase === "night";
   useNarrator((state.nightStep as NightStep) ?? "intro", narratorEnabled);
 
   const handleNightAction = useCallback(async (actionType: string, payload: Record<string, unknown>) => {
-    await sendAction("night-action", { actionType, payload });
+    const result = await sendAction("night-action", { actionType, payload });
+    // Read seer result from HTTP response
+    if (actionType === "seer_inspect" && result?.seerResult) {
+      setSeerResult(result.seerResult);
+    }
   }, [sendAction]);
 
   const handleVote = useCallback(async (targetId: string | null) => {
@@ -62,16 +74,17 @@ export default function OnlineGameScreen() {
   }, [sendAction]);
 
   const handleStartDebate = useCallback(async () => {
-    setDaySubPhase("debate");
-    if (isHost) {
-      const durationMs = 3 * 60 * 1000; // TODO: use game settings
-      await sendAction("sync-clock", { durationMs });
-    }
-  }, [isHost, sendAction]);
+    const durationMs = 3 * 60 * 1000;
+    await sendAction("update-day-phase", {
+      daySubPhase: "debate",
+      debateStartedAt: Date.now(),
+      debateDurationMs: durationMs,
+    });
+  }, [sendAction]);
 
-  const handleStartVote = useCallback(() => {
-    setDaySubPhase("vote");
-  }, []);
+  const handleStartVote = useCallback(async () => {
+    await sendAction("update-day-phase", { daySubPhase: "vote" });
+  }, [sendAction]);
 
   // ── Paused ──────────────────────────────────────────────────────────────
   if (state.phase === "paused" && state.pauseInfo) {
@@ -130,19 +143,11 @@ export default function OnlineGameScreen() {
 
   // ── Night ───────────────────────────────────────────────────────────────
   if (state.phase === "night") {
-    // Little girl has her own view
+    // Little girl
     if (state.nightStep === "little_girl" && state.myRole === "little_girl" && state.littleGirlClue.length > 0) {
       return (
-        <ImageBackground
-          source={require("../../assets/night-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <LittleGirlView
-            clueNames={state.littleGirlClue}
-            timerSeconds={15}
-            onDone={() => handleNightAction("little_girl_done", {})}
-          />
+        <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
+          <LittleGirlView clueNames={state.littleGirlClue} timerSeconds={15} onDone={() => handleNightAction("little_girl_done", {})} />
         </ImageBackground>
       );
     }
@@ -150,50 +155,33 @@ export default function OnlineGameScreen() {
     // Wolf vote
     if (state.actionRequired && state.nightStep === "werewolves" && state.myRole === "werewolf") {
       return (
-        <ImageBackground
-          source={require("../../assets/night-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <WolfVoteView
-            action={state.actionRequired}
-            wolfVotes={state.wolfVotes}
-            onSubmit={handleNightAction}
-          />
+        <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
+          <WolfVoteView action={state.actionRequired} wolfVotes={state.wolfVotes} onSubmit={handleNightAction} />
         </ImageBackground>
       );
     }
 
     // Seer result: show inspected role after action
-    if (state.nightStep === "seer" && state.myRole === "seer" && state.actionResult) {
-      const result = state.actionResult.result as { name?: string; role?: string };
+    if (state.nightStep === "seer" && state.myRole === "seer" && seerResult) {
+      const roleKey = seerResult.role as Role;
+      const roleLabel = ROLE_LABELS[roleKey];
       return (
-        <ImageBackground
-          source={require("../../assets/night-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
+        <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
           <View style={styles.centeredContent}>
-            <Text style={styles.resultLabel}>Le role de {result.name} est :</Text>
-            <Text style={styles.resultRole}>{result.role}</Text>
+            <Text style={styles.resultLabel}>Le role de {seerResult.name} est :</Text>
+            <Text style={styles.resultEmoji}>{roleLabel?.emoji ?? "?"}</Text>
+            <Text style={styles.resultRole}>{roleLabel?.label ?? seerResult.role}</Text>
             <Text style={styles.resultWait}>En attente de la phase suivante...</Text>
           </View>
         </ImageBackground>
       );
     }
 
-    // Witch special handling
+    // Witch
     if (state.actionRequired && state.nightStep === "witch" && state.myRole === "witch") {
       return (
-        <ImageBackground
-          source={require("../../assets/night-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <WitchActionView
-            action={state.actionRequired}
-            onSubmit={handleNightAction}
-          />
+        <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
+          <WitchActionView action={state.actionRequired} onSubmit={handleNightAction} />
         </ImageBackground>
       );
     }
@@ -201,26 +189,15 @@ export default function OnlineGameScreen() {
     // Generic night action (seer, savior, cupid, raven)
     if (state.actionRequired) {
       return (
-        <ImageBackground
-          source={require("../../assets/night-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <NightActionView
-            action={state.actionRequired}
-            onSubmit={handleNightAction}
-          />
+        <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
+          <NightActionView action={state.actionRequired} onSubmit={handleNightAction} />
         </ImageBackground>
       );
     }
 
     // Waiting
     return (
-      <ImageBackground
-        source={require("../../assets/night-transition-background.png")}
-        style={styles.container}
-        resizeMode="cover"
-      >
+      <ImageBackground source={require("../../assets/night-transition-background.png")} style={styles.container} resizeMode="cover">
         <NightWaitView step={state.nightStep} />
       </ImageBackground>
     );
@@ -228,71 +205,36 @@ export default function OnlineGameScreen() {
 
   // ── Day ─────────────────────────────────────────────────────────────────
   if (state.phase === "day") {
-    if (state.voteResult) {
-      // Show result briefly then it transitions
-      return (
-        <ImageBackground
-          source={require("../../assets/sun-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <DayAnnouncementView
-            nightDeaths={state.voteResult.eliminated
-              ? [{ id: state.voteResult.eliminated.id, name: state.voteResult.eliminated.name }]
-              : []
-            }
-            isHost={isHost}
-            myPlayerId={params.playerId}
-            onContinue={() => {}}
-          />
-        </ImageBackground>
-      );
-    }
+    // Use server-synced daySubPhase
+    const daySubPhase = state.daySubPhase;
 
-    if (daySubPhase === "announcement") {
+    if (daySubPhase === "vote") {
       return (
-        <ImageBackground
-          source={require("../../assets/sun-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <DayAnnouncementView
-            nightDeaths={state.nightDeaths}
-            isHost={isHost}
-            myPlayerId={params.playerId}
-            onContinue={handleStartDebate}
-          />
+        <ImageBackground source={require("../../assets/sun-transition-background.png")} style={styles.container} resizeMode="cover">
+          <DayVoteView alivePlayers={state.alivePlayers} myPlayerId={params.playerId} onVote={handleVote} />
         </ImageBackground>
       );
     }
 
     if (daySubPhase === "debate") {
       return (
-        <ImageBackground
-          source={require("../../assets/sun-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
+        <ImageBackground source={require("../../assets/debat-background.png")} style={styles.container} resizeMode="cover">
           <DayDebateView timer={state.debateTimer} isHost={isHost} onStartVote={handleStartVote} />
         </ImageBackground>
       );
     }
 
-    if (daySubPhase === "vote") {
-      return (
-        <ImageBackground
-          source={require("../../assets/sun-transition-background.png")}
-          style={styles.container}
-          resizeMode="cover"
-        >
-          <DayVoteView
-            alivePlayers={state.alivePlayers}
-            myPlayerId={params.playerId}
-            onVote={handleVote}
-          />
-        </ImageBackground>
-      );
-    }
+    // Default: announcement
+    return (
+      <ImageBackground source={require("../../assets/sun-transition-background.png")} style={styles.container} resizeMode="cover">
+        <DayAnnouncementView
+          nightDeaths={state.nightDeaths}
+          isHost={isHost}
+          myPlayerId={params.playerId}
+          onContinue={handleStartDebate}
+        />
+      </ImageBackground>
+    );
   }
 
   // Fallback
@@ -318,11 +260,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
     textAlign: "center",
+    marginBottom: 16,
+  },
+  resultEmoji: {
+    fontSize: 64,
     marginBottom: 12,
   },
   resultRole: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
+    fontSize: 28,
     color: colors.primary,
     textAlign: "center",
     marginBottom: 24,

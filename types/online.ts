@@ -154,6 +154,7 @@ export interface OnlineGameState {
   voteStatus: VoteStatusPayload | null;
   voteResult: VoteResultPayload | null;
   debateTimer: TimerStartPayload | null;
+  daySubPhase: "announcement" | "debate" | "vote";
   pauseInfo: GamePausedPayload | null;
 }
 

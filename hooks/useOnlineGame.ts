@@ -42,6 +42,7 @@ const INITIAL_STATE: OnlineGameState = {
   voteStatus: null,
   voteResult: null,
   debateTimer: null,
+  daySubPhase: "announcement",
   pauseInfo: null,
 };
 
@@ -75,6 +76,19 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         const phase = data.game?.phase as OnlineGameState["phase"];
         const snapshot = data.snapshot || {};
 
+        // Read day sub-phase and debate timer from snapshot
+        const daySubPhase = snapshot.daySubPhase || "announcement";
+        const debateTimer = (snapshot.debateStartedAt && snapshot.debateDurationMs)
+          ? { startedAt: snapshot.debateStartedAt, durationMs: snapshot.debateDurationMs }
+          : null;
+
+        // Read night deaths from snapshot
+        const nightDeathIds: string[] = snapshot.nightDeaths || [];
+        const nightDeaths = nightDeathIds.map((id: string) => {
+          const p = (data.alivePlayers || []).find((pl: { id: string }) => pl.id === id);
+          return { id, name: p?.name || "?" };
+        });
+
         setState((prev) => ({
           ...prev,
           phase: phase || prev.phase,
@@ -84,7 +98,10 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
           myRoleDescription: roleDesc || prev.myRoleDescription,
           isAlive: data.player?.isAlive ?? prev.isAlive,
           alivePlayers: data.alivePlayers || prev.alivePlayers,
+          nightDeaths: nightDeaths.length > 0 ? nightDeaths : prev.nightDeaths,
           winner: phase === "end" ? (snapshot.winner || prev.winner) : prev.winner,
+          daySubPhase: phase === "day" ? daySubPhase : "announcement",
+          debateTimer: debateTimer || prev.debateTimer,
         }));
       } catch {
         // Ignore poll errors
