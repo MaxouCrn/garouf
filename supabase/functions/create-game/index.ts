@@ -46,16 +46,15 @@ serve(async (req) => {
 
     let code: string;
     if (devCode && typeof devCode === "string") {
-      // Dev mode: use requested code, clean up any old game with same code
+      // Dev mode: use requested code, clean up ALL old games with same code
       code = devCode.toUpperCase();
-      const { data: oldGame } = await admin
+      const { data: oldGames } = await admin
         .from("games")
         .select("id")
-        .eq("code", code)
-        .neq("status", "finished")
-        .maybeSingle();
-      if (oldGame) {
+        .eq("code", code);
+      for (const oldGame of oldGames || []) {
         await admin.from("actions").delete().eq("game_id", oldGame.id);
+        await admin.from("games").update({ host_id: null }).eq("id", oldGame.id);
         await admin.from("players").delete().eq("game_id", oldGame.id);
         await admin.from("games").delete().eq("id", oldGame.id);
       }

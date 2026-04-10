@@ -23,13 +23,26 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
     logsRef.current?.scrollToEnd({ animated: true });
   }, [voteLogs.length]);
 
+  // Track own vote locally so it shows immediately without waiting for broadcast
+  const ownLogRef = useRef<VoteLogPayload | null>(null);
+
+  const addOwnLog = (targetId: string | null) => {
+    const myName = alivePlayers.find((p) => p.id === myPlayerId)?.name || "?";
+    const targetName = targetId
+      ? alivePlayers.find((p) => p.id === targetId)?.name || "?"
+      : null;
+    ownLogRef.current = { voter: myName, target: targetName };
+  };
+
   const handleVote = () => {
+    addOwnLog(selected);
     setVoted(true);
     onVote(selected);
   };
 
   const handleTimeout = () => {
     if (!voted) {
+      addOwnLog(null);
       setVoted(true);
       onVote(null);
     }
@@ -44,12 +57,20 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
     ? `${voteStatus.votedCount}/${voteStatus.totalVoters} votes`
     : null;
 
+  // Merge own log at the front if not yet in server logs
+  const displayLogs = useMemo(() => {
+    if (!ownLogRef.current) return voteLogs;
+    const alreadyInLogs = voteLogs.some((l) => l.voter === ownLogRef.current!.voter);
+    if (alreadyInLogs) return voteLogs;
+    return [ownLogRef.current, ...voteLogs];
+  }, [voteLogs]);
+
   if (voted) {
     return (
       <View style={styles.container}>
         <Text style={styles.waitingTitle}>Vote enregistre</Text>
         {statusText && <Text style={styles.statusText}>{statusText}</Text>}
-        <VoteLogs logs={voteLogs} scrollRef={logsRef} />
+        <VoteLogs logs={displayLogs} scrollRef={logsRef} />
       </View>
     );
   }
