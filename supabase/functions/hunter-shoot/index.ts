@@ -108,6 +108,9 @@ serve(async (req) => {
     const nextTurn = nextPhase === "night" ? (snapshot.turn || 1) + 1 : (snapshot.turn || 1);
 
     snapshot.turn = nextTurn;
+    if (nextPhase === "day") {
+      snapshot.daySubPhase = "announcement";
+    }
 
     await admin
       .from("games")

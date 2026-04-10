@@ -463,6 +463,7 @@ serve(async (req) => {
       snapshot.nightActions = { werewolvesTarget: null, seerTarget: null, witchHeal: false, witchKill: null };
       snapshot.saviorTarget = null;
       snapshot.ravenTarget = snapshot.ravenTarget; // Persist for day vote
+      snapshot.daySubPhase = "announcement";
 
       await admin
         .from("games")

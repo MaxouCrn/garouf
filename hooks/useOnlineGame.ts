@@ -134,6 +134,7 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         voteResult: null,
         debateTimer: null,
         pauseInfo: null,
+        daySubPhase: (data.phase === "day") ? "announcement" : prev.daySubPhase,
       }));
     },
 
