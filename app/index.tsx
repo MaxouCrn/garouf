@@ -43,6 +43,18 @@ export default function HomeScreen() {
       <Pressable style={styles.outlineButton} onPress={() => router.push("/grimoire")}>
         <Text style={styles.outlineButtonText}>Grimoire des Rôles</Text>
       </Pressable>
+      <Pressable
+        style={[styles.outlineButton, { marginTop: 32 }]}
+        onPress={() => router.push("/online/create")}
+      >
+        <Text style={styles.outlineButtonText}>Creer une partie en ligne</Text>
+      </Pressable>
+      <Pressable
+        style={styles.outlineButton}
+        onPress={() => router.push("/online/join")}
+      >
+        <Text style={styles.outlineButtonText}>Rejoindre une partie</Text>
+      </Pressable>
     </ImageBackground>
   );
 }
