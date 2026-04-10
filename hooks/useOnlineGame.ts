@@ -1,6 +1,9 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useChannel } from "./useChannel";
 import { supabase } from "../lib/supabase";
+import { ROLE_REGISTRY } from "../game/roles";
+import type { Role } from "../game/roles";
+import type { NightStep } from "../game/nightEngine";
 import type {
   OnlineGameState,
   GamePhasePayload,
@@ -56,6 +59,47 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
     isHost,
   });
 
+  // Poll server state every 2s for reliability (broadcasts are unreliable)
+  useEffect(() => {
+    let mounted = true;
+
+    async function pollState() {
+      try {
+        const { data, error } = await supabase.functions.invoke("reconnect", {
+          body: { gameId },
+        });
+        if (error || !data || !mounted) return;
+
+        const role = data.player?.role as Role | null;
+        const roleDesc = role ? ROLE_REGISTRY[role]?.description ?? null : null;
+        const phase = data.game?.phase as OnlineGameState["phase"];
+        const snapshot = data.snapshot || {};
+
+        setState((prev) => ({
+          ...prev,
+          phase: phase || prev.phase,
+          turn: snapshot.turn || prev.turn,
+          nightStep: snapshot.currentNightStep || prev.nightStep,
+          myRole: role || prev.myRole,
+          myRoleDescription: roleDesc || prev.myRoleDescription,
+          isAlive: data.player?.isAlive ?? prev.isAlive,
+          alivePlayers: data.alivePlayers || prev.alivePlayers,
+          winner: phase === "end" ? (snapshot.winner || prev.winner) : prev.winner,
+        }));
+      } catch {
+        // Ignore poll errors
+      }
+    }
+
+    pollState();
+    const interval = setInterval(pollState, 2000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [gameId]);
+
   const onMessage = useMemo(() => ({
     // ── Public events ───────────────────────────────────────────────────
     "game:phase": (payload: Record<string, unknown>) => {
@@ -65,7 +109,6 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         phase: data.phase as OnlineGameState["phase"],
         turn: data.turn,
         nightStep: data.nightStep ?? null,
-        // Reset per-phase state
         actionRequired: null,
         actionResult: null,
         wolfVotes: {},
