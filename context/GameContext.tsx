@@ -122,7 +122,8 @@ export type GameAction =
   | { type: "SET_LOVERS"; player1Id: string; player2Id: string }
   | { type: "SET_SAVIOR_TARGET"; playerId: string }
   | { type: "SET_RAVEN_TARGET"; playerId: string | null }
-  | { type: "SET_LITTLE_GIRL_CLUE"; clue: string[] };
+  | { type: "SET_LITTLE_GIRL_CLUE"; clue: string[] }
+  | { type: "SET_STATE"; payload: GameState };
 
 // --- Helper functions ---
 
@@ -476,6 +477,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case "RESET_GAME":
       return { ...initialState };
+
+    case "SET_STATE": {
+      if (__DEV__) return action.payload;
+      return state;
+    }
 
     default:
       return state;
