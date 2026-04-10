@@ -138,27 +138,40 @@ serve(async (req) => {
       });
     }
 
-    // Store the action
-    await admin.from("actions").insert({
-      game_id: gameId,
-      player_id: player.id,
-      action_type: actionType,
-      payload: payload || {},
-      phase: "night",
-      turn: snapshot.turn || 1,
-    });
-
     const channel = admin.channel(`game:${gameId}`);
     const { data: allPlayers } = await admin
       .from("players")
       .select("id, name, role, is_alive")
       .eq("game_id", gameId);
 
+    // Track seer result to include in HTTP response (broadcasts are unreliable)
+    let seerResult: { role: string; name: string } | null = null;
+
     // Handle wolf vote broadcast
-    if (actionType === "werewolf_target" && currentStep === "werewolves") {
+    if ((actionType === "werewolf_target" || actionType === "werewolf_timeout") && currentStep === "werewolves") {
+      if (actionType === "werewolf_target") {
+        // Delete any previous vote from this wolf for this turn before inserting
+        await admin.from("actions").delete()
+          .eq("game_id", gameId)
+          .eq("player_id", player.id)
+          .eq("action_type", "werewolf_target")
+          .eq("phase", "night")
+          .eq("turn", snapshot.turn || 1);
+
+        // Insert the new vote
+        await admin.from("actions").insert({
+          game_id: gameId,
+          player_id: player.id,
+          action_type: actionType,
+          payload: payload || {},
+          phase: "night",
+          turn: snapshot.turn || 1,
+        });
+      }
+
       const { data: wolfActions } = await admin
         .from("actions")
-        .select("payload")
+        .select("payload, player_id")
         .eq("game_id", gameId)
         .eq("action_type", "werewolf_target")
         .eq("phase", "night")
@@ -170,7 +183,7 @@ serve(async (req) => {
         if (targetId) voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
       }
 
-      // Broadcast to wolves only
+      // Broadcast current vote state to wolves only
       const wolves = (allPlayers || []).filter((p: any) => p.role === "werewolf" && p.is_alive);
       for (const wolf of wolves) {
         await channel.send({
@@ -180,28 +193,43 @@ serve(async (req) => {
         });
       }
 
-      // Check if all wolves have voted
-      if ((wolfActions || []).length < wolves.length) {
+      const uniqueTargets = [...new Set(Object.keys(voteCounts))];
+      const allVoted = (wolfActions || []).length >= wolves.length;
+
+      if (actionType === "werewolf_timeout") {
+        // Host forced advance — resolve with majority (tie = random)
+        let maxVotes = 0;
+        let candidates: string[] = [];
+        for (const [targetId, count] of Object.entries(voteCounts)) {
+          if (count > maxVotes) { maxVotes = count; candidates = [targetId]; }
+          else if (count === maxVotes) { candidates.push(targetId); }
+        }
+        const finalTarget = candidates.length > 0
+          ? candidates[Math.floor(Math.random() * candidates.length)]
+          : null;
+        snapshot.nightActions = snapshot.nightActions || {};
+        snapshot.nightActions.werewolvesTarget = finalTarget;
+      } else if (allVoted && uniqueTargets.length === 1) {
+        // Unanimous — advance
+        snapshot.nightActions = snapshot.nightActions || {};
+        snapshot.nightActions.werewolvesTarget = uniqueTargets[0];
+      } else {
+        // Not all voted yet, or not unanimous — wait
         return new Response(
           JSON.stringify({ received: true, waitingForOthers: true }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      // Resolve wolf vote: majority, tie = random
-      let maxVotes = 0;
-      let candidates: string[] = [];
-      for (const [targetId, count] of Object.entries(voteCounts)) {
-        if (count > maxVotes) {
-          maxVotes = count;
-          candidates = [targetId];
-        } else if (count === maxVotes) {
-          candidates.push(targetId);
-        }
-      }
-      const finalTarget = candidates[Math.floor(Math.random() * candidates.length)];
-      snapshot.nightActions = snapshot.nightActions || {};
-      snapshot.nightActions.werewolvesTarget = finalTarget;
+    } else {
+      // Store the action for all other action types
+      await admin.from("actions").insert({
+        game_id: gameId,
+        player_id: player.id,
+        action_type: actionType,
+        payload: payload || {},
+        phase: "night",
+        turn: snapshot.turn || 1,
+      });
     }
 
     // Handle seer action
@@ -211,11 +239,13 @@ serve(async (req) => {
       snapshot.nightActions = snapshot.nightActions || {};
       snapshot.nightActions.seerTarget = targetId;
 
-      // Send role to seer privately
+      seerResult = { role: target?.role || "unknown", name: target?.name || "?" };
+
+      // Also broadcast privately (best-effort)
       await channel.send({
         type: "broadcast",
         event: `private:${player.id}:night:action_result`,
-        payload: { result: { role: target?.role || "unknown", name: target?.name } },
+        payload: { result: seerResult },
       });
     }
 
@@ -515,7 +545,7 @@ serve(async (req) => {
       .eq("id", gameId);
 
     return new Response(
-      JSON.stringify({ received: true, nextStep: snapshot.currentNightStep }),
+      JSON.stringify({ received: true, nextStep: snapshot.currentNightStep, ...(seerResult ? { seerResult } : {}) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
