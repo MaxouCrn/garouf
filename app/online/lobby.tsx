@@ -49,8 +49,10 @@ export default function LobbyScreen() {
   // Role configuration (host only)
   const [roleConfig, setRoleConfig] = useState<Record<Role, number>>(() => getPreset(6));
 
-  // Fetch initial player list on mount
+  // Fetch player list on mount + poll every 3s for reliability
   useEffect(() => {
+    let mounted = true;
+
     async function fetchPlayers() {
       const { data: game } = await supabase
         .from("games")
@@ -64,20 +66,23 @@ export default function LobbyScreen() {
         .eq("game_id", params.gameId)
         .order("joined_at", { ascending: true });
 
-      if (allPlayers) {
+      if (allPlayers && mounted) {
         const lobbyPlayers: LobbyPlayer[] = allPlayers.map((p) => ({
           id: p.id,
           name: p.name,
           isHost: p.id === game?.host_id,
         }));
         setPlayers(lobbyPlayers);
-        // Auto-set preset based on current player count
-        if (isHost && allPlayers.length >= 6) {
-          setRoleConfig(getPreset(allPlayers.length));
-        }
       }
     }
+
     fetchPlayers();
+    const interval = setInterval(fetchPlayers, 3000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, [params.gameId]);
 
   const onMessage = {
