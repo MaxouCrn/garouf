@@ -350,13 +350,10 @@ serve(async (req) => {
       }
     }
 
-    // Handle resolution step
-    if (snapshot.currentNightStep === "resolution") {
+    // Handle resolution step — Phase 1: calculate deaths, stay in night phase
+    if (snapshot.currentNightStep === "resolution" && actionType !== "resolve_night") {
       const nightActions = snapshot.nightActions || {};
       const deaths: string[] = [];
-      let savedByWitch = false;
-      let savedBySavior = false;
-      let elderLostLife = false;
       let newElderLives = snapshot.elderLives ?? 2;
       const updatedPotions = { ...(snapshot.witchPotions || { life: true, death: true }) };
 
@@ -367,21 +364,18 @@ serve(async (req) => {
 
         if (snapshot.saviorTarget === target) {
           targetSaved = true;
-          savedBySavior = true;
         }
 
         if (!targetSaved) {
           const targetPlayer = (allPlayers || []).find((p: any) => p.id === target);
           if (targetPlayer?.role === "elder" && newElderLives > 1) {
             targetSaved = true;
-            elderLostLife = true;
             newElderLives -= 1;
           }
         }
 
         if (!targetSaved && nightActions.witchHeal && updatedPotions.life) {
           targetSaved = true;
-          savedByWitch = true;
           updatedPotions.life = false;
         }
 
@@ -398,29 +392,65 @@ serve(async (req) => {
       }
 
       // Lovers cascade
-      let loversCascade: string | null = null;
       if (snapshot.lovers) {
         const [l1, l2] = snapshot.lovers;
         for (const deadId of [...deaths]) {
           if (l1 === deadId && !deaths.includes(l2)) {
-            loversCascade = l2;
             deaths.push(l2);
             break;
           } else if (l2 === deadId && !deaths.includes(l1)) {
-            loversCascade = l1;
             deaths.push(l1);
             break;
           }
         }
       }
 
-      // Apply deaths
+      // Apply deaths in DB
       for (const deadId of deaths) {
-        await admin
-          .from("players")
-          .update({ is_alive: false })
-          .eq("id", deadId);
+        await admin.from("players").update({ is_alive: false }).eq("id", deadId);
       }
+
+      // Update snapshot with death results but keep phase as "night"
+      snapshot.elderLives = newElderLives;
+      snapshot.witchPotions = updatedPotions;
+      snapshot.lastSaviorTarget = snapshot.saviorTarget;
+      snapshot.nightDeaths = deaths;
+
+      await admin.from("games").update({ state_snapshot: snapshot }).eq("id", gameId);
+
+      const deathDetails = deaths.map((id: string) => {
+        const p = (allPlayers || []).find((pl: any) => pl.id === id);
+        return { id, name: p?.name || "?" };
+      });
+
+      // Broadcast resolution step with death info — clients show sunrise animation
+      await channel.send({
+        type: "broadcast",
+        event: "night:step",
+        payload: { step: "resolution", nightDeaths: deathDetails },
+      });
+
+      const updatedPlayers = (allPlayers || []).map((p: any) => ({
+        ...p,
+        is_alive: deaths.includes(p.id) ? false : p.is_alive,
+      }));
+      const aliveDetails = updatedPlayers.filter((p: any) => p.is_alive).map((p: any) => ({ id: p.id, name: p.name }));
+
+      await channel.send({
+        type: "broadcast",
+        event: "game:state",
+        payload: { alivePlayers: aliveDetails, nightDeaths: deathDetails, winner: null },
+      });
+
+      return new Response(
+        JSON.stringify({ resolved: false, deaths: deathDetails }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle resolution step — Phase 2: host sends resolve_night to transition phase
+    if (actionType === "resolve_night" && snapshot.currentNightStep === "resolution") {
+      const deaths: string[] = snapshot.nightDeaths || [];
 
       // Check hunter trigger
       const hunterTriggered = deaths.some((id: string) => {
@@ -453,49 +483,31 @@ serve(async (req) => {
         }
       }
 
-      // Update snapshot
-      snapshot.elderLives = newElderLives;
-      snapshot.witchPotions = updatedPotions;
-      snapshot.lastSaviorTarget = snapshot.saviorTarget;
-      snapshot.nightDeaths = deaths;
-
-      const deathDetails = deaths.map((id: string) => {
-        const p = (allPlayers || []).find((pl: any) => pl.id === id);
-        return { id, name: p?.name || "?" };
-      });
-
-      const aliveDetails = updatedPlayers
-        .filter((p: any) => p.is_alive)
-        .map((p: any) => ({ id: p.id, name: p.name }));
-
-      // Determine next phase
       let nextPhase = "day";
       if (winner) nextPhase = "end";
-      else if (hunterTriggered) nextPhase = "hunter";
+      else if (hunterTriggered) { nextPhase = "hunter"; snapshot.hunterContext = "night"; }
 
       snapshot.nightActions = { werewolvesTarget: null, seerTarget: null, witchHeal: false, witchKill: null };
       snapshot.saviorTarget = null;
       snapshot.ravenTarget = snapshot.ravenTarget; // Persist for day vote
       snapshot.daySubPhase = "announcement";
 
-      await admin
-        .from("games")
-        .update({
-          phase: nextPhase,
-          state_snapshot: snapshot,
-          ...(winner ? { status: "finished" } : {}),
-        })
-        .eq("id", gameId);
+      await admin.from("games").update({
+        phase: nextPhase,
+        state_snapshot: snapshot,
+        ...(winner ? { status: "finished" } : {}),
+      }).eq("id", gameId);
 
-      // Broadcast results
+      const deathDetails = (snapshot.nightDeaths || []).map((id: string) => {
+        const p = (allPlayers || []).find((pl: any) => pl.id === id);
+        return { id, name: p?.name || "?" };
+      });
+      const aliveDetails = updatedPlayers.filter((p: any) => p.is_alive).map((p: any) => ({ id: p.id, name: p.name }));
+
       await channel.send({
         type: "broadcast",
         event: "game:state",
-        payload: {
-          alivePlayers: aliveDetails,
-          nightDeaths: deathDetails,
-          winner,
-        },
+        payload: { alivePlayers: aliveDetails, nightDeaths: deathDetails, winner },
       });
 
       await channel.send({

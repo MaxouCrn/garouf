@@ -48,6 +48,18 @@ function SeerAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
   return null;
 }
 
+/** Fires onAdvance once after 3 seconds (sunrise animation duration). */
+function ResolutionAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
+  const fired = useRef(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!fired.current) { fired.current = true; onAdvance(); }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+  return null;
+}
+
 const SEER_CARD_WIDTH = 180;
 const SEER_CARD_HEIGHT = 270;
 
@@ -202,7 +214,7 @@ export default function OnlineGameScreen() {
       );
     }
 
-    // ── Resolution phase: "Le soleil se lève..." ──
+    // ── Resolution phase: sunrise animation + deaths (auto-advance after 3s) ──
     if (state.nightStep === "resolution") {
       return (
         <View style={styles.container}>
@@ -210,12 +222,7 @@ export default function OnlineGameScreen() {
           <View style={styles.overlay}>
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>Le soleil se leve...</Text>
-              {isHost && (
-                <Pressable style={styles.nightButton} onPress={() => handleNightAction("resolve_night", {})}>
-                  <Text style={styles.nightButtonText}>Reveler les evenements</Text>
-                </Pressable>
-              )}
-              {!isHost && <Text style={styles.waitText}>En attente...</Text>}
+              {isHost && <ResolutionAutoAdvance onAdvance={() => handleNightAction("resolve_night", {})} />}
             </View>
           </View>
         </View>

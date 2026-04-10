@@ -151,11 +151,13 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
 
     "night:step": (payload: Record<string, unknown>) => {
       const data = payload as unknown as NightStepPayload;
+      const nightDeaths = (payload as any).nightDeaths;
       setState((prev) => ({
         ...prev,
         nightStep: data.step,
         actionRequired: null,
         actionResult: null,
+        ...(nightDeaths ? { nightDeaths } : {}),
       }));
     },
 
