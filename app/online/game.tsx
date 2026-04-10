@@ -36,6 +36,18 @@ function IntroAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
   return null;
 }
 
+/** Fires onAdvance once after 4 seconds. Seer card display helper. */
+function SeerAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
+  const fired = useRef(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!fired.current) { fired.current = true; onAdvance(); }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+  return null;
+}
+
 const SEER_CARD_WIDTH = 180;
 const SEER_CARD_HEIGHT = 270;
 
@@ -87,11 +99,6 @@ export default function OnlineGameScreen() {
         useNativeDriver: true,
       }).start();
     }
-  }, [state.nightStep]);
-
-  // Reset seer result when night step changes
-  useEffect(() => {
-    setSeerResult(null);
   }, [state.nightStep]);
 
   // Host plays narrator audio during night phase
@@ -239,7 +246,7 @@ export default function OnlineGameScreen() {
       );
     }
 
-    // ── Seer result: show card of inspected player ──
+    // ── Seer result: show card of inspected player (auto-advance after 4s) ──
     if (state.nightStep === "seer" && state.myRole === "seer" && seerResult) {
       const roleKey = seerResult.role as Role;
       const roleLabel = ROLE_LABELS[roleKey];
@@ -258,9 +265,7 @@ export default function OnlineGameScreen() {
                 </View>
               )}
               <Text style={styles.seerRoleName}>{roleLabel?.label ?? seerResult.role}</Text>
-              <Pressable style={styles.nightButton} onPress={() => handleNightAction("seer_continue", {})}>
-                <Text style={styles.nightButtonText}>Continuer</Text>
-              </Pressable>
+              <SeerAutoAdvance onAdvance={() => { handleNightAction("seer_done", {}); setSeerResult(null); }} />
             </View>
           </View>
         </View>

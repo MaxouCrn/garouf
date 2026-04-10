@@ -247,6 +247,19 @@ serve(async (req) => {
         event: `private:${player.id}:night:action_result`,
         payload: { result: seerResult },
       });
+
+      // Do NOT advance step — client will display the card then send "seer_done"
+      await admin.from("games").update({ state_snapshot: snapshot }).eq("id", gameId);
+
+      return new Response(
+        JSON.stringify({ received: true, nextStep: "seer", seerResult }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle seer_done — advance past seer step after client displayed the card
+    if (actionType === "seer_done" && currentStep === "seer") {
+      // Fall through to generic advance logic below
     }
 
     // Handle savior action
