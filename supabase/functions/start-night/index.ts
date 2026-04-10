@@ -86,28 +86,6 @@ serve(async (req) => {
     await channel.send({ type: "broadcast", event: "game:phase", payload: { phase: "night", turn, nightStep: "intro" } });
     await channel.send({ type: "broadcast", event: "night:step", payload: { step: "intro" } });
 
-    if (nightSteps.length > 1) {
-      const firstRealStep = nightSteps[1];
-      snapshot.nightStepIndex = 1;
-      snapshot.currentNightStep = firstRealStep;
-      await admin.from("games").update({ state_snapshot: snapshot }).eq("id", gameId);
-      await channel.send({ type: "broadcast", event: "night:step", payload: { step: firstRealStep } });
-
-      const stepRole = STEP_ROLE_MAP[firstRealStep];
-      if (stepRole) {
-        const activePlayers = (allPlayers || []).filter((p: any) => p.is_alive && p.role === stepRole);
-        const targets = (allPlayers || []).filter((p: any) => p.is_alive).map((p: any) => ({ id: p.id, name: p.name }));
-        for (const activePlayer of activePlayers) {
-          const actionPayload: any = {
-            step: firstRealStep, targets,
-            instruction: STEP_INSTRUCTION[firstRealStep] || "",
-            timerSeconds: STEP_TIMER[firstRealStep] || 15,
-          };
-          await channel.send({ type: "broadcast", event: `private:${activePlayer.id}:night:action_required`, payload: actionPayload });
-        }
-      }
-    }
-
     return new Response(JSON.stringify({ started: true, nightSteps }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

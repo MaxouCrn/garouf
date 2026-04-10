@@ -24,6 +24,18 @@ import SpectatorView from "../../components/online/SpectatorView";
 import EndView from "../../components/online/EndView";
 import PausedView from "../../components/online/PausedView";
 
+/** Fires onAdvance once after 4 seconds. Host-only helper. */
+function IntroAutoAdvance({ onAdvance }: { onAdvance: () => void }) {
+  const fired = useRef(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!fired.current) { fired.current = true; onAdvance(); }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+  return null;
+}
+
 const SEER_CARD_WIDTH = 180;
 const SEER_CARD_HEIGHT = 270;
 
@@ -167,7 +179,7 @@ export default function OnlineGameScreen() {
       </View>
     );
 
-    // ── Intro phase: "La nuit tombe..." ──
+    // ── Intro phase: "La nuit tombe..." (auto-advance after 4s) ──
     if (state.nightStep === "intro") {
       return (
         <View style={styles.container}>
@@ -176,11 +188,7 @@ export default function OnlineGameScreen() {
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>La nuit tombe...</Text>
               <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
-              {isHost && (
-                <Pressable style={styles.nightButton} onPress={() => handleNightAction("advance_intro", {})}>
-                  <Text style={styles.nightButtonText}>Continuer</Text>
-                </Pressable>
-              )}
+              {isHost && <IntroAutoAdvance onAdvance={() => handleNightAction("advance_intro", {})} />}
             </View>
           </View>
         </View>
