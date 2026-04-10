@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { getSupabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { initNightSnapshot } from "../_shared/nightInit.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -227,6 +228,11 @@ serve(async (req) => {
     snapshot.ravenTarget = null;
     snapshot.isFirstNight = false;
 
+    // Initialize night steps if transitioning to night
+    if (nextPhase === "night") {
+      initNightSnapshot(snapshot, updatedPlayers, nextTurn);
+    }
+
     await admin
       .from("games")
       .update({
@@ -261,8 +267,20 @@ serve(async (req) => {
     await channel.send({
       type: "broadcast",
       event: "game:phase",
-      payload: { phase: nextPhase, turn: nextTurn },
+      payload: {
+        phase: nextPhase,
+        turn: nextTurn,
+        ...(nextPhase === "night" ? { nightStep: "intro" } : {}),
+      },
     });
+
+    if (nextPhase === "night") {
+      await channel.send({
+        type: "broadcast",
+        event: "night:step",
+        payload: { step: "intro" },
+      });
+    }
 
     return new Response(
       JSON.stringify({ resolved: true, eliminated: eliminatedPlayer?.name, winner }),
