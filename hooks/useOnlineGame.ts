@@ -65,7 +65,10 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
     isHost,
   });
 
-  // Poll server state every 2s for reliability (broadcasts are unreliable)
+  // Track when the last broadcast was received to avoid poll overwriting fresh data
+  const lastBroadcastAt = useRef(0);
+
+  // Poll server state every 2s for reliability (fallback when broadcasts are missed)
   useEffect(() => {
     let mounted = true;
 
@@ -87,10 +90,11 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
           ? { startedAt: snapshot.debateStartedAt, durationMs: snapshot.debateDurationMs }
           : null;
 
-        // Read night deaths from snapshot
+        // Read night deaths from snapshot (use allPlayers to resolve names of dead players)
         const nightDeathIds: string[] = snapshot.nightDeaths || [];
+        const lookupPlayers = data.allPlayers || data.alivePlayers || [];
         const nightDeaths = nightDeathIds.map((id: string) => {
-          const p = (data.alivePlayers || []).find((pl: { id: string }) => pl.id === id);
+          const p = lookupPlayers.find((pl: { id: string }) => pl.id === id);
           return { id, name: p?.name || "?" };
         });
 
@@ -98,19 +102,24 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         const readyPlayers: string[] = snapshot.readyPlayers || [];
         const totalPlayersCount = (data.alivePlayers || []).length;
 
+        // Only overwrite volatile fields (nightStep, daySubPhase, etc.) if no
+        // broadcast has been received in the last 5s — avoids poll reverting
+        // state that a real-time broadcast just set.
+        const broadcastIsRecent = Date.now() - lastBroadcastAt.current < 5000;
+
         setState((prev) => ({
           ...prev,
           phase: phase || prev.phase,
           turn: snapshot.turn || prev.turn,
-          nightStep: snapshot.currentNightStep || prev.nightStep,
+          nightStep: broadcastIsRecent ? prev.nightStep : (snapshot.currentNightStep || prev.nightStep),
           myRole: role || prev.myRole,
           myRoleDescription: roleDesc || prev.myRoleDescription,
           isAlive: data.player?.isAlive ?? prev.isAlive,
           alivePlayers: data.alivePlayers || prev.alivePlayers,
           nightDeaths: nightDeaths.length > 0 ? nightDeaths : prev.nightDeaths,
           winner: phase === "end" ? (snapshot.winner || prev.winner) : prev.winner,
-          daySubPhase: phase === "day" ? daySubPhase : "announcement",
-          debateTimer: debateTimer || prev.debateTimer,
+          daySubPhase: broadcastIsRecent ? prev.daySubPhase : (phase === "day" ? daySubPhase : "announcement"),
+          debateTimer: broadcastIsRecent ? prev.debateTimer : (debateTimer || prev.debateTimer),
           readyCount: phase === "distribution" ? readyPlayers.length : prev.readyCount,
           totalPlayers: phase === "distribution" ? totalPlayersCount : prev.totalPlayers,
         }));
@@ -131,6 +140,7 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
   const onMessage = useMemo(() => ({
     // ── Public events ───────────────────────────────────────────────────
     "game:phase": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as GamePhasePayload;
       setState((prev) => ({
         ...prev,
@@ -151,6 +161,7 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
     },
 
     "game:state": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as GameStatePayload;
       setState((prev) => ({
         ...prev,
@@ -162,6 +173,7 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
     },
 
     "night:step": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as NightStepPayload;
       const nightDeaths = (payload as any).nightDeaths;
       setState((prev) => ({
@@ -174,21 +186,25 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
     },
 
     "vote:log": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as VoteLogPayload;
       setState((prev) => ({ ...prev, voteLogs: [...prev.voteLogs, data] }));
     },
 
     "vote:status": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as VoteStatusPayload;
       setState((prev) => ({ ...prev, voteStatus: data }));
     },
 
     "vote:result": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as VoteResultPayload;
       setState((prev) => ({ ...prev, voteResult: data }));
     },
 
     "timer:start": (payload: Record<string, unknown>) => {
+      lastBroadcastAt.current = Date.now();
       const data = payload as unknown as TimerStartPayload;
       setState((prev) => ({ ...prev, debateTimer: data }));
     },

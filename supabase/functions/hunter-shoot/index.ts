@@ -127,12 +127,16 @@ serve(async (req) => {
 
     const channel = admin.channel(`game:${gameId}`);
 
+    // Combine original night deaths with hunter kills for the day announcement
+    const originalNightDeaths: string[] = snapshot.nightDeaths || [];
+    const allDeaths = [...new Set([...originalNightDeaths, ...deaths])];
+
     await channel.send({
       type: "broadcast",
       event: "game:state",
       payload: {
         alivePlayers: updatedPlayers.filter((p: any) => p.is_alive).map((p: any) => ({ id: p.id, name: p.name })),
-        nightDeaths: deaths.map((id: string) => {
+        nightDeaths: allDeaths.map((id: string) => {
           const p = (allPlayers || []).find((pl: any) => pl.id === id);
           return { id, name: p?.name || "?" };
         }),

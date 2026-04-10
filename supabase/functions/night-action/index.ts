@@ -131,7 +131,9 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!player || !player.is_alive) {
+    // Host narrator actions (advance_intro, resolve_night) are allowed even if dead
+    const isNarratorAction = actionType === "advance_intro" || actionType === "resolve_night";
+    if (!player || (!player.is_alive && !isNarratorAction)) {
       return new Response(JSON.stringify({ error: "Player not alive" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -537,11 +539,13 @@ serve(async (req) => {
       const activePlayers = (allPlayers || []).filter((p: any) =>
         p.is_alive && (Array.isArray(stepRole) ? stepRole.includes(p.role) : p.role === stepRole)
       );
-      const targets = (allPlayers || [])
-        .filter((p: any) => p.is_alive && p.id !== player.id)
-        .map((p: any) => ({ id: p.id, name: p.name }));
 
       for (const activePlayer of activePlayers) {
+        // Targets exclude the active player themselves, not the previous action submitter
+        const targets = (allPlayers || [])
+          .filter((p: any) => p.is_alive && p.id !== activePlayer.id)
+          .map((p: any) => ({ id: p.id, name: p.name }));
+
         const actionPayload: any = {
           step: snapshot.currentNightStep,
           targets,

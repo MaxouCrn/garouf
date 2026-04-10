@@ -163,8 +163,8 @@ export default function OnlineGameScreen() {
     );
   }
 
-  // ── Dead player ─────────────────────────────────────────────────────────
-  if (!state.isAlive) {
+  // ── Dead player (host still sees game screens to act as narrator) ──────
+  if (!state.isAlive && !isHost) {
     return <View style={styles.container}><SpectatorView phase={state.phase} nightStep={state.nightStep} /></View>;
   }
 

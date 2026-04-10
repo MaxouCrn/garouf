@@ -84,6 +84,8 @@ serve(async (req) => {
         alivePlayers: (allPlayers || [])
           .filter((p: any) => p.is_alive)
           .map((p: any) => ({ id: p.id, name: p.name })),
+        allPlayers: (allPlayers || [])
+          .map((p: any) => ({ id: p.id, name: p.name })),
         hostId: game.host_id,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
