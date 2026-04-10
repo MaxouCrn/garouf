@@ -26,6 +26,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const soundRef = useRef<Audio.Sound | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const pendingPlayRef = useRef(false);
 
   // Load sound once
   useEffect(() => {
@@ -33,6 +34,10 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
     async function load() {
       try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+        });
         const { sound } = await Audio.Sound.createAsync(HOME_MUSIC, {
           isLooping: true,
           volume: MUSIC_VOLUME,
@@ -42,6 +47,11 @@ export function MusicProvider({ children }: { children: ReactNode }) {
           return;
         }
         soundRef.current = sound;
+        if (pendingPlayRef.current) {
+          pendingPlayRef.current = false;
+          await sound.playAsync();
+          setIsPlaying(true);
+        }
       } catch {
         // Silently ignore
       }
@@ -58,7 +68,11 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startMusic = async () => {
-    if (!soundRef.current || isPlaying) return;
+    if (isPlaying) return;
+    if (!soundRef.current) {
+      pendingPlayRef.current = true;
+      return;
+    }
     try {
       if (!isMuted) {
         await soundRef.current.setVolumeAsync(MUSIC_VOLUME);
