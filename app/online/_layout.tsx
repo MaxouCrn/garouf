@@ -15,6 +15,7 @@ export default function OnlineLayout() {
       <Stack.Screen name="create" options={{ title: "Creer une partie" }} />
       <Stack.Screen name="join" options={{ title: "Rejoindre" }} />
       <Stack.Screen name="lobby" options={{ title: "Salon", headerBackVisible: false }} />
+      <Stack.Screen name="game" options={{ title: "Partie", headerShown: false }} />
     </Stack>
   );
 }
