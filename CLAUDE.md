@@ -52,6 +52,13 @@ All screens are in `app/`. Each screen uses `useGame()` for state and dispatch. 
 
 Dark theme colors in `theme/colors.ts`. All screens use `StyleSheet` from React Native directly.
 
+## Dev Tools
+
+`app/dev.tsx` is a component catalog (mini-Storybook) for previewing online view components in isolation with mock props. Accessible via a red "Dev Tools" button on the home screen (`__DEV__` only).
+
+- **When creating a new view component in `components/online/`**, add a corresponding preview entry in the `PREVIEWS` array in `app/dev.tsx` with realistic mock props.
+- **When modifying a view component's props interface**, update its mock props in `app/dev.tsx` to match.
+
 ## Commit Rules
 
 - **NEVER** add `Co-Authored-By` lines to git commits. Claude must not appear as a contributor.
