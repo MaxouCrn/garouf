@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 import ActionTimer from "./ActionTimer";
@@ -25,7 +25,10 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote }: Props)
     }
   };
 
-  const others = alivePlayers.filter((p) => p.id !== myPlayerId);
+  const others = useMemo(
+    () => alivePlayers.filter((p) => p.id !== myPlayerId),
+    [alivePlayers.map((p) => p.id).join(","), myPlayerId]
+  );
 
   if (voted) {
     return (

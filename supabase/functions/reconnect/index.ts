@@ -62,7 +62,8 @@ serve(async (req) => {
     const { data: allPlayers } = await admin
       .from("players")
       .select("id, name, is_alive")
-      .eq("game_id", gameId);
+      .eq("game_id", gameId)
+      .order("joined_at", { ascending: true });
 
     return new Response(
       JSON.stringify({
