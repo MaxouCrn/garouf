@@ -45,6 +45,7 @@ export default function RootLayout() {
         <Stack.Screen name="splash" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="online" options={{ headerShown: false }} />
+        <Stack.Screen name="dev" options={{ headerShown: false }} />
       </Stack>
       </MusicProvider>
     </GameProvider>

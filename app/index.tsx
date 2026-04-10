@@ -55,6 +55,16 @@ export default function HomeScreen() {
       >
         <Text style={styles.outlineButtonText}>Rejoindre une partie</Text>
       </Pressable>
+      {__DEV__ && (
+        <Pressable
+          style={[styles.outlineButton, { marginTop: 32, borderColor: colors.danger }]}
+          onPress={() => router.push("/dev")}
+        >
+          <Text style={[styles.outlineButtonText, { color: colors.danger }]}>
+            Dev Tools
+          </Text>
+        </Pressable>
+      )}
     </ImageBackground>
   );
 }
