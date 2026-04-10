@@ -1,13 +1,285 @@
-import { useState } from "react";
-import { View, Text, Pressable, Image, StyleSheet, Animated } from "react-native";
+import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ImageBackground,
+  StyleSheet,
+  Animated,
+  Easing,
+  Modal,
+  Dimensions,
+} from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { ROLE_CARDS, ROLE_LABELS } from "../../theme/roleCards";
-import type { Role } from "../../game/roles";
+import { ROLE_REGISTRY } from "../../game/roles";
+import { useGyroscopeTilt } from "../../hooks/useGyroscopeTilt";
 
-const BACK_CARD = require("../../assets/cards/back-card.png");
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 330;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const DETAIL_CARD_WIDTH = SCREEN_WIDTH * 0.6;
+const DETAIL_CARD_HEIGHT = DETAIL_CARD_WIDTH * 1.45;
+
+// --- Role Detail Modal (long press) ---
+
+function RoleDetailModal({
+  role,
+  visible,
+  onClose,
+}: {
+  role: string | null;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const cardScale = useRef(new Animated.Value(0.3)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const descTranslateY = useRef(new Animated.Value(15)).current;
+
+  const { tiltX, tiltY, TILT_INTENSITY } = useGyroscopeTilt(visible);
+
+  const animateIn = useCallback(() => {
+    overlayOpacity.setValue(0);
+    cardScale.setValue(0.3);
+    contentOpacity.setValue(0);
+    descTranslateY.setValue(15);
+
+    Animated.parallel([
+      Animated.timing(overlayOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardScale, {
+        toValue: 1,
+        friction: 7,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 250,
+        delay: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(descTranslateY, {
+        toValue: 0,
+        duration: 300,
+        delay: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const animateOut = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardScale, {
+        toValue: 0.3,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentOpacity, {
+        toValue: 0,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  }, [onClose]);
+
+  if (!role) return null;
+
+  const roleDef = ROLE_REGISTRY[role as keyof typeof ROLE_REGISTRY];
+  if (!roleDef) return null;
+
+  const cardImage = ROLE_CARDS[role as keyof typeof ROLE_CARDS];
+  const isWolf = roleDef.camp === "werewolves";
+  const accentColor = isWolf ? colors.danger : colors.primary;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onShow={animateIn}
+      onRequestClose={animateOut}
+      statusBarTranslucent
+    >
+      <Pressable style={StyleSheet.absoluteFill} onPress={animateOut}>
+        <Animated.View style={[detailStyles.overlay, { opacity: overlayOpacity }]} />
+      </Pressable>
+
+      <View style={detailStyles.content} pointerEvents="box-none">
+        <Animated.View
+          style={[
+            detailStyles.container,
+            { transform: [{ scale: cardScale }] },
+          ]}
+        >
+          <Pressable style={detailStyles.closeButton} onPress={animateOut}>
+            <Text style={detailStyles.closeButtonText}>✕</Text>
+          </Pressable>
+
+          {/* Card with gyroscope tilt */}
+          <Animated.View
+            style={[
+              detailStyles.card,
+              {
+                borderColor: accentColor,
+                transform: [
+                  { perspective: 800 },
+                  {
+                    rotateY: tiltX.interpolate({
+                      inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                      outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                    }),
+                  },
+                  {
+                    rotateX: tiltY.interpolate({
+                      inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                      outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                detailStyles.shine,
+                {
+                  opacity: tiltX.interpolate({
+                    inputRange: [-TILT_INTENSITY, 0, TILT_INTENSITY],
+                    outputRange: [0.15, 0, 0.15],
+                  }),
+                  transform: [
+                    {
+                      translateX: tiltX.interpolate({
+                        inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                        outputRange: [-DETAIL_CARD_WIDTH * 0.5, DETAIL_CARD_WIDTH * 0.5],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+            {cardImage ? (
+              <Image source={cardImage} style={detailStyles.image} resizeMode="cover" />
+            ) : (
+              <View style={[detailStyles.placeholder, { backgroundColor: isWolf ? "rgba(233,69,96,0.12)" : "rgba(15,52,96,0.7)" }]}>
+                <Text style={detailStyles.emoji}>{roleDef.emoji}</Text>
+              </View>
+            )}
+          </Animated.View>
+
+          {/* Info */}
+          <Animated.View
+            style={[
+              detailStyles.info,
+              {
+                opacity: contentOpacity,
+                transform: [{ translateY: descTranslateY }],
+              },
+            ]}
+          >
+            <Text style={[detailStyles.name, { color: accentColor }]}>{roleDef.label}</Text>
+            <Text style={detailStyles.description}>{roleDef.description}</Text>
+          </Animated.View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+const detailStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.85)",
+  },
+  content: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  container: {
+    alignItems: "center",
+    width: DETAIL_CARD_WIDTH + 40,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    marginBottom: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButtonText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  card: {
+    width: DETAIL_CARD_WIDTH,
+    height: DETAIL_CARD_HEIGHT,
+    borderRadius: 14,
+    borderWidth: 2,
+    overflow: "hidden",
+    backgroundColor: colors.surface,
+  },
+  shine: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.4)",
+    zIndex: 10,
+    width: DETAIL_CARD_WIDTH * 0.6,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  placeholder: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emoji: {
+    fontSize: 72,
+  },
+  info: {
+    alignItems: "center",
+    marginTop: 20,
+    paddingHorizontal: 8,
+    width: SCREEN_WIDTH * 0.85,
+  },
+  name: {
+    fontFamily: fonts.cinzelBold,
+    fontSize: 24,
+    textAlign: "center",
+    marginBottom: 12,
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  description: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    textAlign: "center",
+  },
+});
+
+// --- Online Distribution View ---
 
 interface Props {
   role: string | null;
@@ -16,140 +288,284 @@ interface Props {
   onStartNight: () => void;
 }
 
-export default function DistributionView({ role, description, isHost, onStartNight }: Props) {
+export default function DistributionView({ role, isHost, onStartNight }: Props) {
+  const flipAnim = useRef(new Animated.Value(0)).current;
   const [revealed, setRevealed] = useState(false);
-  const [showDescription, setShowDescription] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
 
-  const roleKey = role as Role | null;
+  // Gyroscope tilt on the card (back and revealed)
+  const { tiltX, tiltY, TILT_INTENSITY, recalibrate } = useGyroscopeTilt(!detailVisible);
+
+  const roleKey = role as keyof typeof ROLE_CARDS | null;
   const roleLabel = roleKey ? ROLE_LABELS[roleKey] : null;
-  const roleCard = roleKey ? ROLE_CARDS[roleKey] : null;
+  const cardImage = roleKey ? ROLE_CARDS[roleKey] : null;
+
+  useEffect(() => {
+    // Reset flip when role changes (e.g. reconnect scenario)
+    flipAnim.setValue(0);
+    setRevealed(false);
+    recalibrate();
+  }, [role]);
+
+  const handleFlip = () => {
+    if (revealed) return;
+    recalibrate();
+    Animated.timing(flipAnim, {
+      toValue: 1,
+      duration: 600,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start(() => {
+      setRevealed(true);
+    });
+  };
+
+  const handleLongPress = () => {
+    if (revealed && role) {
+      setDetailVisible(true);
+    }
+  };
+
+  const frontRotateY = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  const backRotateY = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
+  });
+
+  const frontOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 0.5, 1],
+    outputRange: [1, 1, 0, 0],
+  });
+
+  const backOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 0.5, 1],
+    outputRange: [0, 0, 1, 1],
+  });
 
   if (!role) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.waiting}>Attribution des roles en cours...</Text>
-      </View>
+      <ImageBackground
+        source={require("../../assets/devoilement-background.png")}
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <View style={styles.centered}>
+          <Text style={styles.waiting}>Attribution des roles en cours...</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Ton Role</Text>
+    <>
+      <ImageBackground
+        source={require("../../assets/devoilement-background.png")}
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <View style={styles.centered}>
+          {/* Card area: before flip shows back card, after flip shows role card */}
+          <Pressable onPress={handleFlip} onLongPress={handleLongPress} delayLongPress={400}>
+            <Animated.View
+              style={[
+                styles.cardTiltWrapper,
+                {
+                  transform: [
+                    { perspective: 800 },
+                    {
+                      rotateY: tiltX.interpolate({
+                        inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                        outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                      }),
+                    },
+                    {
+                      rotateX: tiltY.interpolate({
+                        inputRange: [-TILT_INTENSITY, TILT_INTENSITY],
+                        outputRange: [`-${TILT_INTENSITY}deg`, `${TILT_INTENSITY}deg`],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <View style={styles.cardContainer}>
+                {/* Front face: back-card */}
+                <Animated.View
+                  style={[
+                    styles.cardFace,
+                    {
+                      transform: [{ perspective: 1000 }, { rotateY: frontRotateY }],
+                      opacity: frontOpacity,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={require("../../assets/cards/back-card.png")}
+                    style={styles.card}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
 
-      {!revealed ? (
-        <>
-          <Pressable onPress={() => setRevealed(true)}>
-            <Image source={BACK_CARD} style={styles.card} resizeMode="contain" />
-          </Pressable>
-          <Text style={styles.hint}>Appuie pour retourner ta carte</Text>
-        </>
-      ) : (
-        <>
-          <Pressable
-            onLongPress={() => setShowDescription(true)}
-            onPressOut={() => setShowDescription(false)}
-          >
-            {roleCard ? (
-              <Image source={roleCard} style={styles.card} resizeMode="contain" />
-            ) : (
-              <View style={styles.emojiCard}>
-                <Text style={styles.emoji}>{roleLabel?.emoji ?? "?"}</Text>
-                <Text style={styles.roleName}>{roleLabel?.label ?? role}</Text>
+                {/* Back face: role card */}
+                <Animated.View
+                  style={[
+                    styles.cardFace,
+                    {
+                      transform: [{ perspective: 1000 }, { rotateY: backRotateY }],
+                      opacity: backOpacity,
+                    },
+                  ]}
+                >
+                  {cardImage ? (
+                    <Image
+                      source={cardImage}
+                      style={styles.card}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <View style={[styles.card, styles.fallbackCard]}>
+                      <Text style={styles.roleEmoji}>{roleLabel?.emoji}</Text>
+                      <Text style={styles.fallbackLabel}>{roleLabel?.label}</Text>
+                    </View>
+                  )}
+                </Animated.View>
               </View>
-            )}
+            </Animated.View>
           </Pressable>
 
-          {showDescription && (
-            <View style={styles.descriptionBox}>
-              <Text style={styles.descriptionText}>{description}</Text>
-            </View>
-          )}
+          {!revealed ? (
+            <Text style={styles.hint}>Appuyez sur la carte</Text>
+          ) : (
+            <>
+              <Text style={styles.roleName}>{roleLabel?.label}</Text>
+              <Text style={styles.longPressHint}>
+                Maintiens la carte pour voir ton pouvoir
+              </Text>
 
-          {!showDescription && (
-            <Text style={styles.hint}>Maintiens appuye pour voir la description</Text>
+              {isHost ? (
+                <Pressable style={styles.button} onPress={onStartNight}>
+                  <Text style={styles.buttonText}>Tout le monde est pret</Text>
+                </Pressable>
+              ) : (
+                <Text style={styles.waitingText}>En attente du lancement...</Text>
+              )}
+            </>
           )}
-        </>
-      )}
+        </View>
+      </ImageBackground>
 
-      {isHost && revealed && (
-        <Pressable style={styles.startButton} onPress={onStartNight}>
-          <Text style={styles.startButtonText}>Tout le monde est pret</Text>
-        </Pressable>
-      )}
-    </View>
+      <RoleDetailModal
+        role={role}
+        visible={detailVisible}
+        onClose={() => setDetailVisible(false)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  centered: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
-  },
-  title: {
-    fontFamily: fonts.cinzelBold,
-    fontSize: 28,
-    color: colors.primary,
-    marginBottom: 24,
   },
   waiting: {
     fontSize: 18,
     color: colors.textSecondary,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  cardTiltWrapper: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+  },
+  cardContainer: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    marginBottom: 20,
+  },
+  cardFace: {
+    position: "absolute",
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
   },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 16,
   },
-  emojiCard: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
+  fallbackCard: {
+    backgroundColor: "rgba(22,33,62,0.9)",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: colors.primary,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 12,
+  roleEmoji: {
+    fontSize: 60,
+    marginBottom: 8,
   },
-  roleName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: colors.primary,
+  fallbackLabel: {
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
+    fontSize: 20,
   },
   hint: {
+    color: "rgba(255,255,255,0.6)",
     fontSize: 14,
-    color: colors.textMuted,
-    marginTop: 16,
+    marginTop: 12,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  descriptionBox: {
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 16,
-    maxWidth: 300,
+  roleName: {
+    fontFamily: fonts.cinzelRegular,
+    color: colors.white,
+    fontSize: 24,
+    marginTop: 20,
+    marginBottom: 8,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
-  descriptionText: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: "center",
-    lineHeight: 20,
+  longPressHint: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 13,
+    marginBottom: 20,
+    fontStyle: "italic",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  startButton: {
-    backgroundColor: colors.primary,
+  button: {
+    backgroundColor: "rgba(255,255,255,0.15)",
     paddingHorizontal: 48,
     paddingVertical: 16,
     borderRadius: 12,
-    marginTop: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
   },
-  startButtonText: {
-    color: colors.black,
+  buttonText: {
+    color: colors.white,
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: fonts.cinzelBold,
+  },
+  waitingText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 15,
+    fontStyle: "italic",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
