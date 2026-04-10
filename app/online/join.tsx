@@ -32,6 +32,7 @@ export default function JoinGameScreen() {
         pathname: "/online/lobby",
         params: {
           gameId: data.gameId,
+          code: code.trim().toUpperCase(),
           playerId: data.playerId,
           isHost: "false",
         },
