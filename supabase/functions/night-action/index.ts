@@ -292,61 +292,62 @@ serve(async (req) => {
       snapshot.ravenTarget = payload?.targetId || null;
     }
 
-    // Advance to next step
-    const nextStepIndex = nightStepIndex + 1;
-    if (nextStepIndex >= nightSteps.length) {
-      // Should not happen — resolution handles this
-      return new Response(
-        JSON.stringify({ error: "Night steps exhausted" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const nextStep = nightSteps[nextStepIndex];
-    snapshot.nightStepIndex = nextStepIndex;
-    snapshot.currentNightStep = nextStep;
-
-    // Handle automatic steps
-    if (nextStep === "lovers_reveal" && snapshot.lovers) {
-      const [l1Id, l2Id] = snapshot.lovers;
-      const l1 = (allPlayers || []).find((p: any) => p.id === l1Id);
-      const l2 = (allPlayers || []).find((p: any) => p.id === l2Id);
-      const isMixed = l1 && l2 &&
-        ((l1.role === "werewolf") !== (l2.role === "werewolf"));
-
-      await channel.send({
-        type: "broadcast",
-        event: `private:${l1Id}:lovers:reveal`,
-        payload: { partnerName: l2?.name, isMixed },
-      });
-      await channel.send({
-        type: "broadcast",
-        event: `private:${l2Id}:lovers:reveal`,
-        payload: { partnerName: l1?.name, isMixed },
-      });
-
-      // Auto-advance past lovers_reveal
-      const afterLoversIndex = nextStepIndex + 1;
-      if (afterLoversIndex < nightSteps.length) {
-        snapshot.nightStepIndex = afterLoversIndex;
-        snapshot.currentNightStep = nightSteps[afterLoversIndex];
+    // Advance to next step (skip for resolve_night — Phase 2 handles it directly)
+    if (actionType !== "resolve_night") {
+      const nextStepIndex = nightStepIndex + 1;
+      if (nextStepIndex >= nightSteps.length) {
+        return new Response(
+          JSON.stringify({ error: "Night steps exhausted" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
-    }
 
-    // Handle little_girl step (auto-generate clue)
-    if (snapshot.currentNightStep === "little_girl") {
-      const clueIds = generateLittleGirlClue(allPlayers || []);
-      const clueNames = clueIds.map((id: string) => {
-        const p = (allPlayers || []).find((pl: any) => pl.id === id);
-        return p?.name || "???";
-      });
-      const littleGirl = (allPlayers || []).find((p: any) => p.role === "little_girl" && p.is_alive);
-      if (littleGirl) {
+      const nextStep = nightSteps[nextStepIndex];
+      snapshot.nightStepIndex = nextStepIndex;
+      snapshot.currentNightStep = nextStep;
+
+      // Handle automatic steps
+      if (nextStep === "lovers_reveal" && snapshot.lovers) {
+        const [l1Id, l2Id] = snapshot.lovers;
+        const l1 = (allPlayers || []).find((p: any) => p.id === l1Id);
+        const l2 = (allPlayers || []).find((p: any) => p.id === l2Id);
+        const isMixed = l1 && l2 &&
+          ((l1.role === "werewolf") !== (l2.role === "werewolf"));
+
         await channel.send({
           type: "broadcast",
-          event: `private:${littleGirl.id}:little_girl:clue`,
-          payload: { clueNames },
+          event: `private:${l1Id}:lovers:reveal`,
+          payload: { partnerName: l2?.name, isMixed },
         });
+        await channel.send({
+          type: "broadcast",
+          event: `private:${l2Id}:lovers:reveal`,
+          payload: { partnerName: l1?.name, isMixed },
+        });
+
+        // Auto-advance past lovers_reveal
+        const afterLoversIndex = nextStepIndex + 1;
+        if (afterLoversIndex < nightSteps.length) {
+          snapshot.nightStepIndex = afterLoversIndex;
+          snapshot.currentNightStep = nightSteps[afterLoversIndex];
+        }
+      }
+
+      // Handle little_girl step (auto-generate clue)
+      if (snapshot.currentNightStep === "little_girl") {
+        const clueIds = generateLittleGirlClue(allPlayers || []);
+        const clueNames = clueIds.map((id: string) => {
+          const p = (allPlayers || []).find((pl: any) => pl.id === id);
+          return p?.name || "???";
+        });
+        const littleGirl = (allPlayers || []).find((p: any) => p.role === "little_girl" && p.is_alive);
+        if (littleGirl) {
+          await channel.send({
+            type: "broadcast",
+            event: `private:${littleGirl.id}:little_girl:clue`,
+            payload: { clueNames },
+          });
+        }
       }
     }
 
