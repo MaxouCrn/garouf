@@ -108,9 +108,9 @@ export default function OnlineGameScreen() {
       if (advanceFired.current) return;
       advanceFired.current = true;
       if (step === "intro") {
-        sendAction("night-action", { actionType: "advance_intro", payload: {} });
+        sendAction("night-action", { actionType: "advance_intro", payload: {} }).catch(() => {});
       } else if (step === "resolution") {
-        sendAction("night-action", { actionType: "resolve_night", payload: {} });
+        sendAction("night-action", { actionType: "resolve_night", payload: {} }).catch(() => {});
       }
     }, 1000);
     return () => clearTimeout(timer);
@@ -167,8 +167,8 @@ export default function OnlineGameScreen() {
           role={state.myRole}
           description={state.myRoleDescription}
           isHost={isHost}
-          onStartNight={() => sendAction("start-night", {})}
-          onReady={() => sendAction("player-ready", { playerId: params.playerId })}
+          onStartNight={() => sendAction("start-night", {}).catch(() => {})}
+          onReady={() => sendAction("player-ready", { playerId: params.playerId }).catch(() => {})}
           readyCount={state.readyCount}
           totalPlayers={state.totalPlayers}
         />

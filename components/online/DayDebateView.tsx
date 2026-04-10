@@ -1,8 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Audio } from "expo-av";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import type { TimerStartPayload } from "../../types/online";
+
+const DEBAT_MUSIC = require("../../assets/sounds/debat-music.mp3");
+const DEBAT_VOLUME = 0.4;
 
 interface Props {
   timer: TimerStartPayload | null;
@@ -12,6 +16,35 @@ interface Props {
 
 export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
   const [remaining, setRemaining] = useState(0);
+  const musicRef = useRef<Audio.Sound | null>(null);
+
+  // Play debate music
+  useEffect(() => {
+    let mounted = true;
+
+    async function startMusic() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(DEBAT_MUSIC, {
+          isLooping: true,
+          volume: DEBAT_VOLUME,
+        });
+        if (!mounted) { await sound.unloadAsync(); return; }
+        musicRef.current = sound;
+        await sound.playAsync();
+      } catch {
+        // Ignore
+      }
+    }
+
+    startMusic();
+
+    return () => {
+      mounted = false;
+      const s = musicRef.current;
+      musicRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
+    };
+  }, []);
 
   useEffect(() => {
     if (!timer) return;
