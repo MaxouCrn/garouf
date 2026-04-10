@@ -13,6 +13,7 @@ import type {
   VoteResultPayload,
   TimerStartPayload,
   GamePausedPayload,
+  ReadyUpdatePayload,
   RoleAssignPayload,
   NightActionRequiredPayload,
   NightActionResultPayload,
@@ -44,6 +45,8 @@ const INITIAL_STATE: OnlineGameState = {
   debateTimer: null,
   daySubPhase: "announcement",
   pauseInfo: null,
+  readyCount: 0,
+  totalPlayers: 0,
 };
 
 interface UseOnlineGameOptions {
@@ -89,6 +92,10 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
           return { id, name: p?.name || "?" };
         });
 
+        // Ready count from snapshot (distribution phase)
+        const readyPlayers: string[] = snapshot.readyPlayers || [];
+        const totalPlayersCount = (data.alivePlayers || []).length;
+
         setState((prev) => ({
           ...prev,
           phase: phase || prev.phase,
@@ -102,6 +109,8 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
           winner: phase === "end" ? (snapshot.winner || prev.winner) : prev.winner,
           daySubPhase: phase === "day" ? daySubPhase : "announcement",
           debateTimer: debateTimer || prev.debateTimer,
+          readyCount: phase === "distribution" ? readyPlayers.length : prev.readyCount,
+          totalPlayers: phase === "distribution" ? totalPlayersCount : prev.totalPlayers,
         }));
       } catch {
         // Ignore poll errors
@@ -183,6 +192,11 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
 
     "game:resumed": () => {
       setState((prev) => ({ ...prev, pauseInfo: null }));
+    },
+
+    "distribution:ready_update": (payload: Record<string, unknown>) => {
+      const data = payload as unknown as ReadyUpdatePayload;
+      setState((prev) => ({ ...prev, readyCount: data.readyCount, totalPlayers: data.totalPlayers }));
     },
 
     // ── Private events (prefixed with player ID) ────────────────────────

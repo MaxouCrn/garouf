@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Audio, AVPlaybackSource, AVPlaybackStatus } from "expo-av";
 import type { NightStep } from "../context/GameContext";
 
@@ -24,7 +24,8 @@ const WEREWOLF_SFX: AVPlaybackSource = require("../assets/sounds/werewolf.mp3");
 const NARRATOR_VOLUME = 1.0;
 const SFX_VOLUME = 0.25;
 
-export function useNarrator(nightStep: NightStep, enabled = true): void {
+export function useNarrator(nightStep: NightStep, enabled = true): { narratorDone: boolean } {
+  const [narratorDone, setNarratorDone] = useState(false);
   const ambianceRef = useRef<Audio.Sound | null>(null);
   const narratorRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
@@ -66,6 +67,7 @@ export function useNarrator(nightStep: NightStep, enabled = true): void {
   useEffect(() => {
     if (!enabled) return;
 
+    setNarratorDone(false);
     let mounted = true;
 
     async function playNarrator() {
@@ -107,10 +109,11 @@ export function useNarrator(nightStep: NightStep, enabled = true): void {
         }
         narratorRef.current = sound;
 
-        // Restore ambiance when narrator finishes
+        // Restore ambiance when narrator finishes & signal done
         sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
           if (status.isLoaded && status.didJustFinish) {
             ambianceRef.current?.setVolumeAsync(AMBIANCE_VOLUME);
+            if (mounted) setNarratorDone(true);
           }
         });
 
@@ -159,4 +162,6 @@ export function useNarrator(nightStep: NightStep, enabled = true): void {
       s?.stopAsync().then(() => s.unloadAsync());
     };
   }, []);
+
+  return { narratorDone };
 }

@@ -98,6 +98,11 @@ export interface GamePausedPayload {
   resumeIn: number;
 }
 
+export interface ReadyUpdatePayload {
+  readyCount: number;
+  totalPlayers: number;
+}
+
 // ── Private message payloads ────────────────────────────────────────────────
 
 export interface RoleAssignPayload {
@@ -156,6 +161,8 @@ export interface OnlineGameState {
   debateTimer: TimerStartPayload | null;
   daySubPhase: "announcement" | "debate" | "vote";
   pauseInfo: GamePausedPayload | null;
+  readyCount: number;
+  totalPlayers: number;
 }
 
 // ── Join code ───────────────────────────────────────────────────────────────

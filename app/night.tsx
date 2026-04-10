@@ -27,7 +27,7 @@ export default function NightScreen() {
   const nightOpacity = useRef(new Animated.Value(0)).current;
   const sunriseOpacity = useRef(new Animated.Value(0)).current;
 
-  useNarrator(state.nightStep);
+  useNarrator(state.nightStep); // Local mode: manual buttons, no auto-advance needed
 
   const alivePlayers = state.players.filter((p) => p.isAlive);
   const aliveNonWolves = alivePlayers.filter((p) => p.role !== "werewolf");

@@ -91,7 +91,30 @@ export default function OnlineGameScreen() {
 
   // Host plays narrator audio during night phase
   const narratorEnabled = isHost && state.phase === "night";
-  useNarrator((state.nightStep as NightStep) ?? "intro", narratorEnabled);
+  const { narratorDone } = useNarrator((state.nightStep as NightStep) ?? "intro", narratorEnabled);
+
+  // Auto-advance 1s after narrator finishes (intro & resolution steps)
+  const advanceFired = useRef(false);
+  useEffect(() => {
+    advanceFired.current = false;
+  }, [state.nightStep]);
+
+  useEffect(() => {
+    if (!isHost || !narratorDone || advanceFired.current) return;
+    const step = state.nightStep;
+    if (step !== "intro" && step !== "resolution") return;
+
+    const timer = setTimeout(() => {
+      if (advanceFired.current) return;
+      advanceFired.current = true;
+      if (step === "intro") {
+        sendAction("night-action", { actionType: "advance_intro", payload: {} });
+      } else if (step === "resolution") {
+        sendAction("night-action", { actionType: "resolve_night", payload: {} });
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [narratorDone, isHost, state.nightStep, sendAction]);
 
   const handleNightAction = useCallback(async (actionType: string, payload: Record<string, unknown>) => {
     const result = await sendAction("night-action", { actionType, payload });
@@ -145,6 +168,9 @@ export default function OnlineGameScreen() {
           description={state.myRoleDescription}
           isHost={isHost}
           onStartNight={() => sendAction("start-night", {})}
+          onReady={() => sendAction("player-ready", { playerId: params.playerId })}
+          readyCount={state.readyCount}
+          totalPlayers={state.totalPlayers}
         />
       </View>
     );
@@ -183,7 +209,6 @@ export default function OnlineGameScreen() {
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>La nuit tombe...</Text>
               <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
-              {isHost && <AutoAdvance delayMs={4000} onAdvance={() => handleNightAction("advance_intro", {})} />}
             </View>
           </View>
         </View>
@@ -198,7 +223,6 @@ export default function OnlineGameScreen() {
           <View style={styles.overlay}>
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>Le soleil se leve...</Text>
-              {isHost && <AutoAdvance delayMs={3000} onAdvance={() => handleNightAction("resolve_night", {})} />}
             </View>
           </View>
         </View>

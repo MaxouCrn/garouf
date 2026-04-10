@@ -286,12 +286,16 @@ interface Props {
   description: string | null;
   isHost: boolean;
   onStartNight: () => void;
+  onReady: () => void;
+  readyCount: number;
+  totalPlayers: number;
 }
 
-export default function DistributionView({ role, isHost, onStartNight }: Props) {
+export default function DistributionView({ role, isHost, onStartNight, onReady, readyCount, totalPlayers }: Props) {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [revealed, setRevealed] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [markedReady, setMarkedReady] = useState(false);
 
   // Gyroscope tilt on the card (back and revealed)
   const { tiltX, tiltY, TILT_INTENSITY, recalibrate } = useGyroscopeTilt(!detailVisible);
@@ -317,6 +321,11 @@ export default function DistributionView({ role, isHost, onStartNight }: Props) 
       useNativeDriver: true,
     }).start(() => {
       setRevealed(true);
+      // Host is auto-ready when revealing their card
+      if (isHost && !markedReady) {
+        setMarkedReady(true);
+        onReady();
+      }
     });
   };
 
@@ -447,11 +456,33 @@ export default function DistributionView({ role, isHost, onStartNight }: Props) 
               </Text>
 
               {isHost ? (
-                <Pressable style={styles.button} onPress={onStartNight}>
-                  <Text style={styles.buttonText}>Tout le monde est pret</Text>
-                </Pressable>
+                <>
+                  <Pressable
+                    style={[styles.button, readyCount < totalPlayers && styles.buttonDisabled]}
+                    onPress={onStartNight}
+                    disabled={readyCount < totalPlayers}
+                  >
+                    <Text style={[styles.buttonText, readyCount < totalPlayers && styles.buttonTextDisabled]}>
+                      Lancer la partie
+                    </Text>
+                  </Pressable>
+                  <Text style={styles.readyCounter}>
+                    {readyCount} / {totalPlayers} joueurs prets
+                  </Text>
+                </>
               ) : (
-                <Text style={styles.waitingText}>En attente du lancement...</Text>
+                <>
+                  {!markedReady ? (
+                    <Pressable
+                      style={styles.readyButton}
+                      onPress={() => { setMarkedReady(true); onReady(); }}
+                    >
+                      <Text style={styles.readyButtonText}>Pret</Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={styles.waitingText}>En attente des autres joueurs...</Text>
+                  )}
+                </>
               )}
             </>
           )}
@@ -556,6 +587,34 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.3)",
   },
   buttonText: {
+    color: colors.white,
+    fontSize: 18,
+    fontFamily: fonts.cinzelBold,
+  },
+  buttonDisabled: {
+    opacity: 0.4,
+  },
+  buttonTextDisabled: {
+    opacity: 0.6,
+  },
+  readyCounter: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
+    marginTop: 12,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  readyButton: {
+    backgroundColor: "rgba(46,204,113,0.25)",
+    paddingHorizontal: 48,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(46,204,113,0.6)",
+  },
+  readyButtonText: {
     color: colors.white,
     fontSize: 18,
     fontFamily: fonts.cinzelBold,
