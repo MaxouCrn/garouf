@@ -321,7 +321,7 @@ export default function OnlineGameScreen() {
     if (daySubPhase === "vote") {
       return (
         <ImageBackground source={require("../../assets/sun-transition-background.png")} style={styles.container} resizeMode="cover">
-          <DayVoteView alivePlayers={state.alivePlayers} myPlayerId={params.playerId} onVote={handleVote} />
+          <DayVoteView alivePlayers={state.alivePlayers} myPlayerId={params.playerId} onVote={handleVote} voteLogs={state.voteLogs} voteStatus={state.voteStatus} />
         </ImageBackground>
       );
     }

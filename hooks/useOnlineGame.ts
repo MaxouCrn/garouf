@@ -10,6 +10,7 @@ import type {
   GameStatePayload,
   NightStepPayload,
   VoteStatusPayload,
+  VoteLogPayload,
   VoteResultPayload,
   TimerStartPayload,
   GamePausedPayload,
@@ -41,6 +42,7 @@ const INITIAL_STATE: OnlineGameState = {
   littleGirlClue: [],
   loversReveal: null,
   voteStatus: null,
+  voteLogs: [],
   voteResult: null,
   debateTimer: null,
   daySubPhase: "announcement",
@@ -140,6 +142,7 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         wolfVotes: {},
         littleGirlClue: [],
         voteStatus: null,
+        voteLogs: [],
         voteResult: null,
         debateTimer: null,
         pauseInfo: null,
@@ -168,6 +171,11 @@ export function useOnlineGame({ gameId, playerId, isHost }: UseOnlineGameOptions
         actionResult: null,
         ...(nightDeaths ? { nightDeaths } : {}),
       }));
+    },
+
+    "vote:log": (payload: Record<string, unknown>) => {
+      const data = payload as unknown as VoteLogPayload;
+      setState((prev) => ({ ...prev, voteLogs: [...prev.voteLogs, data] }));
     },
 
     "vote:status": (payload: Record<string, unknown>) => {

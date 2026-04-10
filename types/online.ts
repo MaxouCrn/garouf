@@ -81,6 +81,11 @@ export interface VoteStatusPayload {
   totalVoters: number;
 }
 
+export interface VoteLogPayload {
+  voter: string;
+  target: string | null;
+}
+
 export interface VoteResultPayload {
   eliminated: { id: string; name: string } | null;
   voteDetails: Record<string, string>;
@@ -157,6 +162,7 @@ export interface OnlineGameState {
   littleGirlClue: string[];
   loversReveal: LoversRevealPayload | null;
   voteStatus: VoteStatusPayload | null;
+  voteLogs: VoteLogPayload[];
   voteResult: VoteResultPayload | null;
   debateTimer: TimerStartPayload | null;
   daySubPhase: "announcement" | "debate" | "vote";

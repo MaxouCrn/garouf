@@ -94,6 +94,17 @@ serve(async (req) => {
 
     const channel = admin.channel(`game:${gameId}`);
 
+    // Broadcast individual vote log
+    const voterName = (allPlayers || []).find((p: any) => p.id === player.id)?.name || "?";
+    const targetName = targetId
+      ? (allPlayers || []).find((p: any) => p.id === targetId)?.name || "?"
+      : null;
+    await channel.send({
+      type: "broadcast",
+      event: "vote:log",
+      payload: { voter: voterName, target: targetName },
+    });
+
     // Broadcast vote progress
     await channel.send({
       type: "broadcast",
