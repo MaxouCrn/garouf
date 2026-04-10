@@ -100,7 +100,8 @@ export default function OnlineGameScreen() {
         <DistributionView
           role={state.myRole}
           description={state.myRoleDescription}
-          onReady={() => sendAction("night-action", { actionType: "ready", payload: {} })}
+          isHost={isHost}
+          onStartNight={() => sendAction("start-night", {})}
         />
       </View>
     );
