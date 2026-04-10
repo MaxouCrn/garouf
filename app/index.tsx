@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Text, Image, ImageBackground, Pressable, StyleSheet } from "react-native";
+import { Text, Image, ImageBackground, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useGame } from "../context/GameContext";
 import { useMusicContext } from "../context/MusicContext";
@@ -31,40 +31,42 @@ export default function HomeScreen() {
     >
       <MuteButton />
       <FogEffect />
-      <Image
-        source={require("../assets/logo-app.png")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <Text style={styles.subtitle}>Le jeu de la pause du midi</Text>
-      <Pressable style={styles.button} onPress={handleNewGame}>
-        <Text style={styles.buttonText}>Nouvelle partie</Text>
-      </Pressable>
-      <Pressable style={styles.outlineButton} onPress={() => router.push("/grimoire")}>
-        <Text style={styles.outlineButtonText}>Grimoire des Rôles</Text>
-      </Pressable>
-      <Pressable
-        style={[styles.outlineButton, { marginTop: 32 }]}
-        onPress={() => router.push("/online/create")}
-      >
-        <Text style={styles.outlineButtonText}>Creer une partie en ligne</Text>
-      </Pressable>
-      <Pressable
-        style={styles.outlineButton}
-        onPress={() => router.push("/online/join")}
-      >
-        <Text style={styles.outlineButtonText}>Rejoindre une partie</Text>
-      </Pressable>
-      {__DEV__ && (
-        <Pressable
-          style={[styles.outlineButton, { marginTop: 32, borderColor: colors.danger }]}
-          onPress={() => router.push("/dev")}
-        >
-          <Text style={[styles.outlineButtonText, { color: colors.danger }]}>
-            Dev Tools
-          </Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Image
+          source={require("../assets/logo-app.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.subtitle}>Le jeu de la pause du midi</Text>
+        <Pressable style={styles.button} onPress={handleNewGame}>
+          <Text style={styles.buttonText}>Nouvelle partie</Text>
         </Pressable>
-      )}
+        <Pressable style={styles.outlineButton} onPress={() => router.push("/grimoire")}>
+          <Text style={styles.outlineButtonText}>Grimoire des Rôles</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.outlineButton, { marginTop: 32 }]}
+          onPress={() => router.push("/online/create")}
+        >
+          <Text style={styles.outlineButtonText}>Creer une partie en ligne</Text>
+        </Pressable>
+        <Pressable
+          style={styles.outlineButton}
+          onPress={() => router.push("/online/join")}
+        >
+          <Text style={styles.outlineButtonText}>Rejoindre une partie</Text>
+        </Pressable>
+        {__DEV__ && (
+          <Pressable
+            style={[styles.outlineButton, { marginTop: 32, borderColor: colors.danger }]}
+            onPress={() => router.push("/dev")}
+          >
+            <Text style={[styles.outlineButtonText, { color: colors.danger }]}>
+              Dev Tools
+            </Text>
+          </Pressable>
+        )}
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -73,9 +75,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
     alignItems: "center",
-    justifyContent: "flex-start",
     paddingTop: 100,
+    paddingBottom: 60,
   },
   logo: {
     width: LOGO_SIZE,
