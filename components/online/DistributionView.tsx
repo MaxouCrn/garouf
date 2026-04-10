@@ -311,6 +311,18 @@ export default function DistributionView({ role, isHost, onStartNight, onReady, 
     recalibrate();
   }, [role]);
 
+  // Dev mode: auto-ready non-host players with staggered delay to avoid race condition
+  useEffect(() => {
+    if (__DEV__ && !isHost && !markedReady) {
+      const delay = 2000 + Math.random() * 3000; // 2-5s, spread out
+      const timer = setTimeout(() => {
+        setMarkedReady(true);
+        onReady();
+      }, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [isHost, markedReady]);
+
   const handleFlip = () => {
     if (revealed) return;
     recalibrate();

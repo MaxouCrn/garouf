@@ -154,6 +154,15 @@ export default function OnlineGameScreen() {
     return <View style={styles.container}><EndView winner={state.winner} /></View>;
   }
 
+  // ── Hunter (before dead-player check: the hunter must shoot even though dead) ──
+  if (state.phase === "hunter") {
+    return (
+      <View style={styles.container}>
+        <HunterView isHunter={state.myRole === "hunter"} alivePlayers={state.alivePlayers} myPlayerId={params.playerId} onShoot={handleHunterShoot} />
+      </View>
+    );
+  }
+
   // ── Dead player ─────────────────────────────────────────────────────────
   if (!state.isAlive) {
     return <View style={styles.container}><SpectatorView phase={state.phase} nightStep={state.nightStep} /></View>;
@@ -172,15 +181,6 @@ export default function OnlineGameScreen() {
           readyCount={state.readyCount}
           totalPlayers={state.totalPlayers}
         />
-      </View>
-    );
-  }
-
-  // ── Hunter ──────────────────────────────────────────────────────────────
-  if (state.phase === "hunter") {
-    return (
-      <View style={styles.container}>
-        <HunterView isHunter={state.myRole === "hunter"} alivePlayers={state.alivePlayers} myPlayerId={params.playerId} onShoot={handleHunterShoot} />
       </View>
     );
   }

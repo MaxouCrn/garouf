@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { supabase, ensureAnonymousSession } from "../../lib/supabase";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
@@ -8,10 +8,23 @@ import { CODE_LENGTH } from "../../types/online";
 
 export default function JoinGameScreen() {
   const router = useRouter();
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
+  const urlParams = useLocalSearchParams<{ code?: string }>();
+  const [code, setCode] = useState(() => {
+    if (__DEV__) return urlParams.code?.toUpperCase() || "DEV001";
+    return "";
+  });
+  const [name, setName] = useState(__DEV__ ? `Bot ${Date.now() % 1000}` : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Dev mode: auto-join on mount
+  const autoJoinDone = useRef(false);
+  useEffect(() => {
+    if (__DEV__ && !autoJoinDone.current && code.trim().length === CODE_LENGTH && name.trim().length > 0) {
+      autoJoinDone.current = true;
+      handleJoin();
+    }
+  }, []);
 
   const handleJoin = async () => {
     if (code.trim().length !== CODE_LENGTH || name.trim().length === 0) return;

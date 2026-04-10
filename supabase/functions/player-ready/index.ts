@@ -47,18 +47,15 @@ serve(async (req) => {
       });
     }
 
-    // Add player to readyPlayers in snapshot (idempotent)
-    const snapshot = game.state_snapshot || {};
-    const readyPlayers: string[] = snapshot.readyPlayers || [];
-    if (!readyPlayers.includes(playerId)) {
-      readyPlayers.push(playerId);
-    }
-    snapshot.readyPlayers = readyPlayers;
+    // Atomically add player to readyPlayers via RPC (avoids race condition)
+    const { data: rpcResult, error: rpcError } = await admin.rpc("add_ready_player", {
+      p_game_id: gameId,
+      p_player_id: playerId,
+    });
 
-    await admin
-      .from("games")
-      .update({ state_snapshot: snapshot })
-      .eq("id", gameId);
+    if (rpcError) throw rpcError;
+
+    const readyPlayers: string[] = rpcResult?.readyPlayers || [];
 
     // Count total players
     const { count } = await admin

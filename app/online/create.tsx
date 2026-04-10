@@ -7,7 +7,7 @@ import { fonts } from "../../theme/typography";
 
 export default function CreateGameScreen() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(__DEV__ ? "Host" : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +23,7 @@ export default function CreateGameScreen() {
         body: {
           name: name.trim(),
           settings: { selectedRoles: [], debateTimerMinutes: 3 },
+          ...(__DEV__ ? { devCode: "DEV001" } : {}),
         },
       });
 

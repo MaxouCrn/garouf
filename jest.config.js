@@ -15,4 +15,7 @@ module.exports = {
   moduleNameMapper: {
     "\\.(png|jpg|jpeg|gif|webp|svg|mp3)$": "<rootDir>/__mocks__/fileMock.js",
   },
+  globals: {
+    __DEV__: true,
+  },
 };

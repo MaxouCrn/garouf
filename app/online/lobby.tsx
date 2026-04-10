@@ -114,7 +114,7 @@ export default function LobbyScreen() {
 
   // Update preset when player count changes
   useEffect(() => {
-    if (isHost && players.length >= 6) {
+    if (isHost && players.length >= (__DEV__ ? 2 : 6)) {
       setRoleConfig(getPreset(players.length));
     }
   }, [players.length, isHost]);

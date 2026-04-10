@@ -34,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { name, settings } = await req.json();
+    const { name, settings, devCode } = await req.json();
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return new Response(JSON.stringify({ error: "Name is required" }), {
         status: 400,
@@ -45,17 +45,33 @@ serve(async (req) => {
     const admin = getSupabaseAdmin();
 
     let code: string;
-    let codeExists = true;
-    do {
-      code = generateCode();
-      const { data } = await admin
+    if (devCode && typeof devCode === "string") {
+      // Dev mode: use requested code, clean up any old game with same code
+      code = devCode.toUpperCase();
+      const { data: oldGame } = await admin
         .from("games")
         .select("id")
         .eq("code", code)
         .neq("status", "finished")
         .maybeSingle();
-      codeExists = data !== null;
-    } while (codeExists);
+      if (oldGame) {
+        await admin.from("actions").delete().eq("game_id", oldGame.id);
+        await admin.from("players").delete().eq("game_id", oldGame.id);
+        await admin.from("games").delete().eq("id", oldGame.id);
+      }
+    } else {
+      let codeExists = true;
+      do {
+        code = generateCode();
+        const { data } = await admin
+          .from("games")
+          .select("id")
+          .eq("code", code)
+          .neq("status", "finished")
+          .maybeSingle();
+        codeExists = data !== null;
+      } while (codeExists);
+    }
 
     const { data: game, error: gameError } = await admin
       .from("games")

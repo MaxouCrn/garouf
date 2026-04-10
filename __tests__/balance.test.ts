@@ -54,8 +54,16 @@ describe("getPreset", () => {
     }
   });
 
-  it("clamps player count below 6 to preset 6", () => {
-    expect(getPreset(3)).toEqual(getPreset(6));
+  it("returns dev presets for 2-5 players in dev mode", () => {
+    // __DEV__ is true in test environment
+    for (let n = 2; n <= 5; n++) {
+      const preset = getPreset(n);
+      const total = Object.values(preset).reduce((a, b) => a + b, 0);
+      expect(total).toBe(n);
+    }
+  });
+
+  it("clamps player count below 2 to preset 6", () => {
     expect(getPreset(1)).toEqual(getPreset(6));
   });
 
