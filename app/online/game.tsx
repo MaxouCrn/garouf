@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ImageBackground } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useOnlineGame } from "../../hooks/useOnlineGame";
 import { useNarrator } from "../../hooks/useNarrator";
+import type { NightStep } from "../../game/nightEngine";
 import { colors } from "../../theme/colors";
 
 import DistributionView from "../../components/online/DistributionView";
@@ -36,11 +37,9 @@ export default function OnlineGameScreen() {
 
   const [daySubPhase, setDaySubPhase] = useState<DaySubPhase>("announcement");
 
-  // Host plays narrator audio
-  if (isHost && state.nightStep) {
-    // useNarrator is called at the top level in the local version
-    // For online, we conditionally use it only for the host
-  }
+  // Host plays narrator audio during night phase
+  const narratorEnabled = isHost && state.phase === "night";
+  useNarrator((state.nightStep as NightStep) ?? "intro", narratorEnabled);
 
   const handleNightAction = useCallback(async (actionType: string, payload: Record<string, unknown>) => {
     await sendAction("night-action", { actionType, payload });
@@ -126,58 +125,78 @@ export default function OnlineGameScreen() {
     // Little girl has her own view
     if (state.nightStep === "little_girl" && state.myRole === "little_girl" && state.littleGirlClue.length > 0) {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/night-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <LittleGirlView
             clueNames={state.littleGirlClue}
             timerSeconds={15}
             onDone={() => handleNightAction("little_girl_done", {})}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     // Wolf vote
     if (state.actionRequired && state.nightStep === "werewolves" && state.myRole === "werewolf") {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/night-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <WolfVoteView
             action={state.actionRequired}
             wolfVotes={state.wolfVotes}
             onSubmit={handleNightAction}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     // Witch special handling
     if (state.actionRequired && state.nightStep === "witch" && state.myRole === "witch") {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/night-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <NightActionView
             action={state.actionRequired}
             onSubmit={(_, payload) => handleNightAction("witch_action", payload)}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     // Generic night action (seer, savior, cupid, raven)
     if (state.actionRequired) {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/night-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <NightActionView
             action={state.actionRequired}
             onSubmit={handleNightAction}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     // Waiting
     return (
-      <View style={styles.container}>
+      <ImageBackground
+        source={require("../../assets/night-transition-background.png")}
+        style={styles.container}
+        resizeMode="cover"
+      >
         <NightWaitView step={state.nightStep} />
-      </View>
+      </ImageBackground>
     );
   }
 
@@ -186,7 +205,11 @@ export default function OnlineGameScreen() {
     if (state.voteResult) {
       // Show result briefly then it transitions
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/sun-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <DayAnnouncementView
             nightDeaths={state.voteResult.eliminated
               ? [{ id: state.voteResult.eliminated.id, name: state.voteResult.eliminated.name }]
@@ -194,38 +217,50 @@ export default function OnlineGameScreen() {
             }
             onContinue={() => {}}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     if (daySubPhase === "announcement") {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/sun-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <DayAnnouncementView
             nightDeaths={state.nightDeaths}
             onContinue={handleStartDebate}
           />
-        </View>
+        </ImageBackground>
       );
     }
 
     if (daySubPhase === "debate") {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/sun-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <DayDebateView timer={state.debateTimer} />
-        </View>
+        </ImageBackground>
       );
     }
 
     if (daySubPhase === "vote") {
       return (
-        <View style={styles.container}>
+        <ImageBackground
+          source={require("../../assets/sun-transition-background.png")}
+          style={styles.container}
+          resizeMode="cover"
+        >
           <DayVoteView
             alivePlayers={state.alivePlayers}
             myPlayerId={params.playerId}
             onVote={handleVote}
           />
-        </View>
+        </ImageBackground>
       );
     }
   }

@@ -24,13 +24,15 @@ const WEREWOLF_SFX: AVPlaybackSource = require("../assets/sounds/werewolf.mp3");
 const NARRATOR_VOLUME = 1.0;
 const SFX_VOLUME = 0.25;
 
-export function useNarrator(nightStep: NightStep): void {
+export function useNarrator(nightStep: NightStep, enabled = true): void {
   const ambianceRef = useRef<Audio.Sound | null>(null);
   const narratorRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
 
   // Start ambiance on mount, stop on unmount
   useEffect(() => {
+    if (!enabled) return;
+
     let mounted = true;
 
     async function startAmbiance() {
@@ -58,10 +60,12 @@ export function useNarrator(nightStep: NightStep): void {
       ambianceRef.current = null;
       s?.stopAsync().then(() => s.unloadAsync());
     };
-  }, []);
+  }, [enabled]);
 
   // Play narrator (+ optional SFX) on nightStep change, duck ambiance
   useEffect(() => {
+    if (!enabled) return;
+
     let mounted = true;
 
     async function playNarrator() {
@@ -141,7 +145,7 @@ export function useNarrator(nightStep: NightStep): void {
       // Restore ambiance volume when step changes mid-narration
       ambianceRef.current?.setVolumeAsync(AMBIANCE_VOLUME);
     };
-  }, [nightStep]);
+  }, [nightStep, enabled]);
 
   // Cleanup narrator + SFX on unmount
   useEffect(() => {
