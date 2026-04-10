@@ -35,10 +35,10 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
       <Text style={[styles.timer, isOver && styles.timerOver]}>
         {minutes}:{seconds.toString().padStart(2, "0")}
       </Text>
-      {!isOver && (
+      {!isOver && !isHost && (
         <Text style={styles.hint}>Discutez et trouvez les loups !</Text>
       )}
-      {isOver && isHost && (
+      {isHost && (
         <Pressable style={styles.button} onPress={onStartVote}>
           <Text style={styles.buttonText}>Passer au vote</Text>
         </Pressable>
