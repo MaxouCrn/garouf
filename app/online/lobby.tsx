@@ -25,6 +25,18 @@ export default function LobbyScreen() {
       const data = payload as unknown as LobbyUpdatePayload;
       setPlayers(data.players);
     }, []),
+    "game:phase": useCallback((payload: Record<string, unknown>) => {
+      if ((payload as any).phase === "distribution") {
+        router.replace({
+          pathname: "/online/game",
+          params: {
+            gameId: params.gameId,
+            playerId: params.playerId,
+            isHost: params.isHost,
+          },
+        });
+      }
+    }, [router, params]),
   };
 
   useChannel({
@@ -39,12 +51,36 @@ export default function LobbyScreen() {
     router.replace("/");
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (players.length < 6) {
       Alert.alert("Pas assez de joueurs", "Il faut au moins 6 joueurs pour commencer.");
       return;
     }
-    Alert.alert("Bientot", "Le lancement de la partie arrive dans la prochaine mise a jour !");
+
+    try {
+      const { error } = await supabase.functions.invoke("start-game", {
+        body: {
+          gameId: params.gameId,
+          settings: {
+            selectedRoles: [],
+            debateTimerMinutes: 3,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      router.replace({
+        pathname: "/online/game",
+        params: {
+          gameId: params.gameId,
+          playerId: params.playerId,
+          isHost: "true",
+        },
+      });
+    } catch (err) {
+      Alert.alert("Erreur", (err as Error).message);
+    }
   };
 
   const deepLink = `loupgarou://join?code=${params.code}`;
