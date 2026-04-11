@@ -13,7 +13,9 @@ import {
 } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { radii, spacing } from "../../theme/spacing";
 import { ROLE_CARDS, ROLE_LABELS } from "../../theme/roleCards";
+import GButton from "../GButton";
 import { ROLE_REGISTRY } from "../../game/roles";
 import { useGyroscopeTilt } from "../../hooks/useGyroscopeTilt";
 
@@ -103,7 +105,7 @@ function RoleDetailModal({
 
   const cardImage = ROLE_CARDS[role as keyof typeof ROLE_CARDS];
   const isWolf = roleDef.camp === "werewolves";
-  const accentColor = isWolf ? colors.danger : colors.primary;
+  const accentColor = isWolf ? colors.danger : colors.accent;
 
   return (
     <Modal
@@ -232,7 +234,7 @@ const detailStyles = StyleSheet.create({
   card: {
     width: DETAIL_CARD_WIDTH,
     height: DETAIL_CARD_HEIGHT,
-    borderRadius: 14,
+    borderRadius: radii.lg,
     borderWidth: 2,
     overflow: "hidden",
     backgroundColor: colors.surface,
@@ -263,7 +265,7 @@ const detailStyles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.85,
   },
   name: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     fontSize: 24,
     textAlign: "center",
     marginBottom: 12,
@@ -469,15 +471,13 @@ export default function DistributionView({ role, isHost, onStartNight, onReady, 
 
               {isHost ? (
                 <>
-                  <Pressable
-                    style={[styles.button, readyCount < totalPlayers && styles.buttonDisabled]}
+                  <GButton
+                    variant="ghost"
                     onPress={onStartNight}
                     disabled={readyCount < totalPlayers}
                   >
-                    <Text style={[styles.buttonText, readyCount < totalPlayers && styles.buttonTextDisabled]}>
-                      Lancer la partie
-                    </Text>
-                  </Pressable>
+                    Lancer la partie
+                  </GButton>
                   <Text style={styles.readyCounter}>
                     {readyCount} / {totalPlayers} joueurs prets
                   </Text>
@@ -485,12 +485,12 @@ export default function DistributionView({ role, isHost, onStartNight, onReady, 
               ) : (
                 <>
                   {!markedReady ? (
-                    <Pressable
-                      style={styles.readyButton}
+                    <GButton
+                      variant="primary"
                       onPress={() => { setMarkedReady(true); onReady(); }}
                     >
-                      <Text style={styles.readyButtonText}>Pret</Text>
-                    </Pressable>
+                      Pret
+                    </GButton>
                   ) : (
                     <Text style={styles.waitingText}>En attente des autres joueurs...</Text>
                   )}
@@ -524,6 +524,7 @@ const styles = StyleSheet.create({
   },
   waiting: {
     fontSize: 18,
+    fontFamily: fonts.bodyRegular,
     color: colors.textSecondary,
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.6)",
@@ -547,10 +548,10 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 16,
+    borderRadius: radii.lg,
   },
   fallbackCard: {
-    backgroundColor: "rgba(22,33,62,0.9)",
+    backgroundColor: colors.glass,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -564,7 +565,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   hint: {
-    color: "rgba(255,255,255,0.6)",
+    fontFamily: fonts.bodyRegular,
+    color: colors.textMuted,
     fontSize: 14,
     marginTop: 12,
     textShadowColor: "rgba(0,0,0,0.6)",
@@ -572,7 +574,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   roleName: {
-    fontFamily: fonts.cinzelRegular,
+    fontFamily: fonts.displayBold,
     color: colors.white,
     fontSize: 24,
     marginTop: 20,
@@ -582,7 +584,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   longPressHint: {
-    color: "rgba(255,255,255,0.45)",
+    fontFamily: fonts.bodyRegular,
+    color: colors.textMuted,
     fontSize: 13,
     marginBottom: 20,
     fontStyle: "italic",
@@ -590,27 +593,9 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  button: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
-  buttonText: {
-    color: colors.white,
-    fontSize: 18,
-    fontFamily: fonts.cinzelBold,
-  },
-  buttonDisabled: {
-    opacity: 0.4,
-  },
-  buttonTextDisabled: {
-    opacity: 0.6,
-  },
   readyCounter: {
-    color: "rgba(255,255,255,0.6)",
+    fontFamily: fonts.bodyRegular,
+    color: colors.textSecondary,
     fontSize: 14,
     marginTop: 12,
     textAlign: "center",
@@ -618,21 +603,9 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  readyButton: {
-    backgroundColor: "rgba(46,204,113,0.25)",
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(46,204,113,0.6)",
-  },
-  readyButtonText: {
-    color: colors.white,
-    fontSize: 18,
-    fontFamily: fonts.cinzelBold,
-  },
   waitingText: {
-    color: "rgba(255,255,255,0.5)",
+    fontFamily: fonts.bodyRegular,
+    color: colors.textMuted,
     fontSize: 15,
     fontStyle: "italic",
     textShadowColor: "rgba(0,0,0,0.6)",
