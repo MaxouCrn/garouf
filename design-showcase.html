@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garouf — DA Finale</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #08090f;
+  color: #c8c8d0;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ---- Page header ---- */
+.page-header {
+  text-align: center;
+  padding: 80px 24px 20px;
+  position: relative;
+}
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 300px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(126,184,218,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.page-header .logo-img {
+  width: 180px; height: auto;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 8px 30px rgba(126,184,218,0.2));
+}
+.page-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  color: #666; letter-spacing: 6px;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.page-header p {
+  font-size: 16px; color: #555;
+  max-width: 700px; margin: 0 auto;
+}
+.page-header .da-tags {
+  display: flex; gap: 8px; justify-content: center;
+  margin-top: 16px; flex-wrap: wrap;
+}
+.page-header .da-tag {
+  font-size: 12px; padding: 4px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(126,184,218,0.2);
+  color: #7eb8da; letter-spacing: 0.5px;
+}
+
+/* ---- Section headers ---- */
+.section-header {
+  max-width: 1440px; margin: 0 auto;
+  padding: 48px 24px 8px;
+}
+.section-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700;
+  color: #7eb8da; margin-bottom: 4px;
+}
+.section-header p {
+  font-size: 14px; color: #555; max-width: 640px;
+}
+
+/* ---- Phone grid ---- */
+.phones-grid {
+  max-width: 1440px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  padding: 24px;
+}
+.phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+.phone-label {
+  font-size: 12px; color: #555; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.phone-sublabel {
+  font-size: 11px; color: #3a3a3a; margin-bottom: 12px;
+  font-style: italic;
+}
+
+.phone {
+  width: 320px; height: 660px;
+  border-radius: 40px; overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+}
+.phone::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px;
+  background: #000; border-radius: 0 0 16px 16px; z-index: 100;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  overflow-y: auto; position: relative;
+}
+.phone-screen::-webkit-scrollbar { display: none; }
+
+
+/* ============================================
+   DA FUSIONNEE — "LUNE SAUVAGE"
+   Typo: Playfair Display + Outfit
+   Couleurs: bleu lunaire (#7eb8da) + ambre (#e8a849)
+   Formes: anguleuses (6px) + coins decoratifs
+   ============================================ */
+.gf-phone {
+  --bg: #0a0e16;
+  --surface: rgba(126,184,218,0.04);
+  --surface-border: rgba(126,184,218,0.1);
+  --accent: #7eb8da;
+  --accent-bright: #a8d8f0;
+  --accent-dim: rgba(126,184,218,0.25);
+  --warm: #e8a849;
+  --warm-dim: rgba(232,168,73,0.25);
+  --text-primary: #e4e8f0;
+  --text-secondary: #8a94a8;
+  --text-muted: #4a5268;
+  --danger: #e85d5d;
+  --success: #5dd9a6;
+  --glass: rgba(8,12,20,0.86);
+  --glass-border: rgba(126,184,218,0.1);
+}
+
+.gf-phone .phone-screen {
+  background: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-primary);
+}
+
+/* ---- Buttons ---- */
+.gf-btn-primary {
+  background: var(--accent);
+  color: #0a0e16;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600; font-size: 15px;
+  padding: 14px 24px; border: none; border-radius: 6px;
+  cursor: pointer; text-align: center;
+  box-shadow: 0 4px 20px rgba(126,184,218,0.2);
+  letter-spacing: 0.5px;
+}
+.gf-btn-outline {
+  background: rgba(8,12,20,0.5);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  color: var(--accent);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500; font-size: 14px;
+  padding: 12px 24px;
+  border: 1px solid var(--accent-dim);
+  border-radius: 6px;
+  cursor: pointer; text-align: center;
+}
+.gf-btn-ghost {
+  background: var(--glass);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500; font-size: 14px;
+  padding: 12px 24px;
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  cursor: pointer; text-align: center;
+}
+.gf-btn-danger {
+  background: rgba(8,12,20,0.5);
+  color: var(--danger);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500; font-size: 14px;
+  padding: 12px 24px;
+  border: 1px solid rgba(232,93,93,0.2);
+  border-radius: 6px;
+  cursor: pointer; text-align: center;
+}
+.gf-btn-warm {
+  background: var(--warm);
+  color: #0a0e16;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600; font-size: 15px;
+  padding: 14px 24px; border: none; border-radius: 6px;
+  cursor: pointer; text-align: center;
+  box-shadow: 0 4px 20px rgba(232,168,73,0.2);
+}
+
+/* ---- Corner accent mixin (via pseudo on parent) ---- */
+.corner-box {
+  position: relative;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+}
+.corner-box::before,
+.corner-box::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px;
+}
+.corner-box::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+}
+.corner-box::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent);
+}
+
+/* ---- Home on fond-home.png ---- */
+.gf-home {
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 100%;
+  background: url('assets/fond-home.png') center/cover no-repeat;
+  position: relative;
+}
+.gf-home .logo-img {
+  width: 195px; height: auto;
+  margin-top: 65px;
+  filter: drop-shadow(0 4px 30px rgba(126,184,218,0.15));
+  position: relative; z-index: 1;
+}
+.gf-home .tagline {
+  font-size: 14px; color: var(--text-secondary);
+  font-weight: 300; letter-spacing: 2px;
+  position: relative; z-index: 1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  margin-top: 8px;
+}
+.gf-home .divider {
+  width: 50px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  margin: 16px 0; position: relative; z-index: 1;
+}
+.gf-home .btn-group {
+  margin-top: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  width: 240px; position: relative; z-index: 1;
+}
+
+/* ---- Players on parchment ---- */
+.gf-players {
+  min-height: 100%; display: flex; flex-direction: column;
+  background: url('assets/inscription-joueur-background.png') center/cover no-repeat;
+  padding: 56px 20px 30px;
+}
+.gf-players .screen-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700;
+  color: #2a1e0a; text-align: center; margin-bottom: 4px;
+}
+.gf-players .screen-subtitle {
+  font-size: 13px; color: #6b5530;
+  text-align: center; margin-bottom: 20px; font-weight: 500;
+}
+.gf-players .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.gf-players .text-input {
+  flex: 1;
+  background: rgba(10,14,22,0.78);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(126,184,218,0.2);
+  border-radius: 6px; padding: 12px 14px;
+  font-size: 15px; color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+}
+.gf-players .text-input::placeholder { color: rgba(228,232,240,0.35); }
+.gf-players .add-btn {
+  width: 48px;
+  background: rgba(10,14,22,0.8);
+  border: 1px solid rgba(126,184,218,0.3);
+  border-radius: 6px;
+  color: var(--accent); font-size: 22px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.gf-players .count {
+  font-size: 13px; color: #5a4520;
+  margin-bottom: 8px; font-weight: 600;
+}
+.gf-players .player-row {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(10,14,22,0.75);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(126,184,218,0.12);
+  padding: 12px 14px; border-radius: 6px; margin-bottom: 5px;
+}
+.gf-players .player-row .name { font-size: 15px; color: var(--text-primary); }
+.gf-players .player-row .remove { color: var(--danger); font-size: 16px; cursor: pointer; font-weight: 700; }
+.gf-players .next-btn {
+  margin-top: auto;
+  background: rgba(10,14,22,0.82);
+  border: 1px solid rgba(126,184,218,0.3);
+  color: var(--accent);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600; font-size: 15px;
+  padding: 14px; border-radius: 6px;
+  text-align: center; cursor: pointer;
+}
+
+/* ---- Debate on debat-background ---- */
+.gf-debate {
+  min-height: 100%;
+  background: url('assets/debat-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px; position: relative;
+}
+.gf-debate::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.25) 0%, rgba(10,14,22,0.1) 40%, rgba(10,14,22,0.4) 100%);
+  pointer-events: none;
+}
+.gf-debate .debate-card {
+  position: relative; z-index: 1;
+  background: rgba(10,14,22,0.88);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 32px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+/* Corner accents */
+.gf-debate .debate-card::before,
+.gf-debate .debate-card::after {
+  content: ''; position: absolute;
+  width: 18px; height: 18px;
+}
+.gf-debate .debate-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+}
+.gf-debate .debate-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent);
+}
+.gf-debate .day-label {
+  font-size: 12px; color: var(--warm);
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 8px;
+}
+.gf-debate .timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.gf-debate .timer-sub {
+  font-size: 11px; color: var(--text-muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.gf-debate .skip-btn {
+  background: rgba(126,184,218,0.08);
+  border: 1px solid rgba(126,184,218,0.2);
+  color: var(--accent);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  padding: 12px 32px; border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ---- Night action on night bg ---- */
+.gf-night {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-night::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.4) 0%, rgba(10,14,22,0.15) 30%, rgba(10,14,22,0.6) 100%);
+  pointer-events: none;
+}
+.gf-night .night-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 30px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-night .phase-label {
+  font-size: 11px; color: rgba(126,184,218,0.5);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600;
+}
+.gf-night .night-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-top: 4px; margin-bottom: 8px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-night .night-instruction {
+  font-size: 14px; color: var(--text-secondary);
+  text-align: center; margin-bottom: 20px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+.gf-night .vote-option {
+  background: rgba(10,14,22,0.84);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 14px 16px;
+  margin-bottom: 7px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.gf-night .vote-option:hover {
+  border-color: rgba(126,184,218,0.25);
+  background: rgba(126,184,218,0.06);
+}
+.gf-night .option-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(126,184,218,0.08);
+  border: 1px solid var(--accent-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--accent); font-weight: 600;
+}
+.gf-night .option-name { font-size: 15px; font-weight: 500; }
+
+/* ---- Sunset vote ---- */
+.gf-sunset-vote {
+  min-height: 100%;
+  background: url('assets/sunset-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-sunset-vote::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.3) 0%, rgba(10,14,22,0.1) 30%, rgba(10,14,22,0.6) 100%);
+  pointer-events: none;
+}
+.gf-sunset-vote .vote-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 30px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-sunset-vote .phase-label {
+  font-size: 11px; color: rgba(232,168,73,0.6);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600;
+}
+.gf-sunset-vote .vote-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-top: 4px; margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-sunset-vote .vote-instruction {
+  font-size: 14px; color: var(--text-secondary);
+  text-align: center; margin-bottom: 20px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+}
+.gf-sunset-vote .vote-option {
+  background: rgba(10,14,22,0.82);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 14px 16px;
+  margin-bottom: 7px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.gf-sunset-vote .vote-option:hover {
+  border-color: rgba(232,168,73,0.3);
+}
+.gf-sunset-vote .option-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(232,168,73,0.08);
+  border: 1px solid var(--warm-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--warm); font-weight: 600;
+}
+.gf-sunset-vote .option-name { font-size: 15px; font-weight: 500; }
+.gf-sunset-vote .raven-badge { margin-left: auto; font-size: 11px; color: #c084fc; font-style: italic; }
+.gf-sunset-vote .timer-bar { text-align: center; margin-top: auto; padding-top: 16px; }
+.gf-sunset-vote .timer-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px; font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 2px 16px rgba(0,0,0,0.8);
+}
+.gf-sunset-vote .timer-label {
+  font-size: 11px; color: var(--text-muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+/* ---- Announce on sun-transition ---- */
+.gf-announce {
+  min-height: 100%;
+  background: url('assets/sun-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+  align-items: center; justify-content: center;
+  padding: 40px 24px;
+}
+.gf-announce::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.35) 0%, rgba(10,14,22,0.15) 40%, rgba(10,14,22,0.45) 100%);
+  pointer-events: none;
+}
+.gf-announce .announce-card {
+  position: relative; z-index: 1;
+  background: rgba(10,14,22,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 32px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.gf-announce .announce-card::before,
+.gf-announce .announce-card::after {
+  content: ''; position: absolute;
+  width: 16px; height: 16px;
+}
+.gf-announce .announce-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--warm); border-left: 2px solid var(--warm);
+}
+.gf-announce .announce-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--warm); border-right: 2px solid var(--warm);
+}
+.gf-announce .announce-phase {
+  font-size: 11px; color: var(--warm);
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+}
+.gf-announce .announce-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 16px;
+}
+.gf-announce .announce-text {
+  font-size: 15px; color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.gf-announce .dead-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700;
+  color: var(--danger); margin: 8px 0;
+}
+.gf-announce .announce-btn {
+  margin-top: 24px;
+  background: rgba(232,168,73,0.1);
+  border: 1px solid rgba(232,168,73,0.25);
+  color: var(--warm);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600; font-size: 14px;
+  padding: 12px 32px; border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ============================================
+   LOBBY WITH CARD GRID
+   ============================================ */
+.gf-lobby {
+  min-height: 100%; padding: 56px 16px 30px;
+  background: var(--bg);
+}
+.gf-lobby .screen-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-bottom: 20px;
+}
+
+/* Code display with corner accents */
+.gf-lobby .code-display {
+  text-align: center; margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px; position: relative;
+}
+.gf-lobby .code-display::before,
+.gf-lobby .code-display::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px;
+}
+.gf-lobby .code-display::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+}
+.gf-lobby .code-display::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent);
+}
+.gf-lobby .code-label {
+  font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 3px; margin-bottom: 4px;
+}
+.gf-lobby .code-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 900;
+  color: var(--accent); letter-spacing: 8px;
+}
+
+/* Players section */
+.gf-lobby .section-title {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 3px; text-transform: uppercase;
+  margin: 14px 0 8px;
+}
+.gf-lobby .player-row {
+  background: var(--surface); border: 1px solid var(--surface-border);
+  border-radius: 6px; padding: 10px 12px; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.gf-lobby .player-avatar {
+  width: 28px; height: 28px; border-radius: 4px;
+  background: rgba(126,184,218,0.06);
+  border: 1px solid var(--accent-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--accent); font-weight: 600;
+}
+.gf-lobby .player-name { font-size: 14px; font-weight: 500; }
+.gf-lobby .player-host {
+  margin-left: auto; font-size: 10px; color: var(--warm);
+  background: rgba(232,168,73,0.08);
+  padding: 2px 8px; border-radius: 4px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* ---- ROLE CARD GRID ---- */
+.gf-lobby .roles-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 14px; margin-bottom: 10px;
+}
+.gf-lobby .roles-counter {
+  font-size: 13px; font-weight: 600;
+  color: var(--accent);
+}
+.gf-lobby .roles-counter.mismatch { color: var(--warm); }
+.gf-lobby .preset-btn {
+  font-size: 11px; color: var(--accent);
+  background: rgba(126,184,218,0.06);
+  border: 1px solid rgba(126,184,218,0.15);
+  padding: 4px 10px; border-radius: 4px;
+  cursor: pointer; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.role-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.role-card {
+  display: flex; flex-direction: column;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  padding: 6px 4px 8px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.role-card:hover { border-color: var(--accent-dim); }
+.role-card.active { border-color: var(--accent); }
+.role-card.active::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(126,184,218,0.04);
+  pointer-events: none;
+}
+
+.role-card .card-img {
+  width: 100%; aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.role-card .card-name {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.role-card .card-counter {
+  display: flex; align-items: center; gap: 8px;
+}
+.role-card .card-counter .cnt-btn {
+  width: 24px; height: 24px; border-radius: 4px;
+  background: rgba(126,184,218,0.06);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent); font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.role-card .card-counter .cnt-val {
+  font-size: 16px; font-weight: 700;
+  color: var(--text-primary);
+  min-width: 14px; text-align: center;
+}
+.role-card .card-counter .cnt-val.zero {
+  color: var(--text-muted);
+}
+
+/* ---- Join Game (plain bg) ---- */
+.gf-join {
+  min-height: 100%;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 24px;
+}
+.gf-join .join-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-bottom: 32px;
+}
+.gf-join .input-group {
+  width: 100%; margin-bottom: 16px;
+}
+.gf-join .input-label {
+  font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+.gf-join .text-input {
+  width: 100%;
+  background: rgba(126,184,218,0.04);
+  border: 1px solid rgba(126,184,218,0.15);
+  border-radius: 6px; padding: 14px 16px;
+  font-size: 15px; color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+}
+.gf-join .text-input::placeholder { color: var(--text-muted); }
+.gf-join .code-input {
+  width: 100%;
+  background: rgba(126,184,218,0.04);
+  border: 1px solid rgba(126,184,218,0.2);
+  border-radius: 6px; padding: 18px 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 10px; text-align: center;
+  text-transform: uppercase; outline: none;
+}
+.gf-join .code-input::placeholder {
+  color: rgba(126,184,218,0.25);
+  letter-spacing: 10px;
+}
+.gf-join .error-text {
+  font-size: 13px; color: var(--danger);
+  text-align: center; margin-top: 12px;
+  min-height: 18px; /* reserve space */
+  opacity: 0; /* hidden by default */
+}
+.gf-join .error-text.visible { opacity: 1; }
+.gf-join .join-btn {
+  width: 100%; margin-top: 24px;
+}
+
+/* ---- Distribution — card face down ---- */
+.gf-distrib-back {
+  min-height: 100%;
+  background: url('assets/devoilement-background.png') center/cover no-repeat;
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.gf-distrib-back::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.55);
+  pointer-events: none;
+}
+.gf-distrib-back .distrib-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  padding: 24px;
+}
+.gf-distrib-back .card-img {
+  width: 180px; height: auto;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  margin-bottom: 24px;
+}
+.gf-distrib-back .tap-hint {
+  font-size: 14px; color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+/* ---- Distribution — card revealed ---- */
+.gf-distrib-reveal {
+  min-height: 100%;
+  background: url('assets/devoilement-background.png') center/cover no-repeat;
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.gf-distrib-reveal::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.5);
+  pointer-events: none;
+}
+.gf-distrib-reveal .distrib-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  padding: 24px;
+}
+.gf-distrib-reveal .card-img {
+  width: 180px; height: auto;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 60px rgba(126,184,218,0.12);
+  margin-bottom: 20px;
+}
+.gf-distrib-reveal .role-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 8px;
+}
+.gf-distrib-reveal .power-hint {
+  font-size: 13px; color: var(--text-muted);
+  font-style: italic; margin-bottom: 24px;
+  max-width: 220px;
+}
+.gf-distrib-reveal .ready-btn {
+  min-width: 140px; margin-bottom: 16px;
+}
+.gf-distrib-reveal .ready-counter {
+  font-size: 13px; color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1200px) { .phones-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1000px) { .phones-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px) {
+  .phones-grid { grid-template-columns: 1fr; }
+  .page-header .logo-img { width: 140px; }
+}
+
+.separator {
+  max-width: 1440px; margin: 32px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(126,184,218,0.08), transparent);
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE HEADER ============ -->
+<div class="page-header">
+  <img src="assets/logo-app.png" class="logo-img" alt="Garouf">
+  <h1>Lune Sauvage</h1>
+  <p>DA fusionnee — la modernite de <em>Nuit Etoilee</em> (Playfair + Outfit, bleu lunaire) avec les formes anguleuses et les coins decoratifs de <em>Croc de Lune</em>.</p>
+  <div class="da-tags">
+    <span class="da-tag">Playfair Display + Outfit</span>
+    <span class="da-tag">Bleu lunaire #7eb8da</span>
+    <span class="da-tag">Ambre #e8a849</span>
+    <span class="da-tag">Coins 6px + decoratifs</span>
+    <span class="da-tag">Glass panels 86%</span>
+  </div>
+</div>
+
+<!-- ============ ECRANS DE JEU ============ -->
+<div class="section-header">
+  <h2>Ecrans de jeu</h2>
+  <p>Chaque ecran utilise tes vrais backgrounds. Les glass panels garantissent la lisibilite partout.</p>
+</div>
+
+<div class="phones-grid">
+  <!-- Home -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Accueil</div>
+    <div class="phone-sublabel">fond-home.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-home">
+        <img src="assets/logo-app.png" class="logo-img" alt="Logo">
+        <div class="tagline">Le jeu de la pause du midi</div>
+        <div class="divider"></div>
+        <div class="btn-group">
+          <button class="gf-btn-primary">Nouvelle partie</button>
+          <button class="gf-btn-outline">Grimoire des Roles</button>
+          <button class="gf-btn-outline">Creer une partie en ligne</button>
+          <button class="gf-btn-outline">Rejoindre une partie</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Players -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Inscription joueurs</div>
+    <div class="phone-sublabel">inscription-joueur-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-players">
+        <div class="screen-title">Joueurs</div>
+        <div class="screen-subtitle">Ajoutez les participants</div>
+        <div class="input-row">
+          <input class="text-input" placeholder="Nom du joueur">
+          <button class="add-btn">+</button>
+        </div>
+        <div class="count">5 joueurs</div>
+        <div class="player-row"><span class="name">1. Maxime</span><span class="remove">&#10005;</span></div>
+        <div class="player-row"><span class="name">2. Thomas</span><span class="remove">&#10005;</span></div>
+        <div class="player-row"><span class="name">3. Sarah</span><span class="remove">&#10005;</span></div>
+        <div class="player-row"><span class="name">4. Lucas</span><span class="remove">&#10005;</span></div>
+        <div class="player-row"><span class="name">5. Emma</span><span class="remove">&#10005;</span></div>
+        <button class="next-btn">Suivant</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Announce -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Annonce du matin</div>
+    <div class="phone-sublabel">sun-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-announce">
+        <div class="announce-card">
+          <div class="announce-phase">Jour 2</div>
+          <div class="announce-title">Le village se reveille</div>
+          <div class="announce-text">Cette nuit, le village a perdu :</div>
+          <div class="dead-name">&#128128; Thomas</div>
+          <button class="announce-btn">Lancer le debat</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Debate -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Debat du jour</div>
+    <div class="phone-sublabel">debat-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-debate">
+        <div class="debate-card">
+          <div class="day-label">Jour 2</div>
+          <div class="timer">2:47</div>
+          <div class="timer-sub">Temps de debat restant</div>
+          <button class="skip-btn">Passer au vote</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Night -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Action de nuit</div>
+    <div class="phone-sublabel">night-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-night">
+        <div class="night-content">
+          <div class="phase-label">Nuit 2</div>
+          <div class="night-title">Les Loups-Garous</div>
+          <div class="night-instruction">Choisissez votre victime</div>
+          <div class="vote-option"><div class="option-avatar">M</div><span class="option-name">Maxime</span></div>
+          <div class="vote-option"><div class="option-avatar">T</div><span class="option-name">Thomas</span></div>
+          <div class="vote-option"><div class="option-avatar">S</div><span class="option-name">Sarah</span></div>
+          <div class="vote-option"><div class="option-avatar">E</div><span class="option-name">Emma</span></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Sunset Vote -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Vote du village</div>
+    <div class="phone-sublabel">sunset-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-sunset-vote">
+        <div class="vote-content">
+          <div class="phase-label">Jour 2</div>
+          <div class="vote-title">Vote du village</div>
+          <div class="vote-instruction">Qui le village elimine-t-il ?</div>
+          <div class="vote-option"><div class="option-avatar">M</div><span class="option-name">Maxime</span></div>
+          <div class="vote-option"><div class="option-avatar">T</div><span class="option-name">Thomas</span><span class="raven-badge">(+2 voix)</span></div>
+          <div class="vote-option"><div class="option-avatar">S</div><span class="option-name">Sarah</span></div>
+          <div class="vote-option"><div class="option-avatar">E</div><span class="option-name">Emma</span></div>
+          <div class="timer-bar">
+            <div class="timer-value">1:42</div>
+            <div class="timer-label">Temps restant</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="separator"></div>
+
+<!-- ============ LOBBY AVEC CARD GRID ============ -->
+<div class="section-header">
+  <h2>Lobby — Configuration avec cartes</h2>
+  <p>Les roles sont affiches sous forme de grille de cartes avec les vraies illustrations et un compteur sous chacune. Les roles sans illustration utilisent le dos de carte Garouf.</p>
+</div>
+
+<div class="phones-grid">
+  <!-- Lobby scrollable -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Lobby complet</div>
+    <div class="phone-sublabel">Scrollable — code + joueurs + cartes</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-lobby">
+        <div class="screen-title">Salon</div>
+
+        <div class="code-display">
+          <div class="code-label">Code de la partie</div>
+          <div class="code-value">DEV001</div>
+        </div>
+
+        <div class="section-title">Joueurs (6)</div>
+        <div class="player-row"><div class="player-avatar">M</div><span class="player-name">Maxime</span><span class="player-host">Hote</span></div>
+        <div class="player-row"><div class="player-avatar">T</div><span class="player-name">Thomas</span></div>
+        <div class="player-row"><div class="player-avatar">S</div><span class="player-name">Sarah</span></div>
+        <div class="player-row"><div class="player-avatar">L</div><span class="player-name">Lucas</span></div>
+        <div class="player-row"><div class="player-avatar">E</div><span class="player-name">Emma</span></div>
+        <div class="player-row"><div class="player-avatar">J</div><span class="player-name">Julie</span></div>
+
+        <div class="roles-header">
+          <div class="section-title" style="margin:0">Roles</div>
+          <div class="roles-counter">6 / 6</div>
+        </div>
+
+        <div style="margin-bottom:8px;">
+          <button class="preset-btn">Preset auto</button>
+        </div>
+
+        <div class="role-cards-grid">
+          <div class="role-card active">
+            <img src="assets/cards/loup-garou-card.png" class="card-img" alt="Loup-Garou">
+            <div class="card-name">Loup-Garou</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">2</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/voyante-card.png" class="card-img" alt="Voyante">
+            <div class="card-name">Voyante</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/sorciere-card.png" class="card-img" alt="Sorciere">
+            <div class="card-name">Sorciere</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/chasseur-card.png" class="card-img" alt="Chasseur">
+            <div class="card-name">Chasseur</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Villageois">
+            <div class="card-name">Villageois</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Cupidon">
+            <div class="card-name">Cupidon</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Salvateur">
+            <div class="card-name">Salvateur</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Petite Fille">
+            <div class="card-name">Petite Fille</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Ancien">
+            <div class="card-name">Ancien</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="gf-btn-primary" style="width:100%">Lancer la partie</button>
+          <button class="gf-btn-danger" style="width:100%">Quitter</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Lobby with mismatch -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Lobby — Roles incomplets</div>
+    <div class="phone-sublabel">Etat d'erreur quand roles != joueurs</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-lobby">
+        <div class="screen-title">Salon</div>
+
+        <div class="code-display">
+          <div class="code-label">Code de la partie</div>
+          <div class="code-value">DEV001</div>
+        </div>
+
+        <div class="section-title">Joueurs (6)</div>
+        <div class="player-row"><div class="player-avatar">M</div><span class="player-name">Maxime</span><span class="player-host">Hote</span></div>
+        <div class="player-row"><div class="player-avatar">T</div><span class="player-name">Thomas</span></div>
+        <div class="player-row"><div class="player-avatar">S</div><span class="player-name">Sarah</span></div>
+        <div class="player-row"><div class="player-avatar">L</div><span class="player-name">Lucas</span></div>
+        <div class="player-row"><div class="player-avatar">E</div><span class="player-name">Emma</span></div>
+        <div class="player-row"><div class="player-avatar">J</div><span class="player-name">Julie</span></div>
+
+        <div class="roles-header">
+          <div class="section-title" style="margin:0">Roles</div>
+          <div class="roles-counter mismatch">4 / 6</div>
+        </div>
+
+        <div style="font-size:12px;color:#e8a849;margin-bottom:8px;">
+          Ajuste les roles pour correspondre aux 6 joueurs
+        </div>
+
+        <div class="role-cards-grid">
+          <div class="role-card active">
+            <img src="assets/cards/loup-garou-card.png" class="card-img" alt="Loup-Garou">
+            <div class="card-name">Loup-Garou</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/voyante-card.png" class="card-img" alt="Voyante">
+            <div class="card-name">Voyante</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/sorciere-card.png" class="card-img" alt="Sorciere">
+            <div class="card-name">Sorciere</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card active">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Villageois">
+            <div class="card-name">Villageois</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val">1</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/chasseur-card.png" class="card-img" alt="Chasseur">
+            <div class="card-name">Chasseur</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <img src="assets/cards/back-card.png" class="card-img" alt="Cupidon">
+            <div class="card-name">Cupidon</div>
+            <div class="card-counter">
+              <button class="cnt-btn">-</button>
+              <span class="cnt-val zero">0</span>
+              <button class="cnt-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="gf-btn-primary" style="width:100%;opacity:0.4;cursor:not-allowed;">Lancer la partie</button>
+          <button class="gf-btn-danger" style="width:100%">Quitter</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Lobby as non-host -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Lobby — Vue joueur</div>
+    <div class="phone-sublabel">Non-hote, en attente</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-lobby">
+        <div class="screen-title">Salon</div>
+
+        <div class="code-display">
+          <div class="code-label">Code de la partie</div>
+          <div class="code-value">DEV001</div>
+        </div>
+
+        <div class="section-title">Joueurs (4)</div>
+        <div class="player-row"><div class="player-avatar">M</div><span class="player-name">Maxime</span><span class="player-host">Hote</span></div>
+        <div class="player-row" style="border-color:rgba(126,184,218,0.25);">
+          <div class="player-avatar" style="background:rgba(126,184,218,0.12);color:var(--accent);">T</div>
+          <span class="player-name" style="color:var(--accent);">Thomas (toi)</span>
+        </div>
+        <div class="player-row"><div class="player-avatar">S</div><span class="player-name">Sarah</span></div>
+        <div class="player-row"><div class="player-avatar">L</div><span class="player-name">Lucas</span></div>
+
+        <div style="text-align:center;margin:32px 0;padding:24px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent-dim);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;"></div>
+          <div style="font-size:15px;color:var(--text-secondary);">En attente du lancement...</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">L'hote configure la partie</div>
+        </div>
+
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto;">
+          <button class="gf-btn-danger" style="width:100%">Quitter</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="separator"></div>
+
+<!-- ============ PRE-GAME & DISTRIBUTION ============ -->
+<div class="section-header">
+  <h2>Pre-game &amp; Distribution</h2>
+  <p>Rejoindre une partie en ligne et le devoilement des roles — carte face cachee puis carte revelee.</p>
+</div>
+
+<div class="phones-grid">
+  <!-- Join Game -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Rejoindre une partie</div>
+    <div class="phone-sublabel">fond uni #0a0e16</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-join">
+        <div class="join-title">Rejoindre une partie</div>
+
+        <div class="input-group">
+          <div class="input-label">Code de la partie</div>
+          <input class="code-input" placeholder="••••••" maxlength="6">
+        </div>
+
+        <div class="input-group">
+          <div class="input-label">Votre pseudo</div>
+          <input class="text-input" placeholder="Ex : Maxime">
+        </div>
+
+        <div class="error-text">Code invalide ou partie introuvable.</div>
+
+        <button class="gf-btn-primary join-btn">Rejoindre</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Distribution — card face down -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Distribution — Carte cachee</div>
+    <div class="phone-sublabel">devoilement-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-distrib-back">
+        <div class="distrib-content">
+          <img src="assets/cards/back-card.png" class="card-img" alt="Carte face cachee">
+          <div class="tap-hint">Appuyez sur la carte</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Distribution — card revealed -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Distribution — Carte revelee</div>
+    <div class="phone-sublabel">devoilement-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-distrib-reveal">
+        <div class="distrib-content">
+          <img src="assets/cards/voyante-card.png" class="card-img" alt="Voyante">
+          <div class="role-name">Voyante</div>
+          <div class="power-hint">Maintiens la carte pour voir ton pouvoir</div>
+          <button class="gf-btn-ghost ready-btn">Pret</button>
+          <div class="ready-counter">4 / 6 joueurs prets</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center; padding:60px 24px; color:#2a2a2a; font-size:13px;">
+  Garouf — DA "Lune Sauvage" — Avril 2026
+</div>
+
+</body>
+</html>
