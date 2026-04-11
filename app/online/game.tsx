@@ -9,6 +9,7 @@ import { ROLE_CARDS, ROLE_LABELS } from "../../theme/roleCards";
 import SafeContainer from "../../components/SafeContainer";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { radii } from "../../theme/spacing";
 import type { Role } from "../../game/roles";
 
 import DistributionView from "../../components/online/DistributionView";
@@ -356,9 +357,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   nightTitle: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     color: colors.white,
-    fontSize: 28,
+    fontSize: 26,
     marginBottom: 8,
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.8)",
@@ -366,26 +367,27 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   nightSubtitle: {
-    color: colors.white,
-    fontSize: 18,
+    fontFamily: fonts.bodyRegular,
+    color: colors.textSecondary,
+    fontSize: 16,
     marginBottom: 48,
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
   nightButton: {
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: colors.glass,
     paddingHorizontal: 48,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: colors.glassBorder,
     marginTop: 24,
   },
   nightButtonText: {
     color: colors.white,
-    fontSize: 18,
-    fontFamily: fonts.cinzelBold,
+    fontSize: 16,
+    fontFamily: fonts.bodySemiBold,
   },
   waitText: {
     color: "rgba(255,255,255,0.5)",
@@ -395,6 +397,7 @@ const styles = StyleSheet.create({
   },
   // Seer result
   seerLabel: {
+    fontFamily: fonts.bodyRegular,
     fontSize: 18,
     color: colors.white,
     textAlign: "center",
@@ -406,14 +409,14 @@ const styles = StyleSheet.create({
   seerCard: {
     width: SEER_CARD_WIDTH,
     height: SEER_CARD_HEIGHT,
-    borderRadius: 14,
+    borderRadius: radii.lg,
     marginBottom: 16,
   },
   seerFallbackCard: {
     width: SEER_CARD_WIDTH,
     height: SEER_CARD_HEIGHT,
-    borderRadius: 14,
-    backgroundColor: "rgba(22,33,62,0.9)",
+    borderRadius: radii.lg,
+    backgroundColor: colors.glass,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -424,7 +427,7 @@ const styles = StyleSheet.create({
     fontSize: 64,
   },
   seerRoleName: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     color: colors.primary,
     fontSize: 24,
     marginBottom: 8,
