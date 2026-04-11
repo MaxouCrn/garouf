@@ -35,6 +35,7 @@ export default function GRoleCard({ image, name, count, onIncrement, onDecrement
 
 const styles = StyleSheet.create({
   card: {
+    width: "100%",
     alignItems: "center",
     backgroundColor: colors.surface,
     borderWidth: 1,
