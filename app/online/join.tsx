@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { supabase, ensureAnonymousSession } from "../../lib/supabase";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { radii, spacing } from "../../theme/spacing";
 import { CODE_LENGTH } from "../../types/online";
+import GButton from "../../components/GButton";
+import GInput from "../../components/GInput";
 
 export default function JoinGameScreen() {
   const router = useRouter();
@@ -17,7 +20,6 @@ export default function JoinGameScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Dev mode: auto-join on mount
   const autoJoinDone = useRef(false);
   useEffect(() => {
     if (__DEV__ && !autoJoinDone.current && code.trim().length === CODE_LENGTH && name.trim().length > 0) {
@@ -75,29 +77,23 @@ export default function JoinGameScreen() {
         autoFocus
       />
 
-      <Text style={styles.label}>Ton pseudo</Text>
-      <TextInput
-        style={styles.input}
+      <GInput
+        label="Ton pseudo"
         value={name}
         onChangeText={setName}
         placeholder="Entre ton pseudo..."
-        placeholderTextColor={colors.textMuted}
         maxLength={20}
+        error={error || undefined}
       />
 
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      <Pressable
-        style={[styles.button, !canJoin && styles.buttonDisabled]}
+      <GButton
+        variant="primary"
         onPress={handleJoin}
         disabled={!canJoin}
+        loading={loading}
       >
-        {loading ? (
-          <ActivityIndicator color={colors.black} />
-        ) : (
-          <Text style={styles.buttonText}>Rejoindre</Text>
-        )}
-      </Pressable>
+        Rejoindre
+      </GButton>
     </View>
   );
 }
@@ -106,63 +102,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    alignItems: "center",
+    paddingHorizontal: spacing.xl,
+    paddingTop: 60,
   },
   title: {
-    fontFamily: fonts.cinzelBold,
-    fontSize: 28,
-    color: colors.primary,
-    marginBottom: 32,
+    fontFamily: fonts.displayBold,
+    fontSize: 24,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.xxl,
   },
   label: {
-    fontSize: 16,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
     color: colors.textSecondary,
-    alignSelf: "flex-start",
-    marginBottom: 8,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginBottom: spacing.sm,
   },
   codeInput: {
     width: "100%",
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 12,
+    borderColor: colors.surfaceBorder,
+    borderRadius: radii.base,
     padding: 16,
     fontSize: 28,
     color: colors.text,
     textAlign: "center",
     letterSpacing: 8,
-    fontWeight: "bold",
-    marginBottom: 24,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
-    color: colors.text,
-    marginBottom: 16,
-  },
-  error: {
-    color: colors.danger,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: colors.black,
-    fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: fonts.displayBold,
+    marginBottom: spacing.xl,
   },
 });

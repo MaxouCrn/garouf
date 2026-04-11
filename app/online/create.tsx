@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase, ensureAnonymousSession } from "../../lib/supabase";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { spacing } from "../../theme/spacing";
+import GButton from "../../components/GButton";
+import GInput from "../../components/GInput";
 
 export default function CreateGameScreen() {
   const router = useRouter();
@@ -48,28 +51,23 @@ export default function CreateGameScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Creer une partie</Text>
-      <Text style={styles.label}>Ton pseudo</Text>
-      <TextInput
-        style={styles.input}
+      <GInput
+        label="Ton pseudo"
         value={name}
         onChangeText={setName}
         placeholder="Entre ton pseudo..."
-        placeholderTextColor={colors.textMuted}
         maxLength={20}
         autoFocus
+        error={error || undefined}
       />
-      {error && <Text style={styles.error}>{error}</Text>}
-      <Pressable
-        style={[styles.button, (!name.trim() || loading) && styles.buttonDisabled]}
+      <GButton
+        variant="primary"
         onPress={handleCreate}
         disabled={!name.trim() || loading}
+        loading={loading}
       >
-        {loading ? (
-          <ActivityIndicator color={colors.black} />
-        ) : (
-          <Text style={styles.buttonText}>Creer le salon</Text>
-        )}
-      </Pressable>
+        Creer le salon
+      </GButton>
     </View>
   );
 }
@@ -78,50 +76,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    alignItems: "center",
+    paddingHorizontal: spacing.xl,
+    paddingTop: 60,
   },
   title: {
-    fontFamily: fonts.cinzelBold,
-    fontSize: 28,
-    color: colors.primary,
-    marginBottom: 32,
-  },
-  label: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    alignSelf: "flex-start",
-    marginBottom: 8,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
+    fontFamily: fonts.displayBold,
+    fontSize: 24,
     color: colors.text,
-    marginBottom: 16,
-  },
-  error: {
-    color: colors.danger,
-    marginBottom: 16,
     textAlign: "center",
-  },
-  button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: colors.black,
-    fontSize: 20,
-    fontWeight: "bold",
+    marginBottom: spacing.xxl,
   },
 });
