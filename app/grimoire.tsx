@@ -12,6 +12,7 @@ import {
   Modal,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_REGISTRY, RoleDefinition } from "../game/roles";
@@ -278,6 +279,7 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
 
 export default function GrimoireScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -323,7 +325,7 @@ export default function GrimoireScreen() {
         <View style={styles.overlay}>
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.contentContainer}
+            contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 40 }]}
             showsVerticalScrollIndicator={false}
           >
             <Pressable style={styles.backButton} onPress={() => router.back()}>
@@ -366,8 +368,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: GRID_PADDING,
-    paddingTop: 60,
-    paddingBottom: 40,
   },
   backButton: {
     alignSelf: "flex-start",

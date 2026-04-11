@@ -32,21 +32,21 @@ export default function RootLayout() {
   return (
     <GameProvider>
       <MusicProvider>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.primary,
-          headerTitleStyle: { fontWeight: "bold" },
-          contentStyle: { backgroundColor: colors.background },
-          animation: "slide_from_right",
-        }}
-      >
-        <Stack.Screen name="splash" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="online" options={{ headerShown: false }} />
-        <Stack.Screen name="dev" options={{ headerShown: false }} />
-      </Stack>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.background },
+            headerTintColor: colors.primary,
+            headerTitleStyle: { fontWeight: "bold" },
+            contentStyle: { backgroundColor: colors.background },
+            animation: "slide_from_right",
+          }}
+        >
+          <Stack.Screen name="splash" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="online" options={{ headerShown: false }} />
+          <Stack.Screen name="dev" options={{ headerShown: false }} />
+        </Stack>
       </MusicProvider>
     </GameProvider>
   );

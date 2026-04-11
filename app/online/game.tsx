@@ -6,6 +6,7 @@ import { useNarrator } from "../../hooks/useNarrator";
 import { useMusicContext } from "../../context/MusicContext";
 import type { NightStep } from "../../game/nightEngine";
 import { ROLE_CARDS, ROLE_LABELS } from "../../theme/roleCards";
+import SafeContainer from "../../components/SafeContainer";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import type { Role } from "../../game/roles";
@@ -205,12 +206,12 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>La nuit tombe...</Text>
               <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
             </View>
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -220,11 +221,11 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <View style={styles.centered}>
               <Text style={styles.nightTitle}>Le soleil se leve...</Text>
             </View>
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -234,9 +235,9 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <LittleGirlView clueNames={state.littleGirlClue} timerSeconds={15} onDone={() => handleNightAction("little_girl_done", {})} />
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -246,9 +247,9 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <WolfVoteView action={state.actionRequired} wolfVotes={state.wolfVotes} onSubmit={handleNightAction} />
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -261,7 +262,7 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <View style={styles.centered}>
               <Text style={styles.seerLabel}>Le joueur {seerResult.name} a le role :</Text>
               {cardImage ? (
@@ -274,7 +275,7 @@ export default function OnlineGameScreen() {
               <Text style={styles.seerRoleName}>{roleLabel?.label ?? seerResult.role}</Text>
               <AutoAdvance delayMs={4000} onAdvance={() => { handleNightAction("seer_done", {}); setSeerResult(null); }} />
             </View>
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -284,9 +285,9 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <WitchActionView action={state.actionRequired} onSubmit={handleNightAction} />
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -296,9 +297,9 @@ export default function OnlineGameScreen() {
       return (
         <View style={styles.container}>
           {nightBg}
-          <View style={styles.overlay}>
+          <SafeContainer>
             <NightActionView action={state.actionRequired} onSubmit={handleNightAction} />
-          </View>
+          </SafeContainer>
         </View>
       );
     }
@@ -307,9 +308,9 @@ export default function OnlineGameScreen() {
     return (
       <View style={styles.container}>
         {nightBg}
-        <View style={styles.overlay}>
+        <SafeContainer>
           <NightWaitView step={state.nightStep} />
-        </View>
+        </SafeContainer>
       </View>
     );
   }
@@ -348,12 +349,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  overlay: {
-    flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   centered: {
     flex: 1,

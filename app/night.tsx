@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing } from "react-native";
+import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing, ScrollView } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
+import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
@@ -94,7 +95,7 @@ export default function NightScreen() {
             resizeMode="cover"
           />
         </Animated.View>
-        <View style={styles.overlay}>
+        <SafeContainer>
         {state.nightStep === "intro" && (
           <View style={styles.centered}>
             <Text style={styles.title}>La nuit tombe...</Text>
@@ -257,7 +258,7 @@ export default function NightScreen() {
             </Pressable>
           </View>
         )}
-        </View>
+        </SafeContainer>
       </View>
     </>
   );
@@ -275,78 +276,383 @@ function WitchStep({
   aliveNonWolves: ReturnType<typeof useGame>["state"]["players"];
   alivePlayers: ReturnType<typeof useGame>["state"]["players"];
 }) {
+  const [showPoisonTargets, setShowPoisonTargets] = useState(false);
+
   const victim = state.players.find(
     (p) => p.id === state.nightActions.werewolvesTarget
   );
-  const canHeal = state.witchPotions.life && !state.nightActions.witchHeal;
-  const canKill = state.witchPotions.death && !state.nightActions.witchKill;
+  const hasLifePotion = state.witchPotions.life;
+  const hasDeathPotion = state.witchPotions.death;
+  const healUsed = state.nightActions.witchHeal;
+  const killTarget = state.nightActions.witchKill;
+
+  const poisonTargets = alivePlayers.filter(
+    (p) => p.role !== "witch" && p.id !== state.nightActions.werewolvesTarget
+  );
+
+  const selectedVictimName = killTarget
+    ? alivePlayers.find((p) => p.id === killTarget)?.name
+    : null;
+
+  const hasAction = healUsed || killTarget;
 
   return (
-    <View style={styles.fullContainer}>
-      <Text style={styles.stepTitle}>🧪 La Sorciere se reveille</Text>
+    <View style={witchStyles.container}>
+      <Text style={styles.stepTitle}>La Sorciere se reveille</Text>
 
-      {victim && (
-        <Text style={styles.instruction}>
-          Cette nuit, {victim.name} a ete attaque(e).
-        </Text>
-      )}
+      {/* Victim announcement */}
+      <View style={witchStyles.victimBanner}>
+        <Text style={witchStyles.victimIcon}>💀</Text>
+        {victim ? (
+          <>
+            <Text style={witchStyles.victimLabel}>Victime des loups</Text>
+            <Text style={witchStyles.victimName}>{victim.name}</Text>
+          </>
+        ) : (
+          <Text style={witchStyles.victimLabel}>Aucune victime cette nuit</Text>
+        )}
+      </View>
 
-      {canHeal && victim && (
-        <Pressable
-          style={[styles.potionButton, styles.potionLife]}
-          onPress={() => dispatch({ type: "SET_WITCH_HEAL", heal: true })}
-        >
-          <Text style={styles.buttonText}>💚 Utiliser la potion de vie</Text>
-        </Pressable>
-      )}
+      {/* Potion cards */}
+      <View style={witchStyles.potionsRow}>
+        {/* Life Potion Card */}
+        <View style={[
+          witchStyles.potionCard,
+          witchStyles.potionCardLife,
+          !hasLifePotion && witchStyles.potionCardDepleted,
+        ]}>
+          <Image source={require("../assets/health-potion.png")} style={witchStyles.potionImage} resizeMode="contain" />
+          <Text style={witchStyles.potionTitle}>Vie</Text>
 
-      {state.nightActions.witchHeal && (
-        <Text style={styles.potionUsed}>
-          ✅ Potion de vie utilisee
-        </Text>
-      )}
+          {!hasLifePotion ? (
+            <View style={witchStyles.depletedBadge}>
+              <Text style={witchStyles.depletedText}>Epuisee</Text>
+            </View>
+          ) : !victim ? (
+            <Text style={witchStyles.potionHint}>Personne a sauver</Text>
+          ) : healUsed ? (
+            <Pressable
+              style={witchStyles.potionActionActive}
+              onPress={() => dispatch({ type: "SET_WITCH_HEAL", heal: false })}
+            >
+              <Text style={witchStyles.potionActionActiveText}>Sauver {victim.name}</Text>
+              <Text style={witchStyles.undoHint}>Appuyer pour annuler</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={witchStyles.potionAction}
+              onPress={() => dispatch({ type: "SET_WITCH_HEAL", heal: true })}
+            >
+              <Text style={witchStyles.potionActionText}>Sauver {victim.name}</Text>
+            </Pressable>
+          )}
+        </View>
 
-      {canKill && (
-        <>
-          <Text style={styles.instruction}>Empoisonner quelqu'un ?</Text>
-          <FlatList
-            data={alivePlayers.filter(
-              (p) =>
-                p.role !== "witch" &&
-                p.id !== state.nightActions.werewolvesTarget
-            )}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-            renderItem={({ item }) => (
+        {/* Death Potion Card */}
+        <View style={[
+          witchStyles.potionCard,
+          witchStyles.potionCardDeath,
+          !hasDeathPotion && witchStyles.potionCardDepleted,
+        ]}>
+          <Image source={require("../assets/poison-potion.png")} style={witchStyles.potionImage} resizeMode="contain" />
+          <Text style={witchStyles.potionTitle}>Mort</Text>
+
+          {!hasDeathPotion ? (
+            <View style={witchStyles.depletedBadge}>
+              <Text style={witchStyles.depletedText}>Epuisee</Text>
+            </View>
+          ) : killTarget ? (
+            <Pressable
+              style={witchStyles.potionActionDanger}
+              onPress={() => {
+                dispatch({ type: "SET_WITCH_KILL", playerId: null });
+                setShowPoisonTargets(false);
+              }}
+            >
+              <Text style={witchStyles.potionActionDangerText}>Tuer {selectedVictimName}</Text>
+              <Text style={witchStyles.undoHintDanger}>Appuyer pour annuler</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={witchStyles.potionAction}
+              onPress={() => setShowPoisonTargets(true)}
+            >
+              <Text style={witchStyles.potionActionText}>Choisir une cible</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+
+      {/* Poison target selection (overlay-style) */}
+      {showPoisonTargets && !killTarget && (
+        <View style={witchStyles.targetSection}>
+          <Text style={witchStyles.targetTitle}>Qui empoisonner ?</Text>
+          <ScrollView style={witchStyles.targetList}>
+            {poisonTargets.map((item) => (
               <Pressable
-                style={[
-                  styles.playerOption,
-                  state.nightActions.witchKill === item.id &&
-                    styles.playerOptionDanger,
-                ]}
-                onPress={() =>
-                  dispatch({
-                    type: "SET_WITCH_KILL",
-                    playerId:
-                      state.nightActions.witchKill === item.id
-                        ? null
-                        : item.id,
-                  })
-                }
+                key={item.id}
+                style={witchStyles.targetRow}
+                onPress={() => {
+                  dispatch({ type: "SET_WITCH_KILL", playerId: item.id });
+                  setShowPoisonTargets(false);
+                }}
               >
-                <Text style={styles.playerOptionText}>{item.name}</Text>
+                <Text style={witchStyles.targetName}>{item.name}</Text>
               </Pressable>
-            )}
-          />
-        </>
+            ))}
+          </ScrollView>
+          <Pressable
+            style={witchStyles.cancelTargetButton}
+            onPress={() => setShowPoisonTargets(false)}
+          >
+            <Text style={witchStyles.cancelTargetText}>Annuler</Text>
+          </Pressable>
+        </View>
       )}
 
-      <Pressable style={styles.button} onPress={onNext}>
-        <Text style={styles.buttonText}>Continuer</Text>
-      </Pressable>
+      {/* Bottom actions */}
+      {!showPoisonTargets && (
+        <View style={witchStyles.bottomActions}>
+          {hasAction ? (
+            <Pressable style={witchStyles.confirmButton} onPress={onNext}>
+              <Text style={witchStyles.confirmButtonText}>Confirmer</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={witchStyles.passButton} onPress={onNext}>
+              <Text style={witchStyles.passButtonText}>Ne rien faire</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
     </View>
   );
 }
+
+const witchStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  victimBanner: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.35)",
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(233,69,96,0.25)",
+  },
+  victimIcon: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  victimLabel: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  victimName: {
+    fontFamily: fonts.cinzelBold,
+    color: colors.danger,
+    fontSize: 22,
+    textShadowColor: "rgba(233,69,96,0.4)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  potionsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  potionCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    borderWidth: 1.5,
+    minHeight: 180,
+    justifyContent: "center",
+  },
+  potionCardLife: {
+    backgroundColor: "rgba(90,30,30,0.25)",
+    borderColor: "rgba(233,69,96,0.35)",
+  },
+  potionCardDeath: {
+    backgroundColor: "rgba(30,70,30,0.25)",
+    borderColor: "rgba(78,204,163,0.35)",
+  },
+  potionCardDepleted: {
+    opacity: 0.4,
+    backgroundColor: "rgba(30,30,50,0.3)",
+    borderColor: "rgba(100,100,100,0.2)",
+  },
+  potionImage: {
+    width: 64,
+    height: 80,
+    marginBottom: 6,
+  },
+  potionTitle: {
+    fontFamily: fonts.cinzelBold,
+    color: colors.white,
+    fontSize: 16,
+    marginBottom: 12,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  potionHint: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 13,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  depletedBadge: {
+    backgroundColor: "rgba(100,100,100,0.3)",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  depletedText: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  potionAction: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    width: "100%",
+    alignItems: "center",
+  },
+  potionActionText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  potionActionActive: {
+    backgroundColor: "rgba(78,204,163,0.3)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.success,
+    width: "100%",
+    alignItems: "center",
+  },
+  potionActionActiveText: {
+    color: colors.success,
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  potionActionDanger: {
+    backgroundColor: "rgba(233,69,96,0.3)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.danger,
+    width: "100%",
+    alignItems: "center",
+  },
+  potionActionDangerText: {
+    color: colors.danger,
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  undoHint: {
+    color: "rgba(78,204,163,0.6)",
+    fontSize: 11,
+    marginTop: 3,
+  },
+  undoHintDanger: {
+    color: "rgba(233,69,96,0.6)",
+    fontSize: 11,
+    marginTop: 3,
+  },
+  targetSection: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(233,69,96,0.2)",
+  },
+  targetTitle: {
+    fontFamily: fonts.cinzelBold,
+    color: colors.danger,
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 12,
+    textShadowColor: "rgba(233,69,96,0.3)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  targetList: {
+    flex: 1,
+    marginBottom: 12,
+  },
+  targetRow: {
+    backgroundColor: "rgba(90,30,60,0.3)",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "rgba(233,69,96,0.15)",
+  },
+  targetName: {
+    color: colors.text,
+    fontSize: 16,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  cancelTargetButton: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  cancelTargetText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  bottomActions: {
+    paddingTop: 8,
+  },
+  confirmButton: {
+    backgroundColor: colors.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    color: colors.black,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  passButton: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+  },
+  passButtonText: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
 
 function CupidStep({
   alivePlayers,
@@ -607,12 +913,6 @@ const styles = StyleSheet.create({
   backgroundContainer: {
     flex: 1,
   },
-  overlay: {
-    flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
   fullContainer: {
     flex: 1,
   },
@@ -714,22 +1014,6 @@ const styles = StyleSheet.create({
     color: colors.ember,
     fontSize: 24,
     marginBottom: 32,
-  },
-  potionButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  potionLife: {
-    backgroundColor: "#2d6a4f",
-  },
-  potionUsed: {
-    color: colors.success,
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 16,
   },
   warningText: {
     color: "#fbbf24",

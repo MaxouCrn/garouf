@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Text, Image, ImageBackground, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGame } from "../context/GameContext";
 import { useMusicContext } from "../context/MusicContext";
 import { colors } from "../theme/colors";
@@ -11,6 +12,7 @@ const LOGO_SIZE = 350;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { dispatch } = useGame();
   const { startMusic } = useMusicContext();
 
@@ -31,7 +33,7 @@ export default function HomeScreen() {
     >
       <MuteButton />
       <FogEffect />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]} showsVerticalScrollIndicator={false}>
         <Image
           source={require("../assets/logo-app.png")}
           style={styles.logo}
@@ -78,8 +80,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: "center",
-    paddingTop: 100,
-    paddingBottom: 60,
   },
   logo: {
     width: LOGO_SIZE,

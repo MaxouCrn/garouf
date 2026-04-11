@@ -8,6 +8,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { colors } from "../theme/colors";
+import SafeContainer from "../components/SafeContainer";
 
 // Online view components
 import DistributionView from "../components/online/DistributionView";
@@ -113,9 +114,9 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+        <SafeContainer>
           <NightWaitView step="werewolves" />
-        </View>
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -128,9 +129,9 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+        <SafeContainer>
           <NightActionView action={mockSeerAction} onSubmit={noop} />
-        </View>
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -143,13 +144,13 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+        <SafeContainer>
           <WolfVoteView
             action={mockWolfAction}
             wolfVotes={{ "3": 1, "4": 2 }}
             onSubmit={noop}
           />
-        </View>
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -162,9 +163,9 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+        <SafeContainer>
           <WitchActionView action={mockWitchAction} onSubmit={noop} />
-        </View>
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -177,13 +178,13 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, paddingTop: 60, paddingHorizontal: 20 }}>
+        <SafeContainer>
           <LittleGirlView
             clueNames={["Alice", "Bob"]}
             timerSeconds={15}
             onDone={noop}
           />
-        </View>
+        </SafeContainer>
       </ImageBackground>
     ),
   },

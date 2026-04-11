@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 
@@ -28,8 +29,9 @@ function Corner({ position }: { position: "topLeft" | "topRight" | "bottomLeft" 
 }
 
 export default function CardFrame({ children, title, subtitle }: CardFrameProps) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }]}>
       <View style={styles.card}>
         <Corner position="topLeft" />
         <Corner position="topRight" />

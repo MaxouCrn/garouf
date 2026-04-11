@@ -3,6 +3,7 @@ import { View, Text, Pressable, FlatList, ImageBackground, StyleSheet } from "re
 import { useRouter, Stack } from "expo-router";
 import { Audio } from "expo-av";
 import { useGame } from "../context/GameContext";
+import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ANNONCE_DEATH, ANNONCE_NO_DEATH } from "../assets/sounds/narrator/day/sounds";
@@ -251,7 +252,7 @@ export default function DayScreen() {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.overlay}>
+        <SafeContainer>
         {dayStep === "announce" && (
           <View style={styles.centered}>
             <Text style={styles.title}>Le village se reveille</Text>
@@ -355,7 +356,7 @@ export default function DayScreen() {
             </Pressable>
           </View>
         )}
-        </View>
+        </SafeContainer>
       </ImageBackground>
     </>
   );
@@ -390,12 +391,6 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   fullContainer: {
     flex: 1,

@@ -5,6 +5,7 @@ import { useGame } from "../context/GameContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import MuteButton from "../components/MuteButton";
+import SafeContainer from "../components/SafeContainer";
 import { useMusicContext } from "../context/MusicContext";
 import { getPreset, getBalanceWarnings } from "../game/balance";
 import { ROLE_REGISTRY } from "../game/roles";
@@ -107,6 +108,7 @@ export default function RolesSetupScreen() {
         style={styles.background}
         resizeMode="cover"
       >
+        <SafeContainer>
         <MuteButton />
 
         <Text style={styles.title}>Roles</Text>
@@ -187,6 +189,7 @@ export default function RolesSetupScreen() {
             <Text style={styles.startButtonText}>Distribuer les roles</Text>
           </Pressable>
         </ScrollView>
+        </SafeContainer>
       </ImageBackground>
     </>
   );
@@ -195,9 +198,6 @@ export default function RolesSetupScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   title: {
     fontFamily: fonts.cinzelBold,

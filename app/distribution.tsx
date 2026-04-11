@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
+import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
@@ -355,9 +356,10 @@ export default function DistributionScreen() {
       />
       <ImageBackground
         source={require("../assets/devoilement-background.png")}
-        style={styles.container}
+        style={styles.background}
         resizeMode="cover"
       >
+        <SafeContainer>
         <Text style={styles.progress}>
           {state.distributionIndex + 1} / {state.players.length}
         </Text>
@@ -466,6 +468,7 @@ export default function DistributionScreen() {
             </>
           )}
         </View>
+        </SafeContainer>
       </ImageBackground>
 
       <RoleDetailModal
@@ -478,11 +481,8 @@ export default function DistributionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   progress: {
     fontSize: 15,

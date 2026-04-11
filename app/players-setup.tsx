@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useGame } from "../context/GameContext";
+import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import MuteButton from "../components/MuteButton";
@@ -44,6 +45,7 @@ export default function PlayersSetupScreen() {
           style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+          <SafeContainer>
           <MuteButton />
 
           <Text style={styles.title}>Joueurs</Text>
@@ -104,6 +106,7 @@ export default function PlayersSetupScreen() {
               <Text style={styles.nextButtonText}>Suivant</Text>
             </Pressable>
           </View>
+          </SafeContainer>
         </KeyboardAvoidingView>
       </ImageBackground>
     </>
@@ -116,9 +119,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   title: {
     fontFamily: fonts.cinzelBold,
