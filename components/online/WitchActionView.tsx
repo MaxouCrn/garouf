@@ -124,18 +124,18 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             <Text style={styles.potionHint}>Personne a sauver</Text>
           ) : heal ? (
             <Pressable
-              style={styles.potionActionActive}
+              style={styles.potionActionLife}
               onPress={() => handleHeal(false)}
             >
-              <Text style={styles.potionActionActiveText}>Sauver</Text>
-              <Text style={styles.undoHint}>Appuyer pour annuler</Text>
+              <Text style={styles.potionActionLifeText}>Sauver la cible</Text>
+              <Text style={styles.undoHintLife}>Appuyer pour annuler</Text>
             </Pressable>
           ) : (
             <Pressable
               style={styles.potionAction}
               onPress={() => handleHeal(true)}
             >
-              <Text style={styles.potionActionText}>Sauver</Text>
+              <Text style={styles.potionActionText}>Sauver la cible</Text>
             </Pressable>
           )}
         </Animated.View>
@@ -156,11 +156,11 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             </View>
           ) : killTargetId ? (
             <Pressable
-              style={styles.potionActionDanger}
+              style={styles.potionActionPoison}
               onPress={handleClearTarget}
             >
-              <Text style={styles.potionActionDangerText}>Tuer {selectedVictimName}</Text>
-              <Text style={styles.undoHintDanger}>Appuyer pour annuler</Text>
+              <Text style={styles.potionActionPoisonText}>Tuer {selectedVictimName}</Text>
+              <Text style={styles.undoHintPoison}>Appuyer pour annuler</Text>
             </Pressable>
           ) : (
             <Pressable
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   victimBanner: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.35)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 12,
@@ -260,19 +260,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   victimLabel: {
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 13,
     letterSpacing: 1,
     textTransform: "uppercase",
     marginBottom: 2,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   victimName: {
     fontFamily: fonts.cinzelBold,
     color: colors.danger,
     fontSize: 22,
-    textShadowColor: "rgba(233,69,96,0.4)",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
   potionsRow: {
     flexDirection: "row",
@@ -289,16 +292,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   potionCardLife: {
-    backgroundColor: "rgba(90,30,30,0.25)",
-    borderColor: "rgba(233,69,96,0.35)",
+    backgroundColor: "rgba(90,30,30,0.45)",
+    borderColor: "rgba(233,69,96,0.4)",
   },
   potionCardDeath: {
-    backgroundColor: "rgba(30,70,30,0.25)",
-    borderColor: "rgba(78,204,163,0.35)",
+    backgroundColor: "rgba(30,70,30,0.45)",
+    borderColor: "rgba(78,204,163,0.4)",
   },
   potionCardDepleted: {
     opacity: 0.4,
-    backgroundColor: "rgba(30,30,50,0.3)",
+    backgroundColor: "rgba(30,30,50,0.5)",
     borderColor: "rgba(100,100,100,0.2)",
   },
   potionImage: {
@@ -311,34 +314,37 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     marginBottom: 12,
-    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowColor: "rgba(0,0,0,0.9)",
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    textShadowRadius: 6,
   },
   potionHint: {
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.5)",
     fontSize: 13,
     textAlign: "center",
     fontStyle: "italic",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   depletedBadge: {
-    backgroundColor: "rgba(100,100,100,0.3)",
+    backgroundColor: "rgba(100,100,100,0.4)",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
   },
   depletedText: {
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.5)",
     fontSize: 13,
     fontWeight: "600",
   },
   potionAction: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.12)",
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: "rgba(255,255,255,0.2)",
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
@@ -346,32 +352,17 @@ const styles = StyleSheet.create({
   },
   potionActionText: {
     color: colors.white,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  potionActionActive: {
-    backgroundColor: "rgba(78,204,163,0.3)",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: colors.success,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 42,
-  },
-  potionActionActiveText: {
-    color: colors.success,
-    fontSize: 14,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  potionActionDanger: {
+  potionActionLife: {
     backgroundColor: "rgba(233,69,96,0.3)",
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: colors.danger,
@@ -380,21 +371,47 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 42,
   },
-  potionActionDangerText: {
+  potionActionLifeText: {
     color: colors.danger,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "bold",
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  undoHint: {
-    color: "rgba(78,204,163,0.6)",
+  potionActionPoison: {
+    backgroundColor: "rgba(78,204,163,0.3)",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.success,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
+  },
+  potionActionPoisonText: {
+    color: colors.success,
+    fontSize: 13,
+    fontWeight: "bold",
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  undoHintLife: {
+    color: "rgba(233,69,96,0.7)",
     fontSize: 11,
     marginTop: 3,
+    textAlign: "center",
   },
-  undoHintDanger: {
-    color: "rgba(233,69,96,0.6)",
+  undoHintPoison: {
+    color: "rgba(78,204,163,0.7)",
     fontSize: 11,
     marginTop: 3,
+    textAlign: "center",
   },
   modalOverlay: {
     flex: 1,
