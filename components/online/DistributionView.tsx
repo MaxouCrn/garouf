@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontFamily: fonts.bodyRegular,
-    color: colors.textMuted,
+    color: colors.white,
     fontSize: 14,
     marginTop: 12,
     textShadowColor: "rgba(0,0,0,0.6)",
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   longPressHint: {
     fontFamily: fonts.bodyRegular,
-    color: colors.textMuted,
+    color: colors.white,
     fontSize: 13,
     marginBottom: 20,
     fontStyle: "italic",
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
   },
   waitingText: {
     fontFamily: fonts.bodyRegular,
-    color: colors.textMuted,
+    color: colors.white,
     fontSize: 15,
     fontStyle: "italic",
     textShadowColor: "rgba(0,0,0,0.6)",
