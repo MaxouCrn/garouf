@@ -1207,6 +1207,288 @@ body {
 }
 .gf-little-girl .lg-wolf-row:last-child { border-bottom: none; }
 .gf-little-girl .lg-close { margin-top: auto; }
+
+/* ============================================
+   JOUR & ETATS SPECIAUX
+   ============================================ */
+
+/* --- Raven Mark (sun-transition) --- */
+.gf-special-raven {
+  min-height: 100%;
+  background: url('assets/sun-transition-background.png') center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-special-raven::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.45);
+  pointer-events: none;
+}
+.gf-special-raven .raven-card {
+  position: relative; z-index: 1;
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.gf-special-raven .raven-card::before,
+.gf-special-raven .raven-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-special-raven .raven-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #e8a849; border-left: 2px solid #e8a849;
+}
+.gf-special-raven .raven-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #e8a849; border-right: 2px solid #e8a849;
+}
+.gf-special-raven .raven-phase {
+  font-size: 11px; color: #e8a849;
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+}
+.gf-special-raven .raven-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: #e4e8f0; margin-bottom: 16px;
+}
+.gf-special-raven .raven-player {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700;
+  color: #c084fc; margin-bottom: 10px;
+}
+.gf-special-raven .raven-sub {
+  font-size: 14px; color: #8a94a8; margin-bottom: 24px;
+}
+
+/* --- Hunter (sunset-background) --- */
+.gf-special-hunter {
+  min-height: 100%;
+  background: url('assets/sunset-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-special-hunter::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.5);
+  pointer-events: none;
+}
+.gf-special-hunter .hunter-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-special-hunter .hunter-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e85d5d; text-align: center; margin-bottom: 8px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-special-hunter .hunter-instruction {
+  font-size: 14px; color: #8a94a8;
+  text-align: center; margin-bottom: 10px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+.gf-special-hunter .hunter-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: #e85d5d; text-align: center; margin-bottom: 18px;
+  text-shadow: 0 2px 16px rgba(232,93,93,0.3);
+}
+.gf-special-hunter .hunter-option {
+  background: rgba(10,14,22,0.84);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 13px 16px;
+  margin-bottom: 7px;
+  display: flex; align-items: center; gap: 12px;
+}
+.gf-special-hunter .hunter-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(232,93,93,0.08);
+  border: 1px solid rgba(232,93,93,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #e85d5d; font-weight: 600;
+  flex-shrink: 0;
+}
+.gf-special-hunter .hunter-name { font-size: 15px; font-weight: 500; color: #e4e8f0; }
+.gf-special-hunter .hunter-shoot {
+  margin-top: auto; width: 100%;
+}
+
+/* --- Spectator (fond uni) --- */
+.gf-special-spectator {
+  min-height: 100%;
+  background: #0a0e16;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 24px; text-align: center;
+}
+.gf-special-spectator .spec-skull {
+  font-size: 64px; margin-bottom: 16px;
+  filter: grayscale(0.3);
+}
+.gf-special-spectator .spec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #8a94a8; margin-bottom: 0;
+}
+.gf-special-spectator .spec-sub {
+  font-size: 14px; color: #4a5268;
+  margin-top: 12px; letter-spacing: 0.5px;
+}
+
+/* --- End Wolves Win (night-transition-background) --- */
+.gf-special-end-wolves {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-special-end-wolves::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.55);
+  pointer-events: none;
+}
+.gf-special-end-wolves .end-card {
+  position: relative; z-index: 1;
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.gf-special-end-wolves .end-card::before,
+.gf-special-end-wolves .end-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-special-end-wolves .end-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #e85d5d; border-left: 2px solid #e85d5d;
+}
+.gf-special-end-wolves .end-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #e85d5d; border-right: 2px solid #e85d5d;
+}
+.gf-special-end-wolves .end-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 400;
+  color: #8a94a8; margin-bottom: 16px;
+}
+.gf-special-end-wolves .end-emoji {
+  font-size: 48px; margin-bottom: 14px; display: block;
+}
+.gf-special-end-wolves .end-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e85d5d; margin-bottom: 28px;
+}
+
+/* --- End Village Wins (sun-transition-background) --- */
+.gf-special-end-village {
+  min-height: 100%;
+  background: url('assets/sun-transition-background.png') center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-special-end-village::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.4);
+  pointer-events: none;
+}
+.gf-special-end-village .end-card {
+  position: relative; z-index: 1;
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.gf-special-end-village .end-card::before,
+.gf-special-end-village .end-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-special-end-village .end-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #5dd9a6; border-left: 2px solid #5dd9a6;
+}
+.gf-special-end-village .end-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #5dd9a6; border-right: 2px solid #5dd9a6;
+}
+.gf-special-end-village .end-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 400;
+  color: #8a94a8; margin-bottom: 16px;
+}
+.gf-special-end-village .end-emoji {
+  font-size: 48px; margin-bottom: 14px; display: block;
+}
+.gf-special-end-village .end-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #5dd9a6; margin-bottom: 28px;
+}
+
+/* --- Paused (fond uni) --- */
+.gf-special-paused {
+  min-height: 100%;
+  background: #0a0e16;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.gf-special-paused .paused-card {
+  position: relative;
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.gf-special-paused .paused-card::before,
+.gf-special-paused .paused-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-special-paused .paused-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #e8a849; border-left: 2px solid #e8a849;
+}
+.gf-special-paused .paused-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #e8a849; border-right: 2px solid #e8a849;
+}
+.gf-special-paused .paused-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; margin-bottom: 16px;
+}
+.gf-special-paused .paused-player {
+  font-size: 15px; color: #e8a849; margin-bottom: 8px;
+}
+.gf-special-paused .paused-countdown {
+  font-size: 14px; color: #4a5268; margin-bottom: 24px;
+}
+.gf-special-paused .paused-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(126,184,218,0.15);
+  border-top-color: #7eb8da;
+  border-radius: 50%;
+  animation: gf-spin 1s linear infinite;
+  margin: 0 auto;
+}
 </style>
 </head>
 <body>
@@ -1819,6 +2101,115 @@ body {
             <div class="lg-wolf-row">&#x1F43A; Lucas</div>
           </div>
           <button class="gf-btn-ghost lg-close">Fermer les yeux</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="separator"></div>
+
+<!-- ============ JOUR & ETATS SPECIAUX ============ -->
+<div class="section-header">
+  <h2>Jour &amp; Etats speciaux</h2>
+  <p>Marque du Corbeau, Chasseur, Spectateur, fin de partie (victoire loups ou village), et partie en pause.</p>
+</div>
+
+<div class="phones-grid">
+
+  <!-- 1. Raven Mark -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Marque du Corbeau</div>
+    <div class="phone-sublabel">sun-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-raven">
+        <div class="raven-card">
+          <div class="raven-phase">Jour 2</div>
+          <div class="raven-title">Un joueur porte la marque du Corbeau</div>
+          <div class="raven-player">Thomas</div>
+          <div class="raven-sub">Il commence le vote avec 2 voix contre lui</div>
+          <button class="gf-btn-warm" style="width:100%">Lancer le debat</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2. Hunter -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Chasseur</div>
+    <div class="phone-sublabel">sunset-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-hunter">
+        <div class="hunter-content">
+          <div class="hunter-title">Tu es le Chasseur !</div>
+          <div class="hunter-instruction">Tu as ete elimine. Choisis un joueur a emporter avec toi.</div>
+          <div class="hunter-timer">0:15</div>
+          <div class="hunter-option"><div class="hunter-avatar">M</div><span class="hunter-name">Maxime</span></div>
+          <div class="hunter-option"><div class="hunter-avatar">S</div><span class="hunter-name">Sarah</span></div>
+          <div class="hunter-option"><div class="hunter-avatar">E</div><span class="hunter-name">Emma</span></div>
+          <button class="gf-btn-danger hunter-shoot">Tirer</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3. Spectator -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Spectateur</div>
+    <div class="phone-sublabel">fond uni — joueur elimine</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-spectator">
+        <div class="spec-skull">&#x1F480;</div>
+        <div class="spec-title">Tu es elimine(e)</div>
+        <div class="spec-sub">Nuit en cours — seer</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4. End — Wolves Win -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Fin — Victoire loups</div>
+    <div class="phone-sublabel">night-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-end-wolves">
+        <div class="end-card">
+          <div class="end-label">Fin de la partie</div>
+          <span class="end-emoji">&#x1F43A;</span>
+          <div class="end-title">Les Loups-Garous ont devore le village !</div>
+          <button class="gf-btn-primary" style="width:100%">Retour a l'accueil</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5. End — Village Wins -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Fin — Victoire village</div>
+    <div class="phone-sublabel">sun-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-end-village">
+        <div class="end-card">
+          <div class="end-label">Fin de la partie</div>
+          <span class="end-emoji">&#x1F3D8;&#xFE0F;</span>
+          <div class="end-title">Le village a triomphe des loups !</div>
+          <button class="gf-btn-primary" style="width:100%">Retour a l'accueil</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 6. Paused -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Partie en pause</div>
+    <div class="phone-sublabel">fond uni — deconnexion joueur</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-special-paused">
+        <div class="paused-card">
+          <div class="paused-title">Partie en pause</div>
+          <div class="paused-player">Thomas s'est deconnecte</div>
+          <div class="paused-countdown">Reprise dans 45s...</div>
+          <div class="paused-spinner"></div>
         </div>
       </div>
     </div></div>
