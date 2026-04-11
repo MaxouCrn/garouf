@@ -859,6 +859,354 @@ body {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(126,184,218,0.08), transparent);
 }
+
+/* ============================================
+   PHASES DE NUIT — nouveaux ecrans
+   ============================================ */
+
+/* --- Night Transition --- */
+.gf-night-transition {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-night-transition::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.6);
+  pointer-events: none;
+}
+.gf-night-transition .nt-card {
+  position: relative; z-index: 1;
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 40px 32px;
+  text-align: center; width: 100%;
+}
+.gf-night-transition .nt-card::before,
+.gf-night-transition .nt-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-night-transition .nt-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #7eb8da; border-left: 2px solid #7eb8da;
+}
+.gf-night-transition .nt-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #7eb8da; border-right: 2px solid #7eb8da;
+}
+.gf-night-transition .nt-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; margin-bottom: 10px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-night-transition .nt-sub {
+  font-size: 14px; color: #8a94a8;
+}
+
+/* --- Night Wait --- */
+.gf-night-wait {
+  min-height: 100%;
+  background: #0a0e16;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 24px; text-align: center;
+}
+.gf-night-wait .nw-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  color: #8a94a8; margin-bottom: 28px;
+}
+.gf-night-wait .nw-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(126,184,218,0.15);
+  border-top-color: #7eb8da;
+  border-radius: 50%;
+  animation: gf-spin 1s linear infinite;
+  margin: 0 auto 18px;
+}
+@keyframes gf-spin { to { transform: rotate(360deg); } }
+.gf-night-wait .nw-waiting {
+  font-size: 13px; color: #4a5268; letter-spacing: 0.5px;
+}
+
+/* --- Night Action (generic — Voyante / Salvateur) --- */
+.gf-night-action {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-night-action::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.45);
+  pointer-events: none;
+}
+.gf-night-action .na-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-night-action .na-phase {
+  font-size: 11px; color: rgba(126,184,218,0.5);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600; margin-bottom: 4px;
+}
+.gf-night-action .na-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; text-align: center; margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-night-action .na-instruction {
+  font-size: 14px; color: #8a94a8;
+  text-align: center; margin-bottom: 10px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+.gf-night-action .na-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: #7eb8da; text-align: center; margin-bottom: 18px;
+  text-shadow: 0 2px 16px rgba(126,184,218,0.3);
+}
+.gf-night-action .na-option {
+  background: rgba(10,14,22,0.84);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 13px 16px;
+  margin-bottom: 7px;
+  display: flex; align-items: center; gap: 12px;
+}
+.gf-night-action .na-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(126,184,218,0.08);
+  border: 1px solid rgba(126,184,218,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #7eb8da; font-weight: 600;
+  flex-shrink: 0;
+}
+.gf-night-action .na-name { font-size: 15px; font-weight: 500; color: #e4e8f0; }
+.gf-night-action .na-confirm {
+  margin-top: auto; width: 100%;
+}
+
+/* --- Wolf Vote --- */
+.gf-wolf-vote {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-wolf-vote::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.45);
+  pointer-events: none;
+}
+.gf-wolf-vote .wv-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-wolf-vote .wv-phase {
+  font-size: 11px; color: rgba(126,184,218,0.5);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600; margin-bottom: 4px;
+}
+.gf-wolf-vote .wv-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; text-align: center; margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-wolf-vote .wv-instruction {
+  font-size: 14px; color: #8a94a8;
+  text-align: center; margin-bottom: 10px;
+}
+.gf-wolf-vote .wv-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: #7eb8da; text-align: center; margin-bottom: 18px;
+  text-shadow: 0 2px 16px rgba(126,184,218,0.3);
+}
+.gf-wolf-vote .wv-option {
+  background: rgba(10,14,22,0.84);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 13px 16px;
+  margin-bottom: 7px;
+  display: flex; align-items: center; gap: 12px;
+}
+.gf-wolf-vote .wv-option.selected {
+  border-color: #e85d5d;
+  background: rgba(232,93,93,0.06);
+}
+.gf-wolf-vote .wv-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(126,184,218,0.08);
+  border: 1px solid rgba(126,184,218,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #7eb8da; font-weight: 600;
+  flex-shrink: 0;
+}
+.gf-wolf-vote .wv-name { font-size: 15px; font-weight: 500; color: #e4e8f0; flex: 1; }
+.gf-wolf-vote .wv-votes { font-size: 14px; margin-left: auto; }
+
+/* --- Witch Action --- */
+.gf-witch {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-witch::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.45);
+  pointer-events: none;
+}
+.gf-witch .witch-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-witch .witch-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; text-align: center; margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-witch .witch-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: #7eb8da; text-align: center; margin-bottom: 16px;
+  text-shadow: 0 2px 16px rgba(126,184,218,0.3);
+}
+.gf-witch .victim-banner {
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232,93,93,0.25);
+  border-radius: 6px; padding: 16px;
+  text-align: center; margin-bottom: 14px;
+}
+.gf-witch .victim-icon { font-size: 22px; margin-bottom: 4px; }
+.gf-witch .victim-label {
+  font-size: 11px; color: rgba(232,93,93,0.7);
+  letter-spacing: 3px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 4px;
+}
+.gf-witch .victim-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700; color: #e85d5d;
+}
+.gf-witch .potions-row {
+  display: flex; gap: 10px; margin-bottom: 14px;
+}
+.gf-witch .potion-card {
+  flex: 1;
+  border-radius: 6px; padding: 14px 10px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  border: 1px solid;
+}
+.gf-witch .potion-card.life {
+  background: rgba(232,93,93,0.08);
+  border-color: rgba(232,93,93,0.3);
+}
+.gf-witch .potion-card.death {
+  background: rgba(93,217,166,0.08);
+  border-color: rgba(93,217,166,0.3);
+}
+.gf-witch .potion-emoji { font-size: 28px; }
+.gf-witch .potion-name {
+  font-size: 12px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: #e4e8f0;
+}
+.gf-witch .potion-btn {
+  font-size: 11px; font-weight: 600; font-family: 'Outfit', sans-serif;
+  padding: 7px 10px; border-radius: 6px; cursor: pointer;
+  text-align: center; width: 100%; border: 1px solid;
+}
+.gf-witch .potion-btn.life {
+  background: rgba(232,93,93,0.12);
+  border-color: rgba(232,93,93,0.35); color: #e85d5d;
+}
+.gf-witch .potion-btn.death {
+  background: rgba(93,217,166,0.12);
+  border-color: rgba(93,217,166,0.35); color: #5dd9a6;
+}
+.gf-witch .witch-skip {
+  margin-top: auto;
+}
+
+/* --- Little Girl --- */
+.gf-little-girl {
+  min-height: 100%;
+  background: url('assets/night-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-little-girl::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.55);
+  pointer-events: none;
+}
+.gf-little-girl .lg-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-little-girl .lg-phase {
+  font-size: 11px; color: rgba(126,184,218,0.5);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600; margin-bottom: 4px;
+}
+.gf-little-girl .lg-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #e4e8f0; text-align: center; margin-bottom: 8px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-little-girl .lg-instruction {
+  font-size: 14px; color: #8a94a8; font-style: italic;
+  text-align: center; margin-bottom: 10px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+.gf-little-girl .lg-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: #7eb8da; text-align: center; margin-bottom: 18px;
+  text-shadow: 0 2px 16px rgba(126,184,218,0.3);
+}
+.gf-little-girl .lg-wolves-card {
+  background: rgba(8,12,20,0.86);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px; padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.gf-little-girl .lg-wolves-card::before,
+.gf-little-girl .lg-wolves-card::after {
+  content: ''; position: absolute; width: 14px; height: 14px;
+}
+.gf-little-girl .lg-wolves-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid #7eb8da; border-left: 2px solid #7eb8da;
+}
+.gf-little-girl .lg-wolves-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #7eb8da; border-right: 2px solid #7eb8da;
+}
+.gf-little-girl .lg-wolf-row {
+  font-size: 15px; font-weight: 500; color: #e4e8f0;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(126,184,218,0.06);
+}
+.gf-little-girl .lg-wolf-row:last-child { border-bottom: none; }
+.gf-little-girl .lg-close { margin-top: auto; }
 </style>
 </head>
 <body>
@@ -1343,6 +1691,139 @@ body {
       </div>
     </div></div>
   </div>
+</div>
+
+<div class="separator"></div>
+
+<!-- ============ PHASES DE NUIT ============ -->
+<div class="section-header">
+  <h2>Phases de nuit</h2>
+  <p>Transition vers la nuit, attente des joueurs inactifs, actions de role et votes des loups.</p>
+</div>
+
+<div class="phones-grid">
+
+  <!-- 1. Night Transition -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Transition nuit</div>
+    <div class="phone-sublabel">Auto-avancement — pas de bouton</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-night-transition">
+        <div class="nt-card">
+          <div class="nt-title">La nuit tombe...</div>
+          <div class="nt-sub">Tout le monde ferme les yeux</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2. Night Wait -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Attente nuit</div>
+    <div class="phone-sublabel">Joueur inactif — fond uni</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-night-wait">
+        <div class="nw-title">La Voyante ouvre les yeux...</div>
+        <div class="nw-spinner"></div>
+        <div class="nw-waiting">En attente...</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3. Night Action — Voyante -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Action de nuit — Voyante</div>
+    <div class="phone-sublabel">night-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-night-action">
+        <div class="na-content">
+          <div class="na-phase">NUIT 2</div>
+          <div class="na-title">La Voyante</div>
+          <div class="na-instruction">Choisis un joueur a inspecter</div>
+          <div class="na-timer">0:15</div>
+          <div class="na-option"><div class="na-avatar">M</div><span class="na-name">Maxime</span></div>
+          <div class="na-option"><div class="na-avatar">T</div><span class="na-name">Thomas</span></div>
+          <div class="na-option"><div class="na-avatar">S</div><span class="na-name">Sarah</span></div>
+          <div class="na-option"><div class="na-avatar">E</div><span class="na-name">Emma</span></div>
+          <button class="gf-btn-primary na-confirm">Confirmer</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4. Wolf Vote -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Vote des loups</div>
+    <div class="phone-sublabel">night-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-wolf-vote">
+        <div class="wv-content">
+          <div class="wv-phase">NUIT 2</div>
+          <div class="wv-title">Les Loups-Garous</div>
+          <div class="wv-instruction">Choisissez votre victime</div>
+          <div class="wv-timer">0:15</div>
+          <div class="wv-option"><div class="wv-avatar">M</div><span class="wv-name">Maxime</span></div>
+          <div class="wv-option selected"><div class="wv-avatar">T</div><span class="wv-name">Thomas</span><span class="wv-votes">&#x1F43A;&#x1F43A;</span></div>
+          <div class="wv-option"><div class="wv-avatar">S</div><span class="wv-name">Sarah</span><span class="wv-votes">&#x1F43A;</span></div>
+          <div class="wv-option"><div class="wv-avatar">E</div><span class="wv-name">Emma</span></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5. Witch Action -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Action — Sorciere</div>
+    <div class="phone-sublabel">night-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-witch">
+        <div class="witch-content">
+          <div class="witch-title">La Sorciere</div>
+          <div class="witch-timer">0:25</div>
+          <div class="victim-banner">
+            <div class="victim-icon">&#x1F480;</div>
+            <div class="victim-label">Victime des loups</div>
+            <div class="victim-name">Thomas</div>
+          </div>
+          <div class="potions-row">
+            <div class="potion-card life">
+              <div class="potion-emoji">&#x1F9EA;</div>
+              <div class="potion-name">Vie</div>
+              <button class="potion-btn life">Sauver la cible</button>
+            </div>
+            <div class="potion-card death">
+              <div class="potion-emoji">&#x1F9EA;</div>
+              <div class="potion-name">Mort</div>
+              <button class="potion-btn death">Empoisonner</button>
+            </div>
+          </div>
+          <button class="gf-btn-ghost witch-skip">Ne rien faire</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 6. Little Girl -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Action — Petite Fille</div>
+    <div class="phone-sublabel">night-transition-background.png — overlay fort</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-little-girl">
+        <div class="lg-content">
+          <div class="lg-phase">NUIT 2</div>
+          <div class="lg-title">La Petite Fille</div>
+          <div class="lg-instruction">Tu apercois des silhouettes dans la nuit...</div>
+          <div class="lg-timer">0:15</div>
+          <div class="lg-wolves-card">
+            <div class="lg-wolf-row">&#x1F43A; Maxime</div>
+            <div class="lg-wolf-row">&#x1F43A; Lucas</div>
+          </div>
+          <button class="gf-btn-ghost lg-close">Fermer les yeux</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
 </div>
 
 <!-- Footer -->
