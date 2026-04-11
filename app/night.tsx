@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing, ScrollView, Modal } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import * as Haptics from "expo-haptics";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
 import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const ROLE_LABEL_STRINGS: Record<Role, string> = {
   werewolf: "Loup-Garou",
@@ -288,19 +283,6 @@ function useWitchPotionPulse(enabled: boolean) {
   return anim;
 }
 
-function useWitchTargetSlide(visible: boolean) {
-  const anim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible]);
-  return anim;
-}
-
 function WitchStep({
   state,
   dispatch,
@@ -335,39 +317,27 @@ function WitchStep({
 
   const lifePulse = useWitchPotionPulse(hasLifePotion && !!victim && !healUsed);
   const deathPulse = useWitchPotionPulse(hasDeathPotion && !killTarget);
-  const targetSlide = useWitchTargetSlide(showPoisonTargets && !killTarget);
 
   const handleHeal = (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     dispatch({ type: "SET_WITCH_HEAL", heal: value });
   };
 
   const handleSelectTarget = (playerId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     dispatch({ type: "SET_WITCH_KILL", playerId });
     setShowPoisonTargets(false);
   };
 
   const handleClearTarget = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     dispatch({ type: "SET_WITCH_KILL", playerId: null });
     setShowPoisonTargets(false);
   };
 
   const handleShowTargets = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowPoisonTargets(true);
   };
 
   const handleHideTargets = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowPoisonTargets(false);
-  };
-
-  const handleConfirm = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onNext();
   };
 
   // Build recap lines
@@ -415,7 +385,7 @@ function WitchStep({
               style={witchStyles.potionActionActive}
               onPress={() => handleHeal(false)}
             >
-              <Text style={witchStyles.potionActionActiveText}>Sauver {victim.name}</Text>
+              <Text style={witchStyles.potionActionActiveText}>Sauver</Text>
               <Text style={witchStyles.undoHint}>Appuyer pour annuler</Text>
             </Pressable>
           ) : (
@@ -423,7 +393,7 @@ function WitchStep({
               style={witchStyles.potionAction}
               onPress={() => handleHeal(true)}
             >
-              <Text style={witchStyles.potionActionText}>Sauver {victim.name}</Text>
+              <Text style={witchStyles.potionActionText}>Sauver</Text>
             </Pressable>
           )}
         </Animated.View>
@@ -461,58 +431,58 @@ function WitchStep({
         </Animated.View>
       </View>
 
-      {/* Poison target selection (animated) */}
-      {showPoisonTargets && !killTarget && (
-        <Animated.View style={[
-          witchStyles.targetSection,
-          {
-            opacity: targetSlide,
-            transform: [{ translateY: targetSlide.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-          },
-        ]}>
-          <Text style={witchStyles.targetTitle}>Qui empoisonner ?</Text>
-          <ScrollView style={witchStyles.targetList}>
-            {poisonTargets.map((item) => (
-              <Pressable
-                key={item.id}
-                style={witchStyles.targetRow}
-                onPress={() => handleSelectTarget(item.id)}
-              >
-                <Text style={witchStyles.targetName}>{item.name}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-          <Pressable
-            style={witchStyles.cancelTargetButton}
-            onPress={handleHideTargets}
-          >
-            <Text style={witchStyles.cancelTargetText}>Annuler</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-
       {/* Bottom actions */}
-      {!showPoisonTargets && (
-        <View style={witchStyles.bottomActions}>
-          {/* Recap */}
-          {recapParts.length > 0 && (
-            <View style={witchStyles.recapContainer}>
-              {recapParts.map((part, i) => (
-                <Text key={i} style={witchStyles.recapText}>{part}</Text>
+      <View style={witchStyles.bottomActions}>
+        {/* Recap */}
+        {recapParts.length > 0 && (
+          <View style={witchStyles.recapContainer}>
+            <Text style={witchStyles.recapLabel}>Vos actions cette nuit</Text>
+            {recapParts.map((part, i) => (
+              <Text key={i} style={witchStyles.recapText}>{part}</Text>
+            ))}
+          </View>
+        )}
+        {hasAction ? (
+          <Pressable style={witchStyles.confirmButton} onPress={onNext}>
+            <Text style={witchStyles.confirmButtonText}>Confirmer</Text>
+          </Pressable>
+        ) : (
+          <Pressable style={witchStyles.passButton} onPress={onNext}>
+            <Text style={witchStyles.passButtonText}>Ne rien faire</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Poison target modal */}
+      <Modal
+        visible={showPoisonTargets && !killTarget}
+        transparent
+        animationType="slide"
+        onRequestClose={handleHideTargets}
+      >
+        <View style={witchStyles.modalOverlay}>
+          <View style={witchStyles.modalContent}>
+            <Text style={witchStyles.targetTitle}>Qui empoisonner ?</Text>
+            <ScrollView style={witchStyles.targetList} showsVerticalScrollIndicator={false}>
+              {poisonTargets.map((item) => (
+                <Pressable
+                  key={item.id}
+                  style={witchStyles.targetRow}
+                  onPress={() => handleSelectTarget(item.id)}
+                >
+                  <Text style={witchStyles.targetName}>{item.name}</Text>
+                </Pressable>
               ))}
-            </View>
-          )}
-          {hasAction ? (
-            <Pressable style={witchStyles.confirmButton} onPress={handleConfirm}>
-              <Text style={witchStyles.confirmButtonText}>Confirmer</Text>
+            </ScrollView>
+            <Pressable
+              style={witchStyles.cancelTargetButton}
+              onPress={handleHideTargets}
+            >
+              <Text style={witchStyles.cancelTargetText}>Annuler</Text>
             </Pressable>
-          ) : (
-            <Pressable style={witchStyles.passButton} onPress={onNext}>
-              <Text style={witchStyles.passButtonText}>Ne rien faire</Text>
-            </Pressable>
-          )}
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -673,13 +643,22 @@ const witchStyles = StyleSheet.create({
     fontSize: 11,
     marginTop: 3,
   },
-  targetSection: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(233,69,96,0.2)",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 32,
+    maxHeight: "60%",
+    borderTopWidth: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: "rgba(233,69,96,0.3)",
   },
   targetTitle: {
     fontFamily: fonts.cinzelBold,
@@ -692,7 +671,6 @@ const witchStyles = StyleSheet.create({
     textShadowRadius: 8,
   },
   targetList: {
-    flex: 1,
     marginBottom: 12,
   },
   targetRow: {
@@ -732,6 +710,14 @@ const witchStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,160,23,0.25)",
     alignItems: "center",
+  },
+  recapLabel: {
+    color: "rgba(212,160,23,0.6)",
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    textAlign: "center",
+    marginBottom: 4,
   },
   recapText: {
     color: colors.primary,

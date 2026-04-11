@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, Pressable, ScrollView, StyleSheet, Animated, Easing, LayoutAnimation, Platform, UIManager } from "react-native";
-import * as Haptics from "expo-haptics";
+import { View, Text, Image, Pressable, ScrollView, Modal, StyleSheet, Animated, Easing } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import ActionTimer from "./ActionTimer";
 import type { NightActionRequiredPayload } from "../../types/online";
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 interface Props {
   action: NightActionRequiredPayload;
@@ -34,18 +29,6 @@ function usePotionPulse(enabled: boolean) {
   return anim;
 }
 
-function useTargetSlide(visible: boolean) {
-  const anim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible]);
-  return anim;
-}
 
 export default function WitchActionView({ action, onSubmit }: Props) {
   const [heal, setHeal] = useState(false);
@@ -64,10 +47,8 @@ export default function WitchActionView({ action, onSubmit }: Props) {
 
   const lifePulse = usePotionPulse(lifeAvailable && !!werewolfTarget && !heal);
   const deathPulse = usePotionPulse(deathAvailable && !killTargetId);
-  const targetSlide = useTargetSlide(showPoisonTargets && !killTargetId);
 
   const handleSubmit = (healOverride?: boolean, killOverride?: string | null) => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onSubmit("witch_action", {
       heal: healOverride !== undefined ? healOverride : heal,
       killTargetId: killOverride !== undefined ? killOverride : killTargetId,
@@ -79,30 +60,24 @@ export default function WitchActionView({ action, onSubmit }: Props) {
   };
 
   const handleHeal = (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setHeal(value);
   };
 
   const handleSelectTarget = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setKillTargetId(id);
     setShowPoisonTargets(false);
   };
 
   const handleClearTarget = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setKillTargetId(null);
     setShowPoisonTargets(false);
   };
 
   const handleShowTargets = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowPoisonTargets(true);
   };
 
   const handleHideTargets = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowPoisonTargets(false);
   };
 
@@ -152,7 +127,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
               style={styles.potionActionActive}
               onPress={() => handleHeal(false)}
             >
-              <Text style={styles.potionActionActiveText}>Sauver {werewolfTarget.name}</Text>
+              <Text style={styles.potionActionActiveText}>Sauver</Text>
               <Text style={styles.undoHint}>Appuyer pour annuler</Text>
             </Pressable>
           ) : (
@@ -160,7 +135,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
               style={styles.potionAction}
               onPress={() => handleHeal(true)}
             >
-              <Text style={styles.potionActionText}>Sauver {werewolfTarget.name}</Text>
+              <Text style={styles.potionActionText}>Sauver</Text>
             </Pressable>
           )}
         </Animated.View>
@@ -198,58 +173,58 @@ export default function WitchActionView({ action, onSubmit }: Props) {
         </Animated.View>
       </View>
 
-      {/* Poison target selection (animated) */}
-      {showPoisonTargets && !killTargetId && (
-        <Animated.View style={[
-          styles.targetSection,
-          {
-            opacity: targetSlide,
-            transform: [{ translateY: targetSlide.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-          },
-        ]}>
-          <Text style={styles.targetTitle}>Qui empoisonner ?</Text>
-          <ScrollView style={styles.targetList}>
-            {action.targets.map((item) => (
-              <Pressable
-                key={item.id}
-                style={styles.targetRow}
-                onPress={() => handleSelectTarget(item.id)}
-              >
-                <Text style={styles.targetName}>{item.name}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-          <Pressable
-            style={styles.cancelTargetButton}
-            onPress={handleHideTargets}
-          >
-            <Text style={styles.cancelTargetText}>Annuler</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-
       {/* Bottom actions */}
-      {!showPoisonTargets && (
-        <View style={styles.bottomActions}>
-          {/* Recap */}
-          {recapParts.length > 0 && (
-            <View style={styles.recapContainer}>
-              {recapParts.map((part, i) => (
-                <Text key={i} style={styles.recapText}>{part}</Text>
+      <View style={styles.bottomActions}>
+        {/* Recap */}
+        {recapParts.length > 0 && (
+          <View style={styles.recapContainer}>
+            <Text style={styles.recapLabel}>Vos actions cette nuit</Text>
+            {recapParts.map((part, i) => (
+              <Text key={i} style={styles.recapText}>{part}</Text>
+            ))}
+          </View>
+        )}
+        {hasAction ? (
+          <Pressable style={styles.confirmButton} onPress={() => handleSubmit()}>
+            <Text style={styles.confirmButtonText}>Confirmer</Text>
+          </Pressable>
+        ) : (
+          <Pressable style={styles.passButton} onPress={() => handleSubmit(false, null)}>
+            <Text style={styles.passButtonText}>Ne rien faire</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Poison target modal */}
+      <Modal
+        visible={showPoisonTargets && !killTargetId}
+        transparent
+        animationType="slide"
+        onRequestClose={handleHideTargets}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.targetTitle}>Qui empoisonner ?</Text>
+            <ScrollView style={styles.targetList} showsVerticalScrollIndicator={false}>
+              {action.targets.map((item) => (
+                <Pressable
+                  key={item.id}
+                  style={styles.targetRow}
+                  onPress={() => handleSelectTarget(item.id)}
+                >
+                  <Text style={styles.targetName}>{item.name}</Text>
+                </Pressable>
               ))}
-            </View>
-          )}
-          {hasAction ? (
-            <Pressable style={styles.confirmButton} onPress={() => handleSubmit()}>
-              <Text style={styles.confirmButtonText}>Confirmer</Text>
+            </ScrollView>
+            <Pressable
+              style={styles.cancelTargetButton}
+              onPress={handleHideTargets}
+            >
+              <Text style={styles.cancelTargetText}>Annuler</Text>
             </Pressable>
-          ) : (
-            <Pressable style={styles.passButton} onPress={() => handleSubmit(false, null)}>
-              <Text style={styles.passButtonText}>Ne rien faire</Text>
-            </Pressable>
-          )}
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -421,13 +396,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 3,
   },
-  targetSection: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(233,69,96,0.2)",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 32,
+    maxHeight: "60%",
+    borderTopWidth: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: "rgba(233,69,96,0.3)",
   },
   targetTitle: {
     fontFamily: fonts.cinzelBold,
@@ -440,7 +424,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   targetList: {
-    flex: 1,
     marginBottom: 12,
   },
   targetRow: {
@@ -480,6 +463,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(212,160,23,0.25)",
     alignItems: "center",
+  },
+  recapLabel: {
+    color: "rgba(212,160,23,0.6)",
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    textAlign: "center",
+    marginBottom: 4,
   },
   recapText: {
     color: colors.primary,
