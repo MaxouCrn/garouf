@@ -1,10 +1,16 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { radii, spacing } from "../theme/spacing";
 import { ROLE_REGISTRY, type Role } from "../game/roles";
 import { ROLE_CARDS } from "../theme/roleCards";
 import GRoleCard from "./GRoleCard";
+
+const COLUMNS = 3;
+const GRID_GAP = spacing.sm; // 8
+// Card width: (screen - 2*horizontal padding - (columns-1)*gap) / columns
+// Horizontal padding in lobby is spacing.lg (20) each side
+const CARD_WIDTH = (Dimensions.get("window").width - 2 * spacing.lg - (COLUMNS - 1) * GRID_GAP) / COLUMNS;
 
 const BACK_CARD = require("../assets/cards/back-card.png");
 
@@ -50,14 +56,15 @@ export default function GRoleCardGrid({ roleConfig, totalPlayers, onAdjust, onPr
           const def = ROLE_REGISTRY[role];
           const image = ROLE_CARDS[role] || BACK_CARD;
           return (
-            <GRoleCard
-              key={role}
-              image={image}
-              name={def.label}
-              count={roleConfig[role]}
-              onIncrement={() => onAdjust(role, 1)}
-              onDecrement={() => onAdjust(role, -1)}
-            />
+            <View key={role} style={{ width: CARD_WIDTH }}>
+              <GRoleCard
+                image={image}
+                name={def.label}
+                count={roleConfig[role]}
+                onIncrement={() => onAdjust(role, 1)}
+                onDecrement={() => onAdjust(role, -1)}
+              />
+            </View>
           );
         })}
       </View>
