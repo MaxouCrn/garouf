@@ -1,13 +1,50 @@
-import { useState } from "react";
-import { View, Text, Image, Pressable, ScrollView, StyleSheet } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { View, Text, Image, Pressable, ScrollView, StyleSheet, Animated, Easing, LayoutAnimation, Platform, UIManager } from "react-native";
+import * as Haptics from "expo-haptics";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import ActionTimer from "./ActionTimer";
 import type { NightActionRequiredPayload } from "../../types/online";
 
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 interface Props {
   action: NightActionRequiredPayload;
   onSubmit: (actionType: string, payload: Record<string, unknown>) => void;
+}
+
+function usePotionPulse(enabled: boolean) {
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!enabled) {
+      anim.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1.06, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [enabled]);
+  return anim;
+}
+
+function useTargetSlide(visible: boolean) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: visible ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [visible]);
+  return anim;
 }
 
 export default function WitchActionView({ action, onSubmit }: Props) {
@@ -25,7 +62,12 @@ export default function WitchActionView({ action, onSubmit }: Props) {
 
   const hasAction = heal || killTargetId;
 
+  const lifePulse = usePotionPulse(lifeAvailable && !!werewolfTarget && !heal);
+  const deathPulse = usePotionPulse(deathAvailable && !killTargetId);
+  const targetSlide = useTargetSlide(showPoisonTargets && !killTargetId);
+
   const handleSubmit = (healOverride?: boolean, killOverride?: string | null) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onSubmit("witch_action", {
       heal: healOverride !== undefined ? healOverride : heal,
       killTargetId: killOverride !== undefined ? killOverride : killTargetId,
@@ -35,6 +77,39 @@ export default function WitchActionView({ action, onSubmit }: Props) {
   const handleTimeout = () => {
     onSubmit("witch_action", { heal: false, killTargetId: null });
   };
+
+  const handleHeal = (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setHeal(value);
+  };
+
+  const handleSelectTarget = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setKillTargetId(id);
+    setShowPoisonTargets(false);
+  };
+
+  const handleClearTarget = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setKillTargetId(null);
+    setShowPoisonTargets(false);
+  };
+
+  const handleShowTargets = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowPoisonTargets(true);
+  };
+
+  const handleHideTargets = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowPoisonTargets(false);
+  };
+
+  // Build recap lines
+  const recapParts: string[] = [];
+  if (heal && werewolfTarget) recapParts.push(`Sauver ${werewolfTarget.name}`);
+  if (killTargetId && selectedVictimName) recapParts.push(`Empoisonner ${selectedVictimName}`);
 
   return (
     <View style={styles.container}>
@@ -57,24 +132,25 @@ export default function WitchActionView({ action, onSubmit }: Props) {
       {/* Potion cards */}
       <View style={styles.potionsRow}>
         {/* Life Potion Card */}
-        <View style={[
+        <Animated.View style={[
           styles.potionCard,
           styles.potionCardLife,
           !lifeAvailable && styles.potionCardDepleted,
+          lifeAvailable && { transform: [{ scale: lifePulse }] },
         ]}>
           <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
           <Text style={styles.potionTitle}>Vie</Text>
 
           {!lifeAvailable ? (
             <View style={styles.depletedBadge}>
-              <Text style={styles.depletedText}>Epuisee</Text>
+              <Text style={styles.depletedText}>🔒 Epuisee</Text>
             </View>
           ) : !werewolfTarget ? (
             <Text style={styles.potionHint}>Personne a sauver</Text>
           ) : heal ? (
             <Pressable
               style={styles.potionActionActive}
-              onPress={() => setHeal(false)}
+              onPress={() => handleHeal(false)}
             >
               <Text style={styles.potionActionActiveText}>Sauver {werewolfTarget.name}</Text>
               <Text style={styles.undoHint}>Appuyer pour annuler</Text>
@@ -82,33 +158,31 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           ) : (
             <Pressable
               style={styles.potionAction}
-              onPress={() => setHeal(true)}
+              onPress={() => handleHeal(true)}
             >
               <Text style={styles.potionActionText}>Sauver {werewolfTarget.name}</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
 
         {/* Death Potion Card */}
-        <View style={[
+        <Animated.View style={[
           styles.potionCard,
           styles.potionCardDeath,
           !deathAvailable && styles.potionCardDepleted,
+          deathAvailable && { transform: [{ scale: deathPulse }] },
         ]}>
           <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
           <Text style={styles.potionTitle}>Mort</Text>
 
           {!deathAvailable ? (
             <View style={styles.depletedBadge}>
-              <Text style={styles.depletedText}>Epuisee</Text>
+              <Text style={styles.depletedText}>🔒 Epuisee</Text>
             </View>
           ) : killTargetId ? (
             <Pressable
               style={styles.potionActionDanger}
-              onPress={() => {
-                setKillTargetId(null);
-                setShowPoisonTargets(false);
-              }}
+              onPress={handleClearTarget}
             >
               <Text style={styles.potionActionDangerText}>Tuer {selectedVictimName}</Text>
               <Text style={styles.undoHintDanger}>Appuyer pour annuler</Text>
@@ -116,27 +190,30 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           ) : (
             <Pressable
               style={styles.potionAction}
-              onPress={() => setShowPoisonTargets(true)}
+              onPress={handleShowTargets}
             >
-              <Text style={styles.potionActionText}>Choisir une cible</Text>
+              <Text style={styles.potionActionText}>Empoisonner</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
       </View>
 
-      {/* Poison target selection */}
+      {/* Poison target selection (animated) */}
       {showPoisonTargets && !killTargetId && (
-        <View style={styles.targetSection}>
+        <Animated.View style={[
+          styles.targetSection,
+          {
+            opacity: targetSlide,
+            transform: [{ translateY: targetSlide.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          },
+        ]}>
           <Text style={styles.targetTitle}>Qui empoisonner ?</Text>
           <ScrollView style={styles.targetList}>
             {action.targets.map((item) => (
               <Pressable
                 key={item.id}
                 style={styles.targetRow}
-                onPress={() => {
-                  setKillTargetId(item.id);
-                  setShowPoisonTargets(false);
-                }}
+                onPress={() => handleSelectTarget(item.id)}
               >
                 <Text style={styles.targetName}>{item.name}</Text>
               </Pressable>
@@ -144,16 +221,24 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           </ScrollView>
           <Pressable
             style={styles.cancelTargetButton}
-            onPress={() => setShowPoisonTargets(false)}
+            onPress={handleHideTargets}
           >
             <Text style={styles.cancelTargetText}>Annuler</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       )}
 
       {/* Bottom actions */}
       {!showPoisonTargets && (
         <View style={styles.bottomActions}>
+          {/* Recap */}
+          {recapParts.length > 0 && (
+            <View style={styles.recapContainer}>
+              {recapParts.map((part, i) => (
+                <Text key={i} style={styles.recapText}>{part}</Text>
+              ))}
+            </View>
+          )}
           {hasAction ? (
             <Pressable style={styles.confirmButton} onPress={() => handleSubmit()}>
               <Text style={styles.confirmButtonText}>Confirmer</Text>
@@ -281,6 +366,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.15)",
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionText: {
     color: colors.white,
@@ -297,6 +384,8 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionActiveText: {
     color: colors.success,
@@ -313,6 +402,8 @@ const styles = StyleSheet.create({
     borderColor: colors.danger,
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionDangerText: {
     color: colors.danger,
@@ -379,6 +470,22 @@ const styles = StyleSheet.create({
   },
   bottomActions: {
     paddingTop: 8,
+  },
+  recapContainer: {
+    backgroundColor: "rgba(212,160,23,0.1)",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "rgba(212,160,23,0.25)",
+    alignItems: "center",
+  },
+  recapText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
   confirmButton: {
     backgroundColor: colors.primary,

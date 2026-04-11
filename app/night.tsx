@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing, ScrollView } from "react-native";
+import { View, Text, Image, Pressable, FlatList, ImageBackground, StyleSheet, Animated, Easing, ScrollView, LayoutAnimation, Platform, UIManager } from "react-native";
 import { useRouter, Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useGame, Role } from "../context/GameContext";
 import { useNarrator } from "../hooks/useNarrator";
 import SafeContainer from "../components/SafeContainer";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { ROLE_CARDS, ROLE_LABELS } from "../theme/roleCards";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const ROLE_LABEL_STRINGS: Record<Role, string> = {
   werewolf: "Loup-Garou",
@@ -264,6 +269,38 @@ export default function NightScreen() {
   );
 }
 
+function useWitchPotionPulse(enabled: boolean) {
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!enabled) {
+      anim.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1.06, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [enabled]);
+  return anim;
+}
+
+function useWitchTargetSlide(visible: boolean) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: visible ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [visible]);
+  return anim;
+}
+
 function WitchStep({
   state,
   dispatch,
@@ -296,6 +333,48 @@ function WitchStep({
 
   const hasAction = healUsed || killTarget;
 
+  const lifePulse = useWitchPotionPulse(hasLifePotion && !!victim && !healUsed);
+  const deathPulse = useWitchPotionPulse(hasDeathPotion && !killTarget);
+  const targetSlide = useWitchTargetSlide(showPoisonTargets && !killTarget);
+
+  const handleHeal = (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    dispatch({ type: "SET_WITCH_HEAL", heal: value });
+  };
+
+  const handleSelectTarget = (playerId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    dispatch({ type: "SET_WITCH_KILL", playerId });
+    setShowPoisonTargets(false);
+  };
+
+  const handleClearTarget = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    dispatch({ type: "SET_WITCH_KILL", playerId: null });
+    setShowPoisonTargets(false);
+  };
+
+  const handleShowTargets = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowPoisonTargets(true);
+  };
+
+  const handleHideTargets = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowPoisonTargets(false);
+  };
+
+  const handleConfirm = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    onNext();
+  };
+
+  // Build recap lines
+  const recapParts: string[] = [];
+  if (healUsed && victim) recapParts.push(`Sauver ${victim.name}`);
+  if (killTarget && selectedVictimName) recapParts.push(`Empoisonner ${selectedVictimName}`);
+
   return (
     <View style={witchStyles.container}>
       <Text style={styles.stepTitle}>La Sorciere se reveille</Text>
@@ -316,24 +395,25 @@ function WitchStep({
       {/* Potion cards */}
       <View style={witchStyles.potionsRow}>
         {/* Life Potion Card */}
-        <View style={[
+        <Animated.View style={[
           witchStyles.potionCard,
           witchStyles.potionCardLife,
           !hasLifePotion && witchStyles.potionCardDepleted,
+          hasLifePotion && { transform: [{ scale: lifePulse }] },
         ]}>
           <Image source={require("../assets/health-potion.png")} style={witchStyles.potionImage} resizeMode="contain" />
           <Text style={witchStyles.potionTitle}>Vie</Text>
 
           {!hasLifePotion ? (
             <View style={witchStyles.depletedBadge}>
-              <Text style={witchStyles.depletedText}>Epuisee</Text>
+              <Text style={witchStyles.depletedText}>🔒 Epuisee</Text>
             </View>
           ) : !victim ? (
             <Text style={witchStyles.potionHint}>Personne a sauver</Text>
           ) : healUsed ? (
             <Pressable
               style={witchStyles.potionActionActive}
-              onPress={() => dispatch({ type: "SET_WITCH_HEAL", heal: false })}
+              onPress={() => handleHeal(false)}
             >
               <Text style={witchStyles.potionActionActiveText}>Sauver {victim.name}</Text>
               <Text style={witchStyles.undoHint}>Appuyer pour annuler</Text>
@@ -341,33 +421,31 @@ function WitchStep({
           ) : (
             <Pressable
               style={witchStyles.potionAction}
-              onPress={() => dispatch({ type: "SET_WITCH_HEAL", heal: true })}
+              onPress={() => handleHeal(true)}
             >
               <Text style={witchStyles.potionActionText}>Sauver {victim.name}</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
 
         {/* Death Potion Card */}
-        <View style={[
+        <Animated.View style={[
           witchStyles.potionCard,
           witchStyles.potionCardDeath,
           !hasDeathPotion && witchStyles.potionCardDepleted,
+          hasDeathPotion && { transform: [{ scale: deathPulse }] },
         ]}>
           <Image source={require("../assets/poison-potion.png")} style={witchStyles.potionImage} resizeMode="contain" />
           <Text style={witchStyles.potionTitle}>Mort</Text>
 
           {!hasDeathPotion ? (
             <View style={witchStyles.depletedBadge}>
-              <Text style={witchStyles.depletedText}>Epuisee</Text>
+              <Text style={witchStyles.depletedText}>🔒 Epuisee</Text>
             </View>
           ) : killTarget ? (
             <Pressable
               style={witchStyles.potionActionDanger}
-              onPress={() => {
-                dispatch({ type: "SET_WITCH_KILL", playerId: null });
-                setShowPoisonTargets(false);
-              }}
+              onPress={handleClearTarget}
             >
               <Text style={witchStyles.potionActionDangerText}>Tuer {selectedVictimName}</Text>
               <Text style={witchStyles.undoHintDanger}>Appuyer pour annuler</Text>
@@ -375,27 +453,30 @@ function WitchStep({
           ) : (
             <Pressable
               style={witchStyles.potionAction}
-              onPress={() => setShowPoisonTargets(true)}
+              onPress={handleShowTargets}
             >
-              <Text style={witchStyles.potionActionText}>Choisir une cible</Text>
+              <Text style={witchStyles.potionActionText}>Empoisonner</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
       </View>
 
-      {/* Poison target selection (overlay-style) */}
+      {/* Poison target selection (animated) */}
       {showPoisonTargets && !killTarget && (
-        <View style={witchStyles.targetSection}>
+        <Animated.View style={[
+          witchStyles.targetSection,
+          {
+            opacity: targetSlide,
+            transform: [{ translateY: targetSlide.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          },
+        ]}>
           <Text style={witchStyles.targetTitle}>Qui empoisonner ?</Text>
           <ScrollView style={witchStyles.targetList}>
             {poisonTargets.map((item) => (
               <Pressable
                 key={item.id}
                 style={witchStyles.targetRow}
-                onPress={() => {
-                  dispatch({ type: "SET_WITCH_KILL", playerId: item.id });
-                  setShowPoisonTargets(false);
-                }}
+                onPress={() => handleSelectTarget(item.id)}
               >
                 <Text style={witchStyles.targetName}>{item.name}</Text>
               </Pressable>
@@ -403,18 +484,26 @@ function WitchStep({
           </ScrollView>
           <Pressable
             style={witchStyles.cancelTargetButton}
-            onPress={() => setShowPoisonTargets(false)}
+            onPress={handleHideTargets}
           >
             <Text style={witchStyles.cancelTargetText}>Annuler</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       )}
 
       {/* Bottom actions */}
       {!showPoisonTargets && (
         <View style={witchStyles.bottomActions}>
+          {/* Recap */}
+          {recapParts.length > 0 && (
+            <View style={witchStyles.recapContainer}>
+              {recapParts.map((part, i) => (
+                <Text key={i} style={witchStyles.recapText}>{part}</Text>
+              ))}
+            </View>
+          )}
           {hasAction ? (
-            <Pressable style={witchStyles.confirmButton} onPress={onNext}>
+            <Pressable style={witchStyles.confirmButton} onPress={handleConfirm}>
               <Text style={witchStyles.confirmButtonText}>Confirmer</Text>
             </Pressable>
           ) : (
@@ -529,6 +618,8 @@ const witchStyles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.15)",
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionText: {
     color: colors.white,
@@ -545,6 +636,8 @@ const witchStyles = StyleSheet.create({
     borderColor: colors.success,
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionActiveText: {
     color: colors.success,
@@ -561,6 +654,8 @@ const witchStyles = StyleSheet.create({
     borderColor: colors.danger,
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
   },
   potionActionDangerText: {
     color: colors.danger,
@@ -627,6 +722,22 @@ const witchStyles = StyleSheet.create({
   },
   bottomActions: {
     paddingTop: 8,
+  },
+  recapContainer: {
+    backgroundColor: "rgba(212,160,23,0.1)",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "rgba(212,160,23,0.25)",
+    alignItems: "center",
+  },
+  recapText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
   confirmButton: {
     backgroundColor: colors.primary,
