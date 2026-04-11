@@ -1,10 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Alert,
+  Animated,
+  Easing,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import QRCode from "react-native-qrcode-svg";
@@ -19,6 +21,36 @@ import type { LobbyPlayer, LobbyUpdatePayload } from "../../types/online";
 import GButton from "../../components/GButton";
 import GPlayerRow from "../../components/GPlayerRow";
 import GRoleCardGrid from "../../components/GRoleCardGrid";
+
+function WaitingSpinner() {
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return (
+    <View style={styles.waitingBox}>
+      <Animated.View style={[styles.spinner, { transform: [{ rotate }] }]} />
+      <Text style={styles.waitingText}>En attente du lancement...</Text>
+      <Text style={styles.waitingHint}>L'hote configure la partie</Text>
+    </View>
+  );
+}
 
 export default function LobbyScreen() {
   const router = useRouter();
@@ -226,13 +258,7 @@ export default function LobbyScreen() {
       )}
 
       {/* Non-host waiting state */}
-      {!isHost && (
-        <View style={styles.waitingBox}>
-          <View style={styles.spinner} />
-          <Text style={styles.waitingText}>En attente du lancement...</Text>
-          <Text style={styles.waitingHint}>L'hote configure la partie</Text>
-        </View>
-      )}
+      {!isHost && <WaitingSpinner />}
 
       {/* Actions */}
       <View style={styles.actions}>
