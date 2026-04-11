@@ -1,14 +1,16 @@
 import { useEffect } from "react";
-import { Text, Image, ImageBackground, Pressable, ScrollView, StyleSheet } from "react-native";
+import { Text, Image, ImageBackground, View, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGame } from "../context/GameContext";
 import { useMusicContext } from "../context/MusicContext";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
 import FogEffect from "../components/FogEffect";
 import MuteButton from "../components/MuteButton";
+import GButton from "../components/GButton";
 
-const LOGO_SIZE = 350;
+const LOGO_SIZE = 300;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -33,41 +35,49 @@ export default function HomeScreen() {
     >
       <MuteButton />
       <FogEffect />
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <Image
           source={require("../assets/logo-app.png")}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.subtitle}>Le jeu de la pause du midi</Text>
-        <Pressable style={styles.button} onPress={handleNewGame}>
-          <Text style={styles.buttonText}>Nouvelle partie</Text>
-        </Pressable>
-        <Pressable style={styles.outlineButton} onPress={() => router.push("/grimoire")}>
-          <Text style={styles.outlineButtonText}>Grimoire des Rôles</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.outlineButton, { marginTop: 32 }]}
-          onPress={() => router.push("/online/create")}
-        >
-          <Text style={styles.outlineButtonText}>Creer une partie en ligne</Text>
-        </Pressable>
-        <Pressable
-          style={styles.outlineButton}
-          onPress={() => router.push("/online/join")}
-        >
-          <Text style={styles.outlineButtonText}>Rejoindre une partie</Text>
-        </Pressable>
-        {__DEV__ && (
-          <Pressable
-            style={[styles.outlineButton, { marginTop: 32, borderColor: colors.danger }]}
-            onPress={() => router.push("/dev")}
+        <Text style={styles.tagline}>Le jeu de la pause du midi</Text>
+        <View style={styles.divider} />
+        <View style={styles.btnGroup}>
+          <GButton variant="primary" onPress={handleNewGame}>
+            Nouvelle partie
+          </GButton>
+          <GButton variant="outline" onPress={() => router.push("/grimoire")}>
+            Grimoire des Roles
+          </GButton>
+          <GButton
+            variant="outline"
+            onPress={() => router.push("/online/create")}
           >
-            <Text style={[styles.outlineButtonText, { color: colors.danger }]}>
+            Creer une partie en ligne
+          </GButton>
+          <GButton
+            variant="outline"
+            onPress={() => router.push("/online/join")}
+          >
+            Rejoindre une partie
+          </GButton>
+          {__DEV__ && (
+            <GButton
+              variant="danger"
+              onPress={() => router.push("/dev")}
+              style={{ marginTop: 16 }}
+            >
               Dev Tools
-            </Text>
-          </Pressable>
-        )}
+            </GButton>
+          )}
+        </View>
       </ScrollView>
     </ImageBackground>
   );
@@ -85,34 +95,24 @@ const styles = StyleSheet.create({
     width: LOGO_SIZE,
     height: LOGO_SIZE,
   },
-  subtitle: {
-    fontSize: 18,
+  tagline: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 15,
     color: colors.textSecondary,
-    marginBottom: 48,
-    marginTop: 48,
+    marginTop: 12,
+    letterSpacing: 2,
+    textShadowColor: "rgba(0,0,0,0.9)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
   },
-  button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
+  divider: {
+    width: 50,
+    height: 1,
+    backgroundColor: colors.accentDim,
+    marginVertical: 20,
   },
-  buttonText: {
-    color: colors.black,
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  outlineButton: {
-    borderWidth: 1,
-    borderColor: colors.primary,
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  outlineButtonText: {
-    color: colors.primary,
-    fontSize: 18,
-    fontWeight: "bold",
+  btnGroup: {
+    width: 260,
+    gap: 10,
   },
 });

@@ -110,8 +110,8 @@ export default function FogEffect() {
 const styles = StyleSheet.create({
   particle: {
     position: "absolute",
-    backgroundColor: "#D4A017",
-    shadowColor: "#D4A017",
+    backgroundColor: "#7eb8da",
+    shadowColor: "#7eb8da",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
