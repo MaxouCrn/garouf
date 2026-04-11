@@ -56,15 +56,15 @@ export default function GRoleCardGrid({ roleConfig, totalPlayers, onAdjust, onPr
           const def = ROLE_REGISTRY[role];
           const image = ROLE_CARDS[role] || BACK_CARD;
           return (
-            <View key={role} style={{ width: CARD_WIDTH }}>
-              <GRoleCard
-                image={image}
-                name={def.label}
-                count={roleConfig[role]}
-                onIncrement={() => onAdjust(role, 1)}
-                onDecrement={() => onAdjust(role, -1)}
-              />
-            </View>
+            <GRoleCard
+              key={role}
+              image={image}
+              name={def.label}
+              count={roleConfig[role]}
+              cardWidth={CARD_WIDTH}
+              onIncrement={() => onAdjust(role, 1)}
+              onDecrement={() => onAdjust(role, -1)}
+            />
           );
         })}
       </View>

@@ -7,16 +7,19 @@ interface GRoleCardProps {
   image: ImageSourcePropType;
   name: string;
   count: number;
+  cardWidth: number;
   onIncrement: () => void;
   onDecrement: () => void;
 }
 
-export default function GRoleCard({ image, name, count, onIncrement, onDecrement }: GRoleCardProps) {
+export default function GRoleCard({ image, name, count, cardWidth, onIncrement, onDecrement }: GRoleCardProps) {
   const active = count > 0;
+  const imageWidth = cardWidth - 12; // card padding (6px each side)
+  const imageHeight = imageWidth * 1.5; // 2:3 ratio
 
   return (
-    <View style={[styles.card, active && styles.cardActive]}>
-      <Image source={image} style={styles.image} resizeMode="cover" />
+    <View style={[styles.card, { width: cardWidth }, active && styles.cardActive]}>
+      <Image source={image} style={{ width: imageWidth, height: imageHeight, borderRadius: radii.sm, marginBottom: spacing.sm }} resizeMode="cover" />
       <Text style={styles.name} numberOfLines={2}>{name}</Text>
       <View style={styles.counter}>
         <Pressable style={styles.counterBtn} onPress={onDecrement}>
@@ -35,7 +38,6 @@ export default function GRoleCard({ image, name, count, onIncrement, onDecrement
 
 const styles = StyleSheet.create({
   card: {
-    width: "100%",
     alignItems: "center",
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -46,12 +48,6 @@ const styles = StyleSheet.create({
   },
   cardActive: {
     borderColor: colors.accent,
-  },
-  image: {
-    width: "100%",
-    aspectRatio: 2 / 3,
-    borderRadius: radii.sm,
-    marginBottom: spacing.sm,
   },
   name: {
     fontFamily: fonts.bodySemiBold,
