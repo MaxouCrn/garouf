@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ImageBackground,
 } from "react-native";
+import { Audio, AVPlaybackSource } from "expo-av";
+import { useMusicContext } from "../context/MusicContext";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { radii, spacing } from "../theme/spacing";
@@ -102,6 +104,8 @@ interface PreviewEntry {
   label: string;
   section: string;
   render: () => React.ReactNode;
+  audio?: AVPlaybackSource;
+  sfx?: AVPlaybackSource;
 }
 
 const PREVIEWS: PreviewEntry[] = [
@@ -141,6 +145,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Transition nuit",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/nightfall_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -149,12 +154,12 @@ const PREVIEWS: PreviewEntry[] = [
       >
         <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.6)" }} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
-          <GCardFrame variant="glass" corners>
+          <GCardFrame variant="glass" corners style={{ alignSelf: 'stretch' }}>
             <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 12 }}>
-              <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center", marginBottom: 10 }}>
-                La nuit tombe...
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 36, color: colors.text, textAlign: "center", marginBottom: 10 }}>
+                La nuit tombe
               </Text>
-              <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 14, color: colors.textSecondary, textAlign: "center" }}>
+              <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 20, color: colors.textSecondary, textAlign: "center" }}>
                 Tout le monde ferme les yeux
               </Text>
             </View>
@@ -166,6 +171,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Transition jour",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/morning_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/sun-transition-background.png")}
@@ -174,10 +180,13 @@ const PREVIEWS: PreviewEntry[] = [
       >
         <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.5)" }} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
-          <GCardFrame variant="glass" corners>
+          <GCardFrame variant="glass" corners style={{ alignSelf: 'stretch' }}>
             <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 12 }}>
-              <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center" }}>
-                Le soleil se leve...
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 36, color: colors.text, textAlign: "center" }}>
+                Le soleil se leve
+              </Text>
+              <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 20, color: colors.textSecondary, textAlign: "center", marginTop: 10 }}>
+                Tout le monde ouvre les yeux
               </Text>
             </View>
           </GCardFrame>
@@ -188,6 +197,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Attente",
     section: "Nuit",
+    audio: require("../assets/sounds/ambiance_music.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -203,6 +213,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Voyante",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/voyante_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -218,6 +229,8 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Loups-Garous",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/loup_garou_phase.mp3"),
+    sfx: require("../assets/sounds/werewolf.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -237,6 +250,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Sorcière",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/sorcer_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -252,6 +266,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Sorcière (potions utilisées)",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/sorcer_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -267,6 +282,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Petite Fille",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/little_girl_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -287,6 +303,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Salvateur",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/savior_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -302,6 +319,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Corbeau",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/raven_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -317,6 +335,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Nuit: Cupidon",
     section: "Nuit",
+    audio: require("../assets/sounds/narrator/night/cupidon_phase.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/night-transition-background.png")}
@@ -334,6 +353,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Jour: Annonce des morts",
     section: "Jour",
+    audio: require("../assets/sounds/narrator/day/death/annonce-death-1.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/sun-transition-background.png")}
@@ -388,6 +408,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Jour: Débat",
     section: "Jour",
+    audio: require("../assets/sounds/debat-music.mp3"),
     render: () => (
       <ImageBackground
         source={require("../assets/debat-background.png")}
@@ -429,6 +450,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Chasseur",
     section: "Special",
+    audio: require("../assets/sounds/bruitages/gunfire-chasseur.mp3"),
     render: () => (
       <HunterView
         isHunter={true}
@@ -491,6 +513,60 @@ const PREVIEWS: PreviewEntry[] = [
 
 export default function DevScreen() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const sfxRef = useRef<Audio.Sound | null>(null);
+  const { stopMusic, startMusic } = useMusicContext();
+
+  const stopAudio = useCallback(async () => {
+    if (soundRef.current) {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+    if (sfxRef.current) {
+      await sfxRef.current.stopAsync();
+      await sfxRef.current.unloadAsync();
+      sfxRef.current = null;
+    }
+    setIsPlaying(false);
+  }, []);
+
+  const toggleAudio = useCallback(async (source: AVPlaybackSource, sfxSource?: AVPlaybackSource) => {
+    if (isPlaying) {
+      await stopAudio();
+      return;
+    }
+    const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: true });
+    soundRef.current = sound;
+    setIsPlaying(true);
+
+    if (sfxSource) {
+      try {
+        const { sound: sfx } = await Audio.Sound.createAsync(sfxSource, { shouldPlay: true, volume: 0.25 });
+        sfxRef.current = sfx;
+      } catch {
+        // SFX failure is non-critical
+      }
+    }
+
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        stopAudio();
+      }
+    });
+  }, [isPlaying, stopAudio]);
+
+  const handleOpenPreview = useCallback((index: number) => {
+    stopMusic();
+    setActiveIndex(index);
+  }, [stopMusic]);
+
+  const handleBack = useCallback(async () => {
+    await stopAudio();
+    startMusic();
+    setActiveIndex(null);
+  }, [stopAudio, startMusic]);
 
   // Full-screen preview mode
   if (activeIndex !== null) {
@@ -500,10 +576,18 @@ export default function DevScreen() {
         {preview.render()}
         <Pressable
           style={styles.backButton}
-          onPress={() => setActiveIndex(null)}
+          onPress={handleBack}
         >
           <Text style={styles.backText}>← Retour</Text>
         </Pressable>
+        {preview.audio && (
+          <Pressable
+            style={[styles.audioButton, isPlaying && styles.audioButtonActive]}
+            onPress={() => toggleAudio(preview.audio!, preview.sfx)}
+          >
+            <Text style={styles.audioButtonText}>{isPlaying ? "⏹ Stop" : "▶ Audio Narrateur"}</Text>
+          </Pressable>
+        )}
         <Text style={styles.previewLabel}>{preview.label}</Text>
       </View>
     );
@@ -534,7 +618,7 @@ export default function DevScreen() {
               <Pressable
                 key={index}
                 style={styles.presetButton}
-                onPress={() => setActiveIndex(index)}
+                onPress={() => handleOpenPreview(index)}
               >
                 <Text style={styles.presetText}>{label}</Text>
               </Pressable>
@@ -612,6 +696,27 @@ const styles = StyleSheet.create({
   backText: {
     color: colors.white,
     fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: fonts.bodySemiBold,
+  },
+  audioButton: {
+    position: "absolute",
+    top: 50,
+    left: 110,
+    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radii.base,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  audioButtonActive: {
+    backgroundColor: "rgba(126,184,218,0.25)",
+  },
+  audioButtonText: {
+    color: colors.accent,
+    fontSize: 14,
     fontWeight: "bold",
     fontFamily: fonts.bodySemiBold,
   },

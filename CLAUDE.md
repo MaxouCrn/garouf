@@ -58,6 +58,7 @@ Dark theme colors in `theme/colors.ts`. All screens use `StyleSheet` from React 
 
 - **When creating a new view component in `components/online/`**, add a corresponding preview entry in the `PREVIEWS` array in `app/dev.tsx` with realistic mock props.
 - **When modifying a view component's props interface**, update its mock props in `app/dev.tsx` to match.
+- **When adding or modifying narrator audio or SFX**, update the corresponding preview entry in `app/dev.tsx` with the `audio` field (and `sfx` if applicable) so sounds can be tested from the DevTool.
 
 ## Commit Rules
 

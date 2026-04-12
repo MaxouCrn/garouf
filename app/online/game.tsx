@@ -203,16 +203,16 @@ export default function OnlineGameScreen() {
       </View>
     );
 
-    // ── Intro phase: "La nuit tombe..." (auto-advance after 4s) ──
+    // ── Intro phase: "La nuit tombe" (auto-advance after 4s) ──
     if (state.nightStep === "intro") {
       return (
         <View style={styles.container}>
           {nightBg}
           <SafeContainer>
             <View style={styles.centered}>
-              <GCardFrame variant="glass" corners>
+              <GCardFrame variant="glass" corners style={{ alignSelf: 'stretch' }}>
                 <View style={styles.transitionCard}>
-                  <Text style={styles.nightTitle}>La nuit tombe...</Text>
+                  <Text style={styles.nightTitle}>La nuit tombe</Text>
                   <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
                 </View>
               </GCardFrame>
@@ -229,9 +229,10 @@ export default function OnlineGameScreen() {
           {nightBg}
           <SafeContainer>
             <View style={styles.centered}>
-              <GCardFrame variant="glass" corners>
+              <GCardFrame variant="glass" corners style={{ alignSelf: 'stretch' }}>
                 <View style={styles.transitionCard}>
-                  <Text style={styles.nightTitle}>Le soleil se leve...</Text>
+                  <Text style={styles.nightTitle}>Le soleil se leve</Text>
+                  <Text style={styles.nightSubtitle}>Tout le monde ouvre les yeux</Text>
                 </View>
               </GCardFrame>
             </View>
@@ -374,8 +375,8 @@ const styles = StyleSheet.create({
   nightTitle: {
     fontFamily: fonts.displayBold,
     color: colors.white,
-    fontSize: 26,
-    marginBottom: 8,
+    fontSize: 36,
+    marginBottom: 10,
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 2 },
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
   nightSubtitle: {
     fontFamily: fonts.bodyRegular,
     color: colors.textSecondary,
-    fontSize: 16,
+    fontSize: 20,
     marginBottom: 48,
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 1 },
