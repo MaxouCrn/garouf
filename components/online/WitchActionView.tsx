@@ -306,7 +306,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   potionCardInner: {
-    height: "100%",
   },
   potionContent: {
     alignItems: "center",
@@ -371,7 +370,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 56,
+    minHeight: 70,
   },
   potionActionText: {
     fontFamily: fonts.bodySemiBold,
@@ -393,7 +392,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 56,
+    minHeight: 70,
   },
   potionActionLifeText: {
     fontFamily: fonts.bodySemiBold,
@@ -415,7 +414,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 56,
+    minHeight: 70,
   },
   potionActionPoisonText: {
     fontFamily: fonts.bodySemiBold,
