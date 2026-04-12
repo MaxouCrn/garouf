@@ -12,25 +12,90 @@ interface Props {
   onSubmit: (actionType: string, payload: Record<string, unknown>) => void;
 }
 
-function usePotionPulse(enabled: boolean) {
-  const anim = useRef(new Animated.Value(1)).current;
+const PARTICLE_COUNT = 6;
+
+function PotionParticles({ active, color }: { active: boolean; color: string }) {
+  const anims = useRef(
+    Array.from({ length: PARTICLE_COUNT }, () => ({
+      opacity: new Animated.Value(0),
+      translateY: new Animated.Value(0),
+      translateX: new Animated.Value(0),
+    }))
+  ).current;
+
   useEffect(() => {
-    if (!enabled) {
-      anim.setValue(1);
+    if (!active) {
+      anims.forEach((a) => {
+        a.opacity.setValue(0);
+        a.translateY.setValue(0);
+        a.translateX.setValue(0);
+      });
       return;
     }
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(anim, { toValue: 1.06, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [enabled]);
-  return anim;
+
+    const animations = anims.map((a, i) => {
+      const delay = i * 400;
+      const xDrift = (Math.random() - 0.5) * 30;
+      const rise = -80 - Math.random() * 40;
+      return Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            Animated.sequence([
+              Animated.timing(a.opacity, { toValue: 0.9, duration: 600, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+              Animated.timing(a.opacity, { toValue: 0, duration: 1200, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+            ]),
+            Animated.timing(a.translateY, { toValue: rise, duration: 2200, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.timing(a.translateX, { toValue: xDrift, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          ]),
+          Animated.parallel([
+            Animated.timing(a.translateY, { toValue: 0, duration: 0, useNativeDriver: true }),
+            Animated.timing(a.translateX, { toValue: 0, duration: 0, useNativeDriver: true }),
+          ]),
+        ])
+      );
+    });
+
+    const composite = Animated.parallel(animations);
+    composite.start();
+    return () => composite.stop();
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <View style={particleStyles.container} pointerEvents="none">
+      {anims.map((a, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            particleStyles.dot,
+            { backgroundColor: color },
+            {
+              left: `${15 + (i * 70) / PARTICLE_COUNT}%` as unknown as number,
+              bottom: 10,
+              opacity: a.opacity,
+              transform: [{ translateY: a.translateY }, { translateX: a.translateX }],
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
 }
 
+const particleStyles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "visible",
+  },
+  dot: {
+    position: "absolute",
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+  },
+});
 
 export default function WitchActionView({ action, onSubmit }: Props) {
   const [heal, setHeal] = useState(false);
@@ -46,9 +111,6 @@ export default function WitchActionView({ action, onSubmit }: Props) {
     : null;
 
   const hasAction = heal || killTargetId;
-
-  const lifePulse = usePotionPulse(lifeAvailable && !!werewolfTarget);
-  const deathPulse = usePotionPulse(deathAvailable);
 
   const handleSubmit = (healOverride?: boolean, killOverride?: string | null) => {
     onSubmit("witch_action", {
@@ -109,10 +171,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
       {/* Potion status cards */}
       <View style={styles.potionsRow}>
         {/* Life Potion Card */}
-        <Animated.View style={[
-          styles.potionAnimWrapper,
-          lifeAvailable && { transform: [{ scale: lifePulse }] },
-        ]}>
+        <View style={styles.potionAnimWrapper}>
           <GCardFrame
             variant="glass"
             corners
@@ -124,25 +183,28 @@ export default function WitchActionView({ action, onSubmit }: Props) {
               heal && styles.potionCardLifeActive,
             ]}
           >
+            <PotionParticles active={heal} color={colors.danger} />
             <View style={styles.potionContent}>
-              <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
-              <Text style={styles.potionTitle}>Vie</Text>
-              {lifeAvailable ? (
-                <View style={styles.availableDot} />
-              ) : (
+              <Image
+                source={lifeAvailable
+                  ? require("../../assets/health-potion.png")
+                  : require("../../assets/broken-healt-potion.png")
+                }
+                style={[styles.potionImage, !lifeAvailable && styles.potionImageDepleted]}
+                resizeMode="contain"
+              />
+              <Text style={styles.potionTitle}>Potion de vie</Text>
+              {!lifeAvailable && (
                 <View style={styles.depletedBadge}>
-                  <Text style={styles.depletedText}>Epuisee</Text>
+                  <Text style={styles.depletedText}>Épuisée</Text>
                 </View>
               )}
             </View>
           </GCardFrame>
-        </Animated.View>
+        </View>
 
         {/* Death Potion Card */}
-        <Animated.View style={[
-          styles.potionAnimWrapper,
-          deathAvailable && { transform: [{ scale: deathPulse }] },
-        ]}>
+        <View style={styles.potionAnimWrapper}>
           <GCardFrame
             variant="glass"
             corners
@@ -154,19 +216,25 @@ export default function WitchActionView({ action, onSubmit }: Props) {
               !!killTargetId && styles.potionCardDeathActive,
             ]}
           >
+            <PotionParticles active={!!killTargetId} color={colors.success} />
             <View style={styles.potionContent}>
-              <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
-              <Text style={styles.potionTitle}>Mort</Text>
-              {deathAvailable ? (
-                <View style={styles.availableDot} />
-              ) : (
+              <Image
+                source={deathAvailable
+                  ? require("../../assets/poison-potion.png")
+                  : require("../../assets/broken-poison-potion.png")
+                }
+                style={[styles.potionImage, !deathAvailable && styles.potionImageDepleted]}
+                resizeMode="contain"
+              />
+              <Text style={styles.potionTitle}>Potion de mort</Text>
+              {!deathAvailable && (
                 <View style={styles.depletedBadge}>
-                  <Text style={styles.depletedText}>Epuisee</Text>
+                  <Text style={styles.depletedText}>Épuisée</Text>
                 </View>
               )}
             </View>
           </GCardFrame>
-        </Animated.View>
+        </View>
       </View>
 
       {/* Action buttons */}
@@ -233,7 +301,9 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           <View style={styles.modalContent}>
             <Text style={styles.targetTitle}>Qui empoisonner ?</Text>
             <ScrollView style={styles.targetList} showsVerticalScrollIndicator={false}>
-              {action.targets.map((item) => (
+              {action.targets
+                .filter((item) => !werewolfTarget || item.id !== werewolfTarget.id)
+                .map((item) => (
                 <Pressable
                   key={item.id}
                   style={styles.targetRow}
@@ -320,11 +390,6 @@ const styles = StyleSheet.create({
   },
   potionCardLifeActive: {
     borderColor: colors.danger,
-    shadowColor: colors.danger,
-    shadowRadius: 10,
-    shadowOpacity: 0.5,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 8,
   },
   potionCardDeath: {
     backgroundColor: "rgba(30,70,30,0.45)",
@@ -332,14 +397,9 @@ const styles = StyleSheet.create({
   },
   potionCardDeathActive: {
     borderColor: colors.success,
-    shadowColor: colors.success,
-    shadowRadius: 10,
-    shadowOpacity: 0.5,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 8,
   },
   potionCardDepleted: {
-    opacity: 0.4,
+    opacity: 1,
     backgroundColor: "rgba(30,30,50,0.5)",
     borderColor: "rgba(100,100,100,0.2)",
   },
@@ -347,6 +407,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 80,
     marginBottom: 6,
+  },
+  potionImageDepleted: {
+    opacity: 1,
   },
   potionTitle: {
     fontFamily: fonts.displayBold,
@@ -356,12 +419,6 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0,0,0,0.9)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
-  },
-  availableDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.success,
   },
   depletedBadge: {
     backgroundColor: "rgba(100,100,100,0.4)",
@@ -405,7 +462,7 @@ const styles = StyleSheet.create({
     borderColor: colors.danger,
   },
   actionBtnLifeActiveText: {
-    color: colors.danger,
+    color: colors.white,
     fontWeight: "bold",
   },
   actionBtnDeathActive: {
@@ -414,17 +471,17 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
   },
   actionBtnDeathActiveText: {
-    color: colors.success,
+    color: colors.white,
     fontWeight: "bold",
   },
   undoHintLife: {
-    color: "rgba(233,69,96,0.7)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 11,
     marginTop: 3,
     textAlign: "center",
   },
   undoHintPoison: {
-    color: "rgba(78,204,163,0.7)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 11,
     marginTop: 3,
     textAlign: "center",
@@ -490,7 +547,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   recapContainer: {
-    backgroundColor: "rgba(126,184,218,0.06)",
+    backgroundColor: colors.glass,
     borderRadius: radii.base,
     paddingVertical: 8,
     paddingHorizontal: 14,

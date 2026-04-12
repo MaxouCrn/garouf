@@ -24,8 +24,8 @@ function CornerAccent({ position, color }: { position: "topLeft" | "bottomRight"
       style={[
         styles.corner,
         isTop
-          ? { top: 4, left: 4, borderTopWidth: 2, borderLeftWidth: 2, borderColor: borderClr }
-          : { bottom: 4, right: 4, borderBottomWidth: 2, borderRightWidth: 2, borderColor: borderClr },
+          ? { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2, borderColor: borderClr }
+          : { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderColor: borderClr },
       ]}
     />
   );

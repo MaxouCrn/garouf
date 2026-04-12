@@ -56,6 +56,15 @@ const mockWitchAction: NightActionRequiredPayload = {
   potions: { life: true, death: true },
 };
 
+const mockWitchActionDepleted: NightActionRequiredPayload = {
+  step: "witch",
+  targets: MOCK_PLAYERS,
+  instruction: "Sorciere, utilise tes potions",
+  timerSeconds: 30,
+  werewolfTarget: { id: "3", name: "Claire" },
+  potions: { life: false, death: false },
+};
+
 const mockWolfAction: NightActionRequiredPayload = {
   step: "werewolves",
   targets: MOCK_PLAYERS.filter((p) => p.id !== "1" && p.id !== "2"),
@@ -236,6 +245,21 @@ const PREVIEWS: PreviewEntry[] = [
       >
         <SafeContainer>
           <WitchActionView action={mockWitchAction} onSubmit={noop} />
+        </SafeContainer>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Sorcière (potions utilisées)",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <SafeContainer>
+          <WitchActionView action={mockWitchActionDepleted} onSubmit={noop} />
         </SafeContainer>
       </ImageBackground>
     ),
