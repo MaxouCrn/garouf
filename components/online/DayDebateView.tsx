@@ -76,7 +76,6 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
     <View style={styles.container}>
       <GCardFrame variant="glass" corners style={{ alignSelf: "stretch" }}>
         <View style={styles.inner}>
-          <Text style={styles.phase}>Jour</Text>
           <Text style={styles.timer}>{minutes}:{seconds.toString().padStart(2, "0")}</Text>
           <Text style={styles.timerLabel}>Temps de debat restant</Text>
 
@@ -93,12 +92,13 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
               <GButton variant="outline" onPress={onStartVote}>
                 Passer au vote
               </GButton>
-              <Pressable onPress={() => setIsMuted((m) => !m)}>
-                <Text style={styles.muteText}>
-                  {isMuted ? "Reactiver la musique" : "Couper la musique"}
-                </Text>
-              </Pressable>
             </View>
+          )}
+
+          {isHost && (
+            <Pressable style={styles.muteButton} onPress={() => setIsMuted((m) => !m)}>
+              <Text style={styles.muteEmoji}>{isMuted ? "\u{1F507}" : "\u{1F50A}"}</Text>
+            </Pressable>
           )}
         </View>
       </GCardFrame>
@@ -118,14 +118,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.md,
   },
-  phase: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 12,
-    color: colors.warm,
-    letterSpacing: 4,
-    textTransform: "uppercase",
-    marginBottom: spacing.sm,
-  },
   timer: {
     fontFamily: fonts.displayBold,
     fontSize: 72,
@@ -136,7 +128,7 @@ const styles = StyleSheet.create({
   timerLabel: {
     fontFamily: fonts.bodyRegular,
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.white,
     letterSpacing: 2,
     textTransform: "uppercase",
     marginBottom: spacing.xl,
@@ -157,10 +149,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
   },
-  muteText: {
-    fontFamily: fonts.bodyRegular,
-    fontSize: 12,
-    color: colors.textMuted,
-    letterSpacing: 0.5,
+  muteButton: {
+    marginTop: spacing.xxxl,
+  },
+  muteEmoji: {
+    fontSize: 28,
   },
 });
