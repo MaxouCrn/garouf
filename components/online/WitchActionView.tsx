@@ -118,6 +118,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             corners
             cornerColor={colors.danger}
             style={[
+              styles.potionCardInner,
               styles.potionCardLife,
               !lifeAvailable && styles.potionCardDepleted,
             ]}
@@ -162,6 +163,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             corners
             cornerColor={colors.success}
             style={[
+              styles.potionCardInner,
               styles.potionCardDeath,
               !deathAvailable && styles.potionCardDepleted,
             ]}
@@ -302,10 +304,13 @@ const styles = StyleSheet.create({
   potionAnimWrapper: {
     flex: 1,
   },
+  potionCardInner: {
+    flex: 1,
+  },
   potionContent: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 140,
   },
   potionCardLife: {
     backgroundColor: "rgba(90,30,30,0.45)",
