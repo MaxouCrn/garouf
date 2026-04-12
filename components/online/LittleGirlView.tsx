@@ -26,7 +26,7 @@ export default function LittleGirlView({ clueNames, onDone, timerSeconds }: Prop
           </View>
         ))}
       </GCardFrame>
-      <GButton variant="ghost" onPress={onDone}>
+      <GButton variant="ghost" onPress={onDone} style={{ width: "100%", marginTop: spacing.xl }}>
         Fermer les yeux
       </GButton>
     </View>

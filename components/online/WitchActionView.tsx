@@ -115,6 +115,8 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           !lifeAvailable && styles.potionCardDepleted,
           lifeAvailable && { transform: [{ scale: lifePulse }] },
         ]}>
+          <View style={[styles.potionCorner, styles.potionCornerTL, { borderColor: "rgba(232,93,93,0.5)" }]} />
+          <View style={[styles.potionCorner, styles.potionCornerBR, { borderColor: "rgba(232,93,93,0.5)" }]} />
           <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
           <Text style={styles.potionTitle}>Vie</Text>
 
@@ -149,6 +151,8 @@ export default function WitchActionView({ action, onSubmit }: Props) {
           !deathAvailable && styles.potionCardDepleted,
           deathAvailable && { transform: [{ scale: deathPulse }] },
         ]}>
+          <View style={[styles.potionCorner, styles.potionCornerTL, { borderColor: "rgba(93,217,166,0.5)" }]} />
+          <View style={[styles.potionCorner, styles.potionCornerBR, { borderColor: "rgba(93,217,166,0.5)" }]} />
           <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
           <Text style={styles.potionTitle}>Mort</Text>
 
@@ -300,6 +304,23 @@ const styles = StyleSheet.create({
     opacity: 0.4,
     backgroundColor: "rgba(30,30,50,0.5)",
     borderColor: "rgba(100,100,100,0.2)",
+  },
+  potionCorner: {
+    position: "absolute",
+    width: 12,
+    height: 12,
+  },
+  potionCornerTL: {
+    top: -1,
+    left: -1,
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+  },
+  potionCornerBR: {
+    bottom: -1,
+    right: -1,
+    borderBottomWidth: 2,
+    borderRightWidth: 2,
   },
   potionImage: {
     width: 64,
