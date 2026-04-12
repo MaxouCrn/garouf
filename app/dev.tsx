@@ -8,6 +8,8 @@ import {
   ImageBackground,
 } from "react-native";
 import { colors } from "../theme/colors";
+import { fonts } from "../theme/typography";
+import { radii, spacing } from "../theme/spacing";
 import SafeContainer from "../components/SafeContainer";
 
 // Online view components
@@ -60,6 +62,27 @@ const mockWolfAction: NightActionRequiredPayload = {
   timerSeconds: 30,
 };
 
+const mockRavenAction: NightActionRequiredPayload = {
+  step: "raven",
+  targets: MOCK_PLAYERS,
+  instruction: "Corbeau, designe un joueur a marquer",
+  timerSeconds: 30,
+};
+
+const mockSaviorAction: NightActionRequiredPayload = {
+  step: "savior",
+  targets: MOCK_PLAYERS,
+  instruction: "Salvateur, choisis un joueur a proteger",
+  timerSeconds: 30,
+};
+
+const mockCupidAction: NightActionRequiredPayload = {
+  step: "cupid",
+  targets: MOCK_PLAYERS,
+  instruction: "Cupidon, designe deux amoureux",
+  timerSeconds: 30,
+};
+
 const noop = () => {};
 const noopAsync = async () => {};
 
@@ -105,6 +128,43 @@ const PREVIEWS: PreviewEntry[] = [
   },
 
   // ── Nuit ──
+  {
+    label: "Nuit: Transition nuit",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
+          <Text style={{ fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, textAlign: "center", marginBottom: 8, textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 }}>
+            La nuit tombe...
+          </Text>
+          <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 16, color: colors.textSecondary, textAlign: "center", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+            Tout le monde ferme les yeux
+          </Text>
+        </View>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Transition jour",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sun-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
+          <Text style={{ fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, textAlign: "center", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 }}>
+            Le soleil se leve...
+          </Text>
+        </View>
+      </ImageBackground>
+    ),
+  },
   {
     label: "Nuit: Attente",
     section: "Nuit",
@@ -189,6 +249,52 @@ const PREVIEWS: PreviewEntry[] = [
     ),
   },
 
+  {
+    label: "Nuit: Salvateur",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <SafeContainer>
+          <NightActionView action={mockSaviorAction} onSubmit={noop} />
+        </SafeContainer>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Corbeau",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <SafeContainer>
+          <NightActionView action={mockRavenAction} onSubmit={noop} />
+        </SafeContainer>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Nuit: Cupidon",
+    section: "Nuit",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/night-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <SafeContainer>
+          <NightActionView action={mockCupidAction} onSubmit={noop} />
+        </SafeContainer>
+      </ImageBackground>
+    ),
+  },
+
   // ── Jour ──
   {
     label: "Jour: Annonce des morts",
@@ -205,6 +311,42 @@ const PREVIEWS: PreviewEntry[] = [
           myPlayerId="1"
           onContinue={noop}
         />
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Jour: Marque du Corbeau",
+    section: "Jour",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sun-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
+          <View style={{
+            backgroundColor: colors.glass,
+            borderWidth: 1,
+            borderColor: colors.glassBorder,
+            borderRadius: radii.base,
+            padding: spacing.xl,
+            alignItems: "center",
+            width: "100%",
+          }}>
+            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: colors.warm, letterSpacing: 3, textTransform: "uppercase", marginBottom: spacing.sm }}>
+              Jour 2
+            </Text>
+            <Text style={{ fontFamily: fonts.displayBold, fontSize: 20, color: colors.text, textAlign: "center", marginBottom: spacing.base }}>
+              Un joueur porte la marque du Corbeau
+            </Text>
+            <Text style={{ fontFamily: fonts.displayBold, fontSize: 28, color: "#c084fc", textAlign: "center", marginVertical: spacing.base }}>
+              Bob
+            </Text>
+            <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.xl }}>
+              Il commence le vote avec 2 voix contre lui
+            </Text>
+          </View>
+        </View>
       </ImageBackground>
     ),
   },
@@ -255,6 +397,18 @@ const PREVIEWS: PreviewEntry[] = [
     render: () => (
       <HunterView
         isHunter={true}
+        alivePlayers={MOCK_PLAYERS}
+        myPlayerId="5"
+        onShoot={noopAsync}
+      />
+    ),
+  },
+  {
+    label: "Chasseur: Attente",
+    section: "Special",
+    render: () => (
+      <HunterView
+        isHunter={false}
         alivePlayers={MOCK_PLAYERS}
         myPlayerId="5"
         onShoot={noopAsync}
@@ -370,17 +524,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: colors.primary,
+    fontFamily: fonts.displayBold,
+    color: colors.accent,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: fonts.bodyRegular,
     color: colors.textSecondary,
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    fontFamily: fonts.bodySemiBold,
     color: colors.text,
     marginTop: 20,
     marginBottom: 8,
@@ -392,13 +549,14 @@ const styles = StyleSheet.create({
   },
   presetButton: {
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
+    borderColor: colors.accentDim,
+    borderRadius: radii.base,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   presetText: {
-    color: colors.primary,
+    color: colors.accent,
+    fontFamily: fonts.bodyRegular,
     fontSize: 14,
   },
   // Preview mode
@@ -414,12 +572,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.7)",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: radii.base,
   },
   backText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: fonts.bodySemiBold,
   },
   previewLabel: {
     position: "absolute",
