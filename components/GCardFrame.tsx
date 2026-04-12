@@ -18,14 +18,14 @@ interface GCardFrameProps {
 
 function CornerAccent({ position, color }: { position: "topLeft" | "bottomRight"; color?: string }) {
   const isTop = position === "topLeft";
+  const borderClr = color || colors.accent;
   return (
     <View
       style={[
         styles.corner,
-        color ? { borderColor: color } : undefined,
         isTop
-          ? { top: -1, left: -1, borderTopWidth: 2, borderLeftWidth: 2 }
-          : { bottom: -1, right: -1, borderBottomWidth: 2, borderRightWidth: 2 },
+          ? { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2, borderColor: borderClr }
+          : { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderColor: borderClr },
       ]}
     />
   );
@@ -43,35 +43,33 @@ export default function GCardFrame({
   const isGlass = variant === "glass";
 
   return (
-    <View
-      style={[
-        styles.card,
-        isGlass ? styles.glass : styles.solid,
-        style,
-      ]}
-    >
+    <View style={[styles.wrapper, style]}>
       {corners && <CornerAccent position="topLeft" color={cornerColor} />}
       {corners && <CornerAccent position="bottomRight" color={cornerColor} />}
-
-      {title && (
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-          <View style={styles.separator} />
-        </View>
-      )}
-
-      {children}
+      <View style={[styles.card, isGlass ? styles.glass : styles.solid]}>
+        {title && (
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <View style={styles.separator} />
+          </View>
+        )}
+        {children}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: "relative",
+    padding: 3, // space for corners outside the card
+  },
   card: {
     borderRadius: radii.base,
     padding: spacing.lg,
     borderWidth: 1,
-    position: "relative",
+    flex: 1,
   },
   solid: {
     backgroundColor: colors.background,
@@ -85,7 +83,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 14,
     height: 14,
-    borderColor: colors.accent,
+    zIndex: 1,
   },
   header: {
     alignItems: "center",
