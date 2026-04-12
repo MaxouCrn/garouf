@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { View, Text, FlatList, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { spacing, radii } from "../../theme/spacing";
@@ -7,6 +7,20 @@ import ActionTimer from "./ActionTimer";
 import GButton from "../GButton";
 import GlassRow from "../GlassRow";
 import type { VoteLogPayload, VoteStatusPayload } from "../../types/online";
+import type { TextStyle } from "react-native";
+
+function AnimatedDots({ text, style }: { text: string; style?: TextStyle }) {
+  const [dotCount, setDotCount] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount((prev) => (prev + 1) % 4);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <Text style={style}>{text}{".".repeat(dotCount)}</Text>;
+}
 
 interface Props {
   alivePlayers: { id: string; name: string }[];
@@ -14,11 +28,12 @@ interface Props {
   onVote: (targetId: string | null) => void;
   voteLogs: VoteLogPayload[];
   voteStatus: VoteStatusPayload | null;
+  initialVoted?: boolean;
 }
 
-export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs, voteStatus }: Props) {
+export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs, voteStatus, initialVoted = false }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [voted, setVoted] = useState(false);
+  const [voted, setVoted] = useState(initialVoted);
   const logsRef = useRef<ScrollView>(null);
 
   // Auto-scroll logs to bottom
@@ -76,9 +91,9 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
         </View>
         <Text style={styles.doneTitle}>Vote enregistre</Text>
         {statusText && <Text style={styles.statusText}>{statusText}</Text>}
-        <VoteLogs logs={displayLogs} scrollRef={logsRef} />
+        <VoteLogs logs={displayLogs} scrollRef={logsRef} expanded />
         <View style={styles.waitingRow}>
-          <Text style={styles.waitingText}>En attente des autres joueurs...</Text>
+          <AnimatedDots text="En attente des autres joueurs" style={styles.waitingText} />
           <ActivityIndicator size="small" color={colors.accent} style={{ marginTop: spacing.md }} />
         </View>
       </View>
@@ -90,10 +105,8 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
       <Text style={styles.phase}>Jour</Text>
       <Text style={styles.title}>Vote du village</Text>
       <Text style={styles.instruction}>Qui le village elimine-t-il ?</Text>
-      <View style={styles.timerRow}>
-        <ActionTimer seconds={15} onExpire={handleTimeout} />
-        {statusText && <Text style={styles.statusText}>{statusText}</Text>}
-      </View>
+      <ActionTimer seconds={15} onExpire={handleTimeout} />
+      {statusText && <Text style={styles.statusText}>{statusText}</Text>}
       <FlatList
         data={others}
         keyExtractor={(item) => item.id}
@@ -123,19 +136,16 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
         <GButton variant="danger" onPress={handleVote} disabled={!selected}>
           Voter
         </GButton>
-        <Pressable style={styles.abstainBtn} onPress={() => { addOwnLog(null); setVoted(true); onVote(null); }}>
-          <Text style={styles.abstainText}>S'abstenir</Text>
-        </Pressable>
       </View>
     </View>
   );
 }
 
-function VoteLogs({ logs, scrollRef }: { logs: VoteLogPayload[]; scrollRef: React.RefObject<ScrollView | null> }) {
+function VoteLogs({ logs, scrollRef, expanded }: { logs: VoteLogPayload[]; scrollRef: React.RefObject<ScrollView | null>; expanded?: boolean }) {
   if (logs.length === 0) return null;
 
   return (
-    <View style={styles.logsContainer}>
+    <View style={[styles.logsContainer, expanded && styles.logsExpanded]}>
       <Text style={styles.logsHeader}>Votes en cours</Text>
       <ScrollView ref={scrollRef} style={styles.logsScroll} nestedScrollEnabled>
         {logs.map((log, i) => (
@@ -180,24 +190,17 @@ const styles = StyleSheet.create({
   instruction: {
     fontFamily: fonts.bodyRegular,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.white,
     textAlign: "center",
     marginBottom: spacing.md,
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
-  timerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    marginBottom: 4,
-  },
   statusText: {
     fontFamily: fonts.bodyRegular,
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.white,
     textAlign: "center",
     marginBottom: 4,
     letterSpacing: 1,
@@ -237,18 +240,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     gap: spacing.sm,
   },
-  abstainBtn: {
-    borderWidth: 1,
-    borderColor: "rgba(126,184,218,0.15)",
-    borderRadius: radii.base,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  abstainText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
   // Done state
   checkCircle: {
     width: 52,
@@ -284,18 +275,22 @@ const styles = StyleSheet.create({
   waitingText: {
     fontFamily: fonts.bodyRegular,
     fontSize: 13,
-    color: colors.textMuted,
+    color: colors.white,
     letterSpacing: 1,
   },
   // Vote logs
   logsContainer: {
-    maxHeight: 140,
+    maxHeight: 160,
     backgroundColor: colors.glass,
     borderWidth: 1,
     borderColor: colors.glassBorder,
     borderRadius: radii.base,
     marginTop: spacing.sm,
     padding: spacing.md,
+  },
+  logsExpanded: {
+    flex: 1,
+    maxHeight: undefined,
   },
   logsHeader: {
     fontFamily: fonts.bodySemiBold,
@@ -314,7 +309,7 @@ const styles = StyleSheet.create({
   },
   logEntry: {
     fontFamily: fonts.bodyRegular,
-    fontSize: 14,
+    fontSize: 17,
     color: "rgba(255,255,255,0.7)",
     fontStyle: "italic",
   },

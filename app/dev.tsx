@@ -398,28 +398,19 @@ const PREVIEWS: PreviewEntry[] = [
         resizeMode="cover"
       >
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
-          <View style={{
-            backgroundColor: colors.glass,
-            borderWidth: 1,
-            borderColor: colors.glassBorder,
-            borderRadius: radii.base,
-            padding: spacing.xl,
-            alignItems: "center",
-            width: "100%",
-          }}>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: colors.warm, letterSpacing: 3, textTransform: "uppercase", marginBottom: spacing.sm }}>
-              Jour 2
-            </Text>
-            <Text style={{ fontFamily: fonts.displayBold, fontSize: 20, color: colors.text, textAlign: "center", marginBottom: spacing.base }}>
-              Un joueur porte la marque du Corbeau
-            </Text>
-            <Text style={{ fontFamily: fonts.displayBold, fontSize: 28, color: "#c084fc", textAlign: "center", marginVertical: spacing.base }}>
-              Bob
-            </Text>
-            <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.xl }}>
-              Il commence le vote avec 2 voix contre lui
-            </Text>
-          </View>
+          <GCardFrame variant="glass" corners style={{ alignSelf: "stretch" }}>
+            <View style={{ alignItems: "center", paddingVertical: spacing.xxl, paddingHorizontal: spacing.md }}>
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 20, color: colors.text, textAlign: "center", marginBottom: spacing.base }}>
+                Un joueur porte la marque du Corbeau
+              </Text>
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 28, color: "#c084fc", textAlign: "center", marginVertical: spacing.base }}>
+                {"\u{1F426}\u{200D}\u{2B1B}"} Bob
+              </Text>
+              <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 14, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.xl }}>
+                Il commence le vote avec 2 voix contre lui
+              </Text>
+            </View>
+          </GCardFrame>
         </View>
       </ImageBackground>
     ),
@@ -481,12 +472,15 @@ const PREVIEWS: PreviewEntry[] = [
             alivePlayers={MOCK_PLAYERS}
             myPlayerId="1"
             onVote={noopAsync}
+            initialVoted
             voteLogs={[
               { voter: "Bob", target: "Claire" },
               { voter: "David", target: "Claire" },
-              { voter: "Emma", target: null },
+              { voter: "Alice", target: "Bob" },
+              { voter: "Claire", target: "David" },
+              { voter: "Emma", target: "Claire" },
             ]}
-            voteStatus={{ votedCount: 4, totalVoters: 5 }}
+            voteStatus={{ votedCount: 5, totalVoters: 6 }}
           />
         </SafeContainer>
       </ImageBackground>

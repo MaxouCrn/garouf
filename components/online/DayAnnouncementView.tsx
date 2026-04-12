@@ -11,6 +11,23 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function AnimatedDots({ text }: { text: string }) {
+  const [dotCount, setDotCount] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount((prev) => (prev + 1) % 4);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Text style={styles.waiting}>
+      {text}{".".repeat(dotCount)}
+    </Text>
+  );
+}
+
 /** Minimum time (ms) the announcement screen stays visible so players can read. */
 const MIN_DISPLAY_MS = 5000;
 /** Extra delay after narrator audio finishes before auto-advancing. */
@@ -85,9 +102,8 @@ export default function DayAnnouncementView({ nightDeaths, isHost, myPlayerId, o
 
   return (
     <View style={styles.container}>
-      <GCardFrame variant="glass" corners cornerColor={colors.warm} style={{ alignSelf: "stretch" }}>
+      <GCardFrame variant="glass" corners style={{ alignSelf: "stretch" }}>
         <View style={styles.inner}>
-          <Text style={styles.phase}>Jour</Text>
           <Text style={styles.title}>Le village se reveille</Text>
 
           {nightDeaths.length === 0 ? (
@@ -105,7 +121,7 @@ export default function DayAnnouncementView({ nightDeaths, isHost, myPlayerId, o
             <Text style={styles.eliminated}>Vous avez ete elimine cette nuit...</Text>
           )}
 
-          <Text style={styles.waiting}>Le debat va bientot commencer...</Text>
+          <AnimatedDots text="Le debat va bientot commencer" />
         </View>
       </GCardFrame>
     </View>
@@ -123,14 +139,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.md,
-  },
-  phase: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 11,
-    color: colors.warm,
-    letterSpacing: 4,
-    textTransform: "uppercase",
-    marginBottom: spacing.md,
   },
   title: {
     fontFamily: fonts.displayBold,
@@ -169,7 +177,7 @@ const styles = StyleSheet.create({
   waiting: {
     fontFamily: fonts.bodyRegular,
     fontSize: 13,
-    color: colors.textMuted,
+    color: colors.white,
     fontStyle: "italic",
     marginTop: spacing.lg,
     letterSpacing: 1,
