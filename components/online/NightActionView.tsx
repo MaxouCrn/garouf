@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/typography";
+import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
+import GButton from "../GButton";
 import type { NightActionRequiredPayload } from "../../types/online";
 
 interface Props {
@@ -24,7 +27,6 @@ export default function NightActionView({ action, onSubmit }: Props) {
   };
 
   const handleTimeout = () => {
-    // Default action: do nothing
     const actionMap: Record<string, string> = {
       seer: "seer_inspect",
       savior: "savior_protect",
@@ -47,32 +49,84 @@ export default function NightActionView({ action, onSubmit }: Props) {
             style={[styles.playerRow, selected === item.id && styles.selected]}
             onPress={() => setSelected(item.id)}
           >
+            <View style={[styles.avatar, selected === item.id && styles.avatarSelected]}>
+              <Text style={[styles.avatarText, selected === item.id && styles.avatarTextSelected]}>
+                {item.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
             <Text style={[styles.playerName, selected === item.id && styles.selectedText]}>
               {item.name}
             </Text>
           </Pressable>
         )}
       />
-      <Pressable
-        style={[styles.button, !selected && styles.buttonDisabled]}
+      <GButton
+        variant="primary"
         onPress={handleConfirm}
         disabled={!selected}
       >
-        <Text style={styles.buttonText}>Confirmer</Text>
-      </Pressable>
+        Confirmer
+      </GButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  instruction: { fontSize: 18, color: colors.text, textAlign: "center", marginBottom: 8 },
-  list: { flex: 1, marginTop: 12 },
-  playerRow: { backgroundColor: colors.surface, padding: 16, borderRadius: 8, marginBottom: 8 },
-  selected: { backgroundColor: colors.primary },
-  playerName: { fontSize: 16, color: colors.text },
-  selectedText: { color: colors.black },
-  button: { backgroundColor: colors.primary, padding: 16, borderRadius: 12, alignItems: "center", marginTop: 12 },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: colors.black, fontSize: 18, fontWeight: "bold" },
+  container: { flex: 1, padding: spacing.xl },
+  instruction: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 16,
+    color: colors.white,
+    textAlign: "center",
+    marginBottom: spacing.sm,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  list: { flex: 1, marginTop: spacing.md },
+  playerRow: {
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    padding: spacing.base,
+    borderRadius: radii.base,
+    marginBottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  selected: {
+    borderColor: colors.accent,
+    backgroundColor: "rgba(126,184,218,0.08)",
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.sm,
+    backgroundColor: "rgba(126,184,218,0.06)",
+    borderWidth: 1,
+    borderColor: colors.accentDim,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarSelected: {
+    backgroundColor: "rgba(126,184,218,0.15)",
+    borderColor: colors.accent,
+  },
+  avatarText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.accent,
+  },
+  avatarTextSelected: {
+    color: colors.white,
+  },
+  playerName: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 16,
+    color: colors.text,
+  },
+  selectedText: {
+    color: colors.white,
+  },
 });

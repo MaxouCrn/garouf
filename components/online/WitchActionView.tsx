@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { View, Text, Image, Pressable, ScrollView, Modal, StyleSheet, Animated, Easing } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
 import type { NightActionRequiredPayload } from "../../types/online";
 
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   title: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     fontSize: 22,
     color: colors.white,
     textAlign: "center",
@@ -247,19 +248,20 @@ const styles = StyleSheet.create({
   },
   victimBanner: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderRadius: 16,
+    backgroundColor: colors.glass,
+    borderRadius: radii.base,
     paddingVertical: 16,
     paddingHorizontal: 12,
     marginVertical: 16,
     borderWidth: 1,
-    borderColor: "rgba(233,69,96,0.25)",
+    borderColor: "rgba(232,93,93,0.2)",
   },
   victimIcon: {
     fontSize: 28,
     marginBottom: 4,
   },
   victimLabel: {
+    fontFamily: fonts.bodySemiBold,
     color: "rgba(255,255,255,0.7)",
     fontSize: 13,
     letterSpacing: 1,
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   victimName: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     color: colors.danger,
     fontSize: 22,
     textShadowColor: "rgba(0,0,0,0.8)",
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
   },
   potionCard: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: radii.base,
     padding: 16,
     alignItems: "center",
     borderWidth: 1.5,
@@ -310,7 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   potionTitle: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     color: colors.white,
     fontSize: 16,
     marginBottom: 12,
@@ -319,6 +321,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   potionHint: {
+    fontFamily: fonts.bodyRegular,
     color: "rgba(255,255,255,0.5)",
     fontSize: 13,
     textAlign: "center",
@@ -334,6 +337,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   depletedText: {
+    fontFamily: fonts.bodySemiBold,
     color: "rgba(255,255,255,0.5)",
     fontSize: 13,
     fontWeight: "600",
@@ -351,6 +355,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   potionActionText: {
+    fontFamily: fonts.bodySemiBold,
     color: colors.white,
     fontSize: 13,
     fontWeight: "600",
@@ -372,6 +377,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   potionActionLifeText: {
+    fontFamily: fonts.bodySemiBold,
     color: colors.danger,
     fontSize: 13,
     fontWeight: "bold",
@@ -393,6 +399,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   potionActionPoisonText: {
+    fontFamily: fonts.bodySemiBold,
     color: colors.success,
     fontSize: 13,
     fontWeight: "bold",
@@ -420,18 +427,18 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
     paddingBottom: 32,
     maxHeight: "60%",
     borderTopWidth: 2,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: "rgba(233,69,96,0.3)",
+    borderColor: colors.accent,
   },
   targetTitle: {
-    fontFamily: fonts.cinzelBold,
+    fontFamily: fonts.displayBold,
     color: colors.danger,
     fontSize: 16,
     textAlign: "center",
@@ -444,14 +451,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   targetRow: {
-    backgroundColor: "rgba(90,30,60,0.3)",
+    backgroundColor: colors.glass,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: radii.base,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: "rgba(233,69,96,0.15)",
+    borderColor: colors.glassBorder,
   },
   targetName: {
+    fontFamily: fonts.bodyMedium,
     color: colors.text,
     fontSize: 16,
     textAlign: "center",
@@ -460,10 +468,11 @@ const styles = StyleSheet.create({
   cancelTargetButton: {
     backgroundColor: "rgba(255,255,255,0.08)",
     padding: 14,
-    borderRadius: 12,
+    borderRadius: radii.base,
     alignItems: "center",
   },
   cancelTargetText: {
+    fontFamily: fonts.bodySemiBold,
     color: "rgba(255,255,255,0.5)",
     fontSize: 15,
     fontWeight: "600",
@@ -472,17 +481,18 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   recapContainer: {
-    backgroundColor: "rgba(212,160,23,0.1)",
-    borderRadius: 10,
+    backgroundColor: "rgba(126,184,218,0.06)",
+    borderRadius: radii.base,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "rgba(212,160,23,0.25)",
+    borderColor: "rgba(126,184,218,0.2)",
     alignItems: "center",
   },
   recapLabel: {
-    color: "rgba(212,160,23,0.6)",
+    fontFamily: fonts.bodySemiBold,
+    color: colors.textMuted,
     fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
@@ -490,31 +500,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   recapText: {
-    color: colors.primary,
+    fontFamily: fonts.bodySemiBold,
+    color: colors.accent,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
   },
   confirmButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radii.base,
     alignItems: "center",
   },
   confirmButtonText: {
-    color: colors.black,
+    fontFamily: fonts.bodySemiBold,
+    color: colors.background,
     fontSize: 18,
     fontWeight: "bold",
   },
   passButton: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: colors.glass,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radii.base,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: colors.glassBorder,
   },
   passButtonText: {
+    fontFamily: fonts.bodySemiBold,
     color: "rgba(255,255,255,0.6)",
     fontSize: 16,
     fontWeight: "600",

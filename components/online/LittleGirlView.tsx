@@ -1,6 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/typography";
+import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
+import GButton from "../GButton";
 
 interface Props {
   clueNames: string[];
@@ -11,25 +14,76 @@ interface Props {
 export default function LittleGirlView({ clueNames, onDone, timerSeconds }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tu apercois des silhouettes...</Text>
+      <Text style={styles.title}>La Petite Fille</Text>
+      <Text style={styles.instruction}>Tu apercois des silhouettes dans la nuit...</Text>
       <ActionTimer seconds={timerSeconds} onExpire={onDone} />
-      {clueNames.map((name, idx) => (
-        <View key={idx} style={styles.clue}>
-          <Text style={styles.clueName}>{name}</Text>
-        </View>
-      ))}
-      <Pressable style={styles.button} onPress={onDone}>
-        <Text style={styles.buttonText}>Refermer les yeux</Text>
-      </Pressable>
+      <View style={styles.clueCard}>
+        {clueNames.map((name, idx) => (
+          <View key={idx} style={styles.clueRow}>
+            <Text style={styles.wolfEmoji}>🐺</Text>
+            <Text style={styles.clueName}>{name}</Text>
+          </View>
+        ))}
+      </View>
+      <GButton variant="ghost" onPress={onDone}>
+        Fermer les yeux
+      </GButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  title: { fontSize: 20, color: colors.primary, marginBottom: 16, textAlign: "center" },
-  clue: { backgroundColor: colors.surface, padding: 16, borderRadius: 8, marginBottom: 8, width: "100%" },
-  clueName: { fontSize: 18, color: colors.text, textAlign: "center" },
-  button: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 12, marginTop: 24 },
-  buttonText: { color: colors.black, fontSize: 18, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
+  title: {
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
+    color: colors.white,
+    textAlign: "center",
+    marginBottom: spacing.sm,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  instruction: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginBottom: spacing.sm,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  clueCard: {
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: radii.base,
+    padding: spacing.base,
+    width: "100%",
+    marginVertical: spacing.lg,
+  },
+  clueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: spacing.sm,
+  },
+  wolfEmoji: {
+    fontSize: 20,
+  },
+  clueName: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 18,
+    color: colors.white,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
 });

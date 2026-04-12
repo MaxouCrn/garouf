@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
-import { Text, StyleSheet } from "react-native";
+import { useState, useEffect, useRef } from "react";
+import { Text, Animated, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/typography";
+import { spacing } from "../../theme/spacing";
 
 interface ActionTimerProps {
   seconds: number;
@@ -9,6 +11,7 @@ interface ActionTimerProps {
 
 export default function ActionTimer({ seconds, onExpire }: ActionTimerProps) {
   const [remaining, setRemaining] = useState(seconds);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     setRemaining(seconds);
@@ -26,22 +29,41 @@ export default function ActionTimer({ seconds, onExpire }: ActionTimerProps) {
     return () => clearInterval(interval);
   }, [seconds, onExpire]);
 
-  const isUrgent = remaining <= 5;
+  const isUrgent = remaining <= 5 && remaining > 0;
+
+  useEffect(() => {
+    if (isUrgent) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.08, duration: 400, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isUrgent]);
 
   return (
-    <Text style={[styles.timer, isUrgent && styles.urgent]}>
+    <Animated.Text style={[styles.timer, isUrgent && styles.urgent, { transform: [{ scale: pulseAnim }] }]}>
       {remaining}s
-    </Text>
+    </Animated.Text>
   );
 }
 
 const styles = StyleSheet.create({
   timer: {
+    fontFamily: fonts.displayBold,
     fontSize: 32,
-    fontWeight: "bold",
-    color: colors.primary,
+    color: colors.accent,
     textAlign: "center",
-    marginVertical: 8,
+    marginVertical: spacing.sm,
+    fontVariant: ["tabular-nums"],
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   urgent: {
     color: colors.danger,
