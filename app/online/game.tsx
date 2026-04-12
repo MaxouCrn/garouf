@@ -7,6 +7,7 @@ import { useMusicContext } from "../../context/MusicContext";
 import type { NightStep } from "../../game/nightEngine";
 import { ROLE_CARDS, ROLE_LABELS } from "../../theme/roleCards";
 import SafeContainer from "../../components/SafeContainer";
+import GCardFrame from "../../components/GCardFrame";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii } from "../../theme/spacing";
@@ -209,8 +210,12 @@ export default function OnlineGameScreen() {
           {nightBg}
           <SafeContainer>
             <View style={styles.centered}>
-              <Text style={styles.nightTitle}>La nuit tombe...</Text>
-              <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
+              <GCardFrame variant="glass" corners>
+                <View style={styles.transitionCard}>
+                  <Text style={styles.nightTitle}>La nuit tombe...</Text>
+                  <Text style={styles.nightSubtitle}>Tout le monde ferme les yeux</Text>
+                </View>
+              </GCardFrame>
             </View>
           </SafeContainer>
         </View>
@@ -224,7 +229,11 @@ export default function OnlineGameScreen() {
           {nightBg}
           <SafeContainer>
             <View style={styles.centered}>
-              <Text style={styles.nightTitle}>Le soleil se leve...</Text>
+              <GCardFrame variant="glass" corners>
+                <View style={styles.transitionCard}>
+                  <Text style={styles.nightTitle}>Le soleil se leve...</Text>
+                </View>
+              </GCardFrame>
             </View>
           </SafeContainer>
         </View>
@@ -355,6 +364,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  transitionCard: {
+    alignItems: "center",
+    paddingVertical: 20,
   },
   nightTitle: {
     fontFamily: fonts.displayBold,

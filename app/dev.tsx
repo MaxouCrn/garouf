@@ -11,6 +11,7 @@ import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { radii, spacing } from "../theme/spacing";
 import SafeContainer from "../components/SafeContainer";
+import GCardFrame from "../components/GCardFrame";
 
 // Online view components
 import DistributionView from "../components/online/DistributionView";
@@ -137,13 +138,18 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
-          <Text style={{ fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, textAlign: "center", marginBottom: 8, textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 }}>
-            La nuit tombe...
-          </Text>
-          <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 16, color: colors.textSecondary, textAlign: "center", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
-            Tout le monde ferme les yeux
-          </Text>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.6)" }} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
+          <GCardFrame variant="glass" corners>
+            <View style={{ alignItems: "center", paddingVertical: spacing.lg }}>
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center", marginBottom: 10 }}>
+                La nuit tombe...
+              </Text>
+              <Text style={{ fontFamily: fonts.bodyRegular, fontSize: 14, color: colors.textSecondary, textAlign: "center" }}>
+                Tout le monde ferme les yeux
+              </Text>
+            </View>
+          </GCardFrame>
         </View>
       </ImageBackground>
     ),
@@ -157,10 +163,15 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl }}>
-          <Text style={{ fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, textAlign: "center", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 }}>
-            Le soleil se leve...
-          </Text>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.5)" }} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
+          <GCardFrame variant="glass" corners>
+            <View style={{ alignItems: "center", paddingVertical: spacing.lg }}>
+              <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center" }}>
+                Le soleil se leve...
+              </Text>
+            </View>
+          </GCardFrame>
         </View>
       </ImageBackground>
     ),
