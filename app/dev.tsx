@@ -30,6 +30,7 @@ import SpectatorView from "../components/online/SpectatorView";
 import EndView from "../components/online/EndView";
 import PausedView from "../components/online/PausedView";
 
+import { ROLE_REGISTRY, type Role } from "../game/roles";
 import type { NightActionRequiredPayload } from "../types/online";
 
 // ── Mock data ────────────────────────────────────────────────────────────────
@@ -97,6 +98,46 @@ const mockCupidAction: NightActionRequiredPayload = {
 
 const noop = () => {};
 const noopAsync = async () => {};
+
+const ALL_ROLES = Object.keys(ROLE_REGISTRY) as Role[];
+
+function SpectatorPreview() {
+  const [role, setRole] = useState<Role>("seer");
+  return (
+    <View style={{ flex: 1 }}>
+      <SpectatorView phase="night" nightStep="werewolves" role={role} />
+      <ScrollView
+        horizontal
+        style={{ position: "absolute", bottom: 40, left: 0, right: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 12, gap: 6 }}
+        showsHorizontalScrollIndicator={false}
+      >
+        {ALL_ROLES.map((r) => (
+          <Pressable
+            key={r}
+            onPress={() => setRole(r)}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: radii.base,
+              borderWidth: 1,
+              borderColor: r === role ? colors.accent : colors.glassBorder,
+              backgroundColor: r === role ? "rgba(126,184,218,0.15)" : colors.glass,
+            }}
+          >
+            <Text style={{
+              fontFamily: fonts.bodyMedium,
+              fontSize: 12,
+              color: r === role ? colors.accent : colors.textSecondary,
+            }}>
+              {ROLE_REGISTRY[r].emoji} {ROLE_REGISTRY[r].label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 // ── Preview registry ─────────────────────────────────────────────────────────
 
@@ -534,7 +575,7 @@ const PREVIEWS: PreviewEntry[] = [
   {
     label: "Spectateur (éliminé)",
     section: "Special",
-    render: () => <SpectatorView phase="night" nightStep="werewolves" />,
+    render: () => <SpectatorPreview />,
   },
   {
     label: "Pause (déconnexion)",
