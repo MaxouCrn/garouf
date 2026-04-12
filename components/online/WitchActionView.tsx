@@ -298,6 +298,7 @@ const styles = StyleSheet.create({
   },
   potionsRow: {
     flexDirection: "row",
+    alignItems: "stretch",
     gap: 12,
     marginBottom: 16,
   },
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   potionCardInner: {
-    minHeight: 220,
+    height: "100%",
   },
   potionContent: {
     alignItems: "center",
