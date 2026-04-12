@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
-import { radii, spacing } from "../../theme/spacing";
+import { spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
 import GButton from "../GButton";
+import GCardFrame from "../GCardFrame";
 
 interface Props {
   clueNames: string[];
@@ -17,14 +18,14 @@ export default function LittleGirlView({ clueNames, onDone, timerSeconds }: Prop
       <Text style={styles.title}>La Petite Fille</Text>
       <Text style={styles.instruction}>Tu apercois des silhouettes dans la nuit...</Text>
       <ActionTimer seconds={timerSeconds} onExpire={onDone} />
-      <View style={styles.clueCard}>
+      <GCardFrame variant="glass" corners style={styles.clueCard}>
         {clueNames.map((name, idx) => (
           <View key={idx} style={styles.clueRow}>
             <Text style={styles.wolfEmoji}>🐺</Text>
             <Text style={styles.clueName}>{name}</Text>
           </View>
         ))}
-      </View>
+      </GCardFrame>
       <GButton variant="ghost" onPress={onDone}>
         Fermer les yeux
       </GButton>
@@ -61,11 +62,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   clueCard: {
-    backgroundColor: colors.glass,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    borderRadius: radii.base,
-    padding: spacing.base,
     width: "100%",
     marginVertical: spacing.lg,
   },

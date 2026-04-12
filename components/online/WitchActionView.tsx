@@ -4,6 +4,7 @@ import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
+import GCardFrame from "../GCardFrame";
 import type { NightActionRequiredPayload } from "../../types/online";
 
 interface Props {
@@ -93,7 +94,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
       <ActionTimer seconds={action.timerSeconds} onExpire={handleTimeout} />
 
       {/* Victim announcement */}
-      <View style={styles.victimBanner}>
+      <GCardFrame variant="glass" corners style={styles.victimBanner}>
         <Text style={styles.victimIcon}>💀</Text>
         {werewolfTarget ? (
           <>
@@ -103,7 +104,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
         ) : (
           <Text style={styles.victimLabel}>Aucune victime cette nuit</Text>
         )}
-      </View>
+      </GCardFrame>
 
       {/* Potion cards */}
       <View style={styles.potionsRow}>
@@ -248,13 +249,7 @@ const styles = StyleSheet.create({
   },
   victimBanner: {
     alignItems: "center",
-    backgroundColor: colors.glass,
-    borderRadius: radii.base,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
     marginVertical: 16,
-    borderWidth: 1,
-    borderColor: "rgba(232,93,93,0.2)",
   },
   victimIcon: {
     fontSize: 28,
