@@ -368,7 +368,8 @@ const styles = StyleSheet.create({
   },
   transitionCard: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 48,
+    paddingHorizontal: 12,
   },
   nightTitle: {
     fontFamily: fonts.displayBold,

@@ -141,7 +141,7 @@ const PREVIEWS: PreviewEntry[] = [
         <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.6)" }} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
           <GCardFrame variant="glass" corners>
-            <View style={{ alignItems: "center", paddingVertical: spacing.lg }}>
+            <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 12 }}>
               <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center", marginBottom: 10 }}>
                 La nuit tombe...
               </Text>
@@ -166,7 +166,7 @@ const PREVIEWS: PreviewEntry[] = [
         <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.5)" }} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, zIndex: 1 }}>
           <GCardFrame variant="glass" corners>
-            <View style={{ alignItems: "center", paddingVertical: spacing.lg }}>
+            <View style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 12 }}>
               <Text style={{ fontFamily: fonts.displayBold, fontSize: 22, color: colors.text, textAlign: "center" }}>
                 Le soleil se leve...
               </Text>
