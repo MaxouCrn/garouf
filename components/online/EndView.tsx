@@ -1,38 +1,72 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { spacing } from "../../theme/spacing";
+import GButton from "../GButton";
 
 interface Props {
   winner: "werewolves" | "villagers" | "lovers" | null;
 }
 
-const WINNER_TEXT = {
-  werewolves: "Les Loups-Garous ont devore le village !",
-  villagers: "Le village a triomphe des loups !",
-  lovers: "Les Amoureux ont survecu ensemble !",
+const WINNER_CONFIG = {
+  werewolves: {
+    emoji: "🐺",
+    text: "Les Loups-Garous ont devore le village !",
+    color: colors.danger,
+  },
+  villagers: {
+    emoji: "🏘️",
+    text: "Le village a triomphe des loups !",
+    color: colors.success,
+  },
+  lovers: {
+    emoji: "💕",
+    text: "Les Amoureux ont survecu ensemble !",
+    color: colors.warm,
+  },
 };
 
 export default function EndView({ winner }: Props) {
   const router = useRouter();
+  const config = winner ? WINNER_CONFIG[winner] : null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Fin de la partie</Text>
-      <Text style={styles.result}>
-        {winner ? WINNER_TEXT[winner] : "Match nul"}
+      <Text style={styles.subtitle}>Fin de la partie</Text>
+      {config && <Text style={styles.emoji}>{config.emoji}</Text>}
+      <Text style={[styles.result, config && { color: config.color }]}>
+        {config ? config.text : "Match nul"}
       </Text>
-      <Pressable style={styles.button} onPress={() => router.replace("/")}>
-        <Text style={styles.buttonText}>Retour a l'accueil</Text>
-      </Pressable>
+      <GButton variant="primary" onPress={() => router.replace("/")}>
+        Retour a l'accueil
+      </GButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  title: { fontFamily: fonts.cinzelBold, fontSize: 28, color: colors.primary, marginBottom: 24 },
-  result: { fontSize: 20, color: colors.text, textAlign: "center", marginBottom: 32 },
-  button: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 12 },
-  buttonText: { color: colors.black, fontSize: 20, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
+  subtitle: {
+    fontFamily: fonts.displayRegular,
+    fontSize: 18,
+    color: colors.textSecondary,
+    marginBottom: spacing.base,
+  },
+  emoji: {
+    fontSize: 48,
+    marginBottom: spacing.base,
+  },
+  result: {
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.xxl,
+  },
 });

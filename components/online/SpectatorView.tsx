@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
+import { fonts } from "../../theme/typography";
+import { spacing } from "../../theme/spacing";
 import type { NightStep } from "../../game/nightEngine";
 
 interface Props {
@@ -20,8 +22,22 @@ export default function SpectatorView({ phase, nightStep }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  skull: { fontSize: 64, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: "bold", color: colors.textSecondary },
-  info: { fontSize: 16, color: colors.textMuted, marginTop: 12 },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
+  skull: { fontSize: 64, marginBottom: spacing.base },
+  title: {
+    fontFamily: fonts.displayBold,
+    fontSize: 24,
+    color: colors.textSecondary,
+  },
+  info: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+  },
 });
