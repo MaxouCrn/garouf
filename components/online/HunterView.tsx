@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii, spacing } from "../../theme/spacing";
@@ -18,9 +18,11 @@ export default function HunterView({ isHunter, alivePlayers, myPlayerId, onShoot
 
   if (!isHunter) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.waitEmoji}>🏹</Text>
-        <Text style={styles.waiting}>Le Chasseur choisit sa cible...</Text>
+      <View style={styles.waitContainer}>
+        <Text style={styles.waitEmoji}>{"\u{1F3F9}"}</Text>
+        <Text style={styles.waitTitle}>Le Chasseur choisit sa cible...</Text>
+        <Text style={styles.waitSub}>Un dernier tir avant de partir</Text>
+        <ActivityIndicator size="small" color={colors.danger} style={{ marginTop: spacing.xl }} />
       </View>
     );
   }
@@ -82,13 +84,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  waitEmoji: { fontSize: 48, textAlign: "center", marginBottom: spacing.base },
-  waiting: {
-    fontFamily: fonts.bodyRegular,
-    fontSize: 18,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
   list: { flex: 1, marginTop: spacing.md },
   playerRow: {
     backgroundColor: colors.glass,
@@ -130,4 +125,35 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   selectedText: { color: colors.white },
+  // Wait state (non-hunter)
+  waitContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
+  waitEmoji: {
+    fontSize: 56,
+    textAlign: "center",
+    marginBottom: spacing.base,
+  },
+  waitTitle: {
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.sm,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+  waitSub: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
 });

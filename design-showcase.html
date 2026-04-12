@@ -1489,6 +1489,375 @@ body {
   animation: gf-spin 1s linear infinite;
   margin: 0 auto;
 }
+/* ============================================
+   PHASES DE JOUR
+   ============================================ */
+
+/* --- Day Announcement (sun-transition) --- */
+.gf-day-announce {
+  min-height: 100%;
+  background: url('assets/sun-transition-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-day-announce::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.35) 0%, rgba(10,14,22,0.15) 40%, rgba(10,14,22,0.5) 100%);
+  pointer-events: none;
+}
+.gf-day-announce .da-card {
+  position: relative; z-index: 1;
+  background: rgba(10,14,22,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.gf-day-announce .da-card::before,
+.gf-day-announce .da-card::after {
+  content: ''; position: absolute; width: 16px; height: 16px;
+}
+.gf-day-announce .da-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--warm); border-left: 2px solid var(--warm);
+}
+.gf-day-announce .da-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--warm); border-right: 2px solid var(--warm);
+}
+.gf-day-announce .da-phase {
+  font-size: 11px; color: var(--warm);
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 12px;
+}
+.gf-day-announce .da-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 16px;
+}
+.gf-day-announce .da-message {
+  font-size: 15px; color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.gf-day-announce .da-dead {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--danger); margin: 10px 0;
+}
+.gf-day-announce .da-no-death {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--success); margin: 10px 0;
+}
+.gf-day-announce .da-waiting {
+  font-size: 13px; color: var(--text-muted);
+  font-style: italic; margin-top: 20px;
+  letter-spacing: 1px;
+}
+
+/* --- Day Debate (debat-background) — redesigned --- */
+.gf-day-debate {
+  min-height: 100%;
+  background: url('assets/debat-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px; position: relative;
+}
+.gf-day-debate::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.25) 0%, rgba(10,14,22,0.1) 40%, rgba(10,14,22,0.4) 100%);
+  pointer-events: none;
+}
+.gf-day-debate .dd-card {
+  position: relative; z-index: 1;
+  background: rgba(10,14,22,0.88);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(126,184,218,0.1);
+  border-radius: 6px;
+  padding: 36px 24px;
+  text-align: center; width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.gf-day-debate .dd-card::before,
+.gf-day-debate .dd-card::after {
+  content: ''; position: absolute; width: 18px; height: 18px;
+}
+.gf-day-debate .dd-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+}
+.gf-day-debate .dd-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent);
+}
+.gf-day-debate .dd-phase {
+  font-size: 12px; color: var(--warm);
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 8px;
+}
+.gf-day-debate .dd-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.gf-day-debate .dd-timer-label {
+  font-size: 11px; color: var(--text-muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.gf-day-debate .dd-hint {
+  font-size: 14px; color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+.gf-day-debate .dd-skip {
+  background: rgba(126,184,218,0.08);
+  border: 1px solid rgba(126,184,218,0.2);
+  color: var(--accent);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  padding: 12px 32px; border-radius: 6px;
+  cursor: pointer; margin-top: 8px;
+}
+.gf-day-debate .dd-mute {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px; cursor: pointer;
+  margin-top: 12px; letter-spacing: 0.5px;
+}
+
+/* --- Day Vote (sunset-background) — redesigned --- */
+.gf-day-vote {
+  min-height: 100%;
+  background: url('assets/sunset-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-day-vote::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.3) 0%, rgba(10,14,22,0.1) 30%, rgba(10,14,22,0.6) 100%);
+  pointer-events: none;
+}
+.gf-day-vote .dv-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 24px;
+  flex: 1; display: flex; flex-direction: column;
+}
+.gf-day-vote .dv-phase {
+  font-size: 11px; color: rgba(232,168,73,0.6);
+  letter-spacing: 4px; text-transform: uppercase;
+  text-align: center; font-weight: 600;
+}
+.gf-day-vote .dv-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-top: 4px; margin-bottom: 4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-day-vote .dv-instruction {
+  font-size: 14px; color: var(--text-secondary);
+  text-align: center; margin-bottom: 12px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+}
+.gf-day-vote .dv-timer {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: var(--text-primary);
+  text-align: center; margin-bottom: 4px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.8);
+}
+.gf-day-vote .dv-status {
+  font-size: 12px; color: var(--text-muted);
+  text-align: center; margin-bottom: 14px;
+  letter-spacing: 1px;
+}
+.gf-day-vote .dv-option {
+  background: rgba(10,14,22,0.82);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px; padding: 14px 16px;
+  margin-bottom: 7px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.gf-day-vote .dv-option:hover {
+  border-color: rgba(232,93,93,0.3);
+}
+.gf-day-vote .dv-option.selected {
+  border-color: var(--danger);
+  background: rgba(232,93,93,0.12);
+}
+.gf-day-vote .dv-avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  background: rgba(232,93,93,0.06);
+  border: 1px solid rgba(232,93,93,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--danger); font-weight: 600;
+}
+.gf-day-vote .dv-option.selected .dv-avatar {
+  background: rgba(232,93,93,0.15);
+  border-color: var(--danger);
+}
+.gf-day-vote .dv-name { font-size: 15px; font-weight: 500; }
+.gf-day-vote .dv-option.selected .dv-name { color: #fff; }
+.gf-day-vote .dv-actions {
+  margin-top: auto; padding-top: 12px;
+}
+.gf-day-vote .dv-vote-btn {
+  width: 100%;
+  background: var(--danger);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600; font-size: 15px;
+  padding: 14px 24px; border: none; border-radius: 6px;
+  cursor: pointer; text-align: center;
+  box-shadow: 0 4px 20px rgba(232,93,93,0.2);
+}
+.gf-day-vote .dv-abstain-btn {
+  width: 100%; margin-top: 8px;
+  background: none; border: 1px solid rgba(126,184,218,0.15);
+  color: var(--text-secondary);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 10px 24px; border-radius: 6px;
+  cursor: pointer; text-align: center;
+}
+
+/* --- Vote Logs (after voting) --- */
+.gf-vote-logs {
+  min-height: 100%;
+  background: url('assets/sunset-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column; position: relative;
+}
+.gf-vote-logs::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,14,22,0.3) 0%, rgba(10,14,22,0.15) 30%, rgba(10,14,22,0.6) 100%);
+  pointer-events: none;
+}
+.gf-vote-logs .vl-content {
+  position: relative; z-index: 1;
+  padding: 56px 20px 30px;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center;
+}
+.gf-vote-logs .vl-check {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(93,217,166,0.1);
+  border: 2px solid rgba(93,217,166,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 12px;
+}
+.gf-vote-logs .vl-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-vote-logs .vl-status {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 20px; letter-spacing: 0.5px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+}
+.gf-vote-logs .vl-log-box {
+  width: 100%;
+  background: rgba(10,14,22,0.85);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(126,184,218,0.08);
+  border-radius: 6px;
+  padding: 14px 16px;
+  flex: 1;
+}
+.gf-vote-logs .vl-log-box::before,
+.gf-vote-logs .vl-log-box::after {
+  content: ''; position: absolute; width: 12px; height: 12px;
+}
+.gf-vote-logs .vl-log-header {
+  font-size: 11px; color: var(--text-muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 12px; font-weight: 600;
+}
+.gf-vote-logs .vl-entry {
+  font-size: 14px; color: rgba(255,255,255,0.7);
+  margin-bottom: 8px; font-style: italic;
+  padding-left: 8px;
+  border-left: 2px solid rgba(126,184,218,0.1);
+}
+.gf-vote-logs .vl-entry .vl-voter {
+  color: var(--text-primary); font-style: normal; font-weight: 500;
+}
+.gf-vote-logs .vl-entry .vl-target {
+  color: var(--danger); font-style: normal; font-weight: 600;
+}
+.gf-vote-logs .vl-entry .vl-abstain {
+  color: var(--text-muted); font-style: normal;
+}
+.gf-vote-logs .vl-waiting {
+  text-align: center;
+  margin-top: auto; padding-top: 16px;
+}
+.gf-vote-logs .vl-waiting-text {
+  font-size: 13px; color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.gf-vote-logs .vl-spinner {
+  width: 24px; height: 24px;
+  border: 2px solid rgba(126,184,218,0.15);
+  border-top-color: #7eb8da;
+  border-radius: 50%;
+  animation: gf-spin 1s linear infinite;
+  margin: 12px auto 0;
+}
+
+/* --- Hunter Wait --- */
+.gf-hunter-wait {
+  min-height: 100%;
+  background: url('assets/sunset-background.png') center/cover no-repeat;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; padding: 24px;
+}
+.gf-hunter-wait::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(10,14,22,0.5);
+  pointer-events: none;
+}
+.gf-hunter-wait .hw-content {
+  position: relative; z-index: 1;
+  text-align: center;
+}
+.gf-hunter-wait .hw-emoji {
+  font-size: 56px; margin-bottom: 16px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+.gf-hunter-wait .hw-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 10px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+}
+.gf-hunter-wait .hw-sub {
+  font-size: 14px; color: var(--text-secondary);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+  margin-bottom: 24px;
+}
+.gf-hunter-wait .hw-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(232,93,93,0.15);
+  border-top-color: var(--danger);
+  border-radius: 50%;
+  animation: gf-spin 1s linear infinite;
+  margin: 0 auto;
+}
+
 </style>
 </head>
 <body>
@@ -2101,6 +2470,136 @@ body {
             <div class="lg-wolf-row">&#x1F43A; Lucas</div>
           </div>
           <button class="gf-btn-ghost lg-close">Fermer les yeux</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="separator"></div>
+
+<!-- ============ PHASES DE JOUR ============ -->
+<div class="section-header">
+  <h2>Phases de jour</h2>
+  <p>Annonce des morts, debat minuté, vote du village, logs de vote en temps reel, et attente du chasseur.</p>
+</div>
+
+<div class="phones-grid">
+
+  <!-- 1. Day Announcement — Death -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Annonce des morts</div>
+    <div class="phone-sublabel">sun-transition-background.png — auto-avancement</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-day-announce">
+        <div class="da-card">
+          <div class="da-phase">Jour 2</div>
+          <div class="da-title">Le village se reveille</div>
+          <div class="da-message">Cette nuit, le village a perdu :</div>
+          <div class="da-dead">&#x1F480; Thomas</div>
+          <div class="da-waiting">Le debat va bientot commencer...</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2. Day Announcement — No death -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Annonce — aucun mort</div>
+    <div class="phone-sublabel">sun-transition-background.png</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-day-announce">
+        <div class="da-card">
+          <div class="da-phase">Jour 2</div>
+          <div class="da-title">Le village se reveille</div>
+          <div class="da-no-death">Personne n'est mort cette nuit !</div>
+          <div class="da-waiting">Le debat va bientot commencer...</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3. Day Debate -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Debat</div>
+    <div class="phone-sublabel">debat-background.png — timer + musique</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-day-debate">
+        <div class="dd-card">
+          <div class="dd-phase">Jour 2</div>
+          <div class="dd-timer">2:47</div>
+          <div class="dd-timer-label">Temps de debat restant</div>
+          <div class="dd-hint">Discutez et trouvez les loups !</div>
+          <button class="dd-skip">Passer au vote</button>
+          <button class="dd-mute">Couper la musique</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4. Day Vote -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Vote du village</div>
+    <div class="phone-sublabel">sunset-background.png — selection + timer</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-day-vote">
+        <div class="dv-content">
+          <div class="dv-phase">Jour 2</div>
+          <div class="dv-title">Vote du village</div>
+          <div class="dv-instruction">Qui le village elimine-t-il ?</div>
+          <div class="dv-timer">0:15</div>
+          <div class="dv-status">2/6 votes</div>
+          <div class="dv-option"><div class="dv-avatar">M</div><span class="dv-name">Maxime</span></div>
+          <div class="dv-option selected"><div class="dv-avatar">T</div><span class="dv-name">Thomas</span></div>
+          <div class="dv-option"><div class="dv-avatar">S</div><span class="dv-name">Sarah</span></div>
+          <div class="dv-option"><div class="dv-avatar">E</div><span class="dv-name">Emma</span></div>
+          <div class="dv-actions">
+            <button class="dv-vote-btn">Voter</button>
+            <button class="dv-abstain-btn">S'abstenir</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5. Vote Logs (after voting) -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Logs de vote</div>
+    <div class="phone-sublabel">sunset-background.png — apres vote envoye</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-vote-logs">
+        <div class="vl-content">
+          <div class="vl-check">&#x2714;</div>
+          <div class="vl-title">Vote enregistre</div>
+          <div class="vl-status">4/6 votes</div>
+          <div class="vl-log-box">
+            <div class="vl-log-header">Votes en cours</div>
+            <div class="vl-entry"><span class="vl-voter">Alice</span> a vote contre <span class="vl-target">Thomas</span></div>
+            <div class="vl-entry"><span class="vl-voter">Maxime</span> a vote contre <span class="vl-target">Thomas</span></div>
+            <div class="vl-entry"><span class="vl-voter">Sarah</span> a vote contre <span class="vl-target">Emma</span></div>
+            <div class="vl-entry"><span class="vl-voter">Lucas</span> <span class="vl-abstain">s'est abstenu</span></div>
+          </div>
+          <div class="vl-waiting">
+            <div class="vl-waiting-text">En attente des autres joueurs...</div>
+            <div class="vl-spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 6. Hunter Wait -->
+  <div class="phone-wrapper">
+    <div class="phone-label">Chasseur — Attente</div>
+    <div class="phone-sublabel">sunset-background.png — joueur non-chasseur</div>
+    <div class="phone gf-phone"><div class="phone-screen">
+      <div class="gf-hunter-wait">
+        <div class="hw-content">
+          <div class="hw-emoji">&#x1F3F9;</div>
+          <div class="hw-title">Le Chasseur choisit sa cible...</div>
+          <div class="hw-sub">Un dernier tir avant de partir</div>
+          <div class="hw-spinner"></div>
         </div>
       </div>
     </div></div>

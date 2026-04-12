@@ -370,6 +370,25 @@ const PREVIEWS: PreviewEntry[] = [
     ),
   },
   {
+    label: "Jour: Annonce — aucun mort",
+    section: "Jour",
+    audio: require("../assets/sounds/narrator/day/no-death/annonce-no-death-1.mp3"),
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sun-transition-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <DayAnnouncementView
+          nightDeaths={[]}
+          isHost={false}
+          myPlayerId="1"
+          onContinue={noop}
+        />
+      </ImageBackground>
+    ),
+  },
+  {
     label: "Jour: Marque du Corbeau",
     section: "Jour",
     render: () => (
@@ -415,11 +434,13 @@ const PREVIEWS: PreviewEntry[] = [
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <DayDebateView
-          timer={{ startedAt: Date.now(), durationMs: 180000 }}
-          isHost={true}
-          onStartVote={noop}
-        />
+        <SafeContainer>
+          <DayDebateView
+            timer={{ startedAt: Date.now(), durationMs: 180000 }}
+            isHost={true}
+            onStartVote={noop}
+          />
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -428,20 +449,46 @@ const PREVIEWS: PreviewEntry[] = [
     section: "Jour",
     render: () => (
       <ImageBackground
-        source={require("../assets/sun-transition-background.png")}
+        source={require("../assets/sunset-background.png")}
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       >
-        <DayVoteView
-          alivePlayers={MOCK_PLAYERS}
-          myPlayerId="1"
-          onVote={noopAsync}
-          voteLogs={[
-            { voter: "Bob", target: "Claire" },
-            { voter: "David", target: "Claire" },
-          ]}
-          voteStatus={{ votedCount: 2, totalVoters: 5 }}
-        />
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.3)" }} />
+        <SafeContainer>
+          <DayVoteView
+            alivePlayers={MOCK_PLAYERS}
+            myPlayerId="1"
+            onVote={noopAsync}
+            voteLogs={[]}
+            voteStatus={{ votedCount: 0, totalVoters: 5 }}
+          />
+        </SafeContainer>
+      </ImageBackground>
+    ),
+  },
+  {
+    label: "Jour: Logs de vote",
+    section: "Jour",
+    render: () => (
+      <ImageBackground
+        source={require("../assets/sunset-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.3)" }} />
+        <SafeContainer>
+          <DayVoteView
+            alivePlayers={MOCK_PLAYERS}
+            myPlayerId="1"
+            onVote={noopAsync}
+            voteLogs={[
+              { voter: "Bob", target: "Claire" },
+              { voter: "David", target: "Claire" },
+              { voter: "Emma", target: null },
+            ]}
+            voteStatus={{ votedCount: 4, totalVoters: 5 }}
+          />
+        </SafeContainer>
       </ImageBackground>
     ),
   },
@@ -452,24 +499,42 @@ const PREVIEWS: PreviewEntry[] = [
     section: "Special",
     audio: require("../assets/sounds/bruitages/gunfire-chasseur.mp3"),
     render: () => (
-      <HunterView
-        isHunter={true}
-        alivePlayers={MOCK_PLAYERS}
-        myPlayerId="5"
-        onShoot={noopAsync}
-      />
+      <ImageBackground
+        source={require("../assets/sunset-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.4)" }} />
+        <SafeContainer>
+          <HunterView
+            isHunter={true}
+            alivePlayers={MOCK_PLAYERS}
+            myPlayerId="5"
+            onShoot={noopAsync}
+          />
+        </SafeContainer>
+      </ImageBackground>
     ),
   },
   {
     label: "Chasseur: Attente",
     section: "Special",
     render: () => (
-      <HunterView
-        isHunter={false}
-        alivePlayers={MOCK_PLAYERS}
-        myPlayerId="5"
-        onShoot={noopAsync}
-      />
+      <ImageBackground
+        source={require("../assets/sunset-background.png")}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      >
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(10,14,22,0.5)" }} />
+        <SafeContainer>
+          <HunterView
+            isHunter={false}
+            alivePlayers={MOCK_PLAYERS}
+            myPlayerId="5"
+            onShoot={noopAsync}
+          />
+        </SafeContainer>
+      </ImageBackground>
     ),
   },
   {

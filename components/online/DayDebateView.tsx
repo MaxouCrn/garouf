@@ -3,6 +3,9 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Audio } from "expo-av";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { spacing, radii } from "../../theme/spacing";
+import GCardFrame from "../GCardFrame";
+import GButton from "../GButton";
 import type { TimerStartPayload } from "../../types/online";
 
 const DEBAT_MUSIC = require("../../assets/sounds/debat-music.mp3");
@@ -71,39 +74,93 @@ export default function DayDebateView({ timer, isHost, onStartVote }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Debat en cours</Text>
-      <Text style={[styles.timer, isOver && styles.timerOver]}>
-        {minutes}:{seconds.toString().padStart(2, "0")}
-      </Text>
-      {!isOver && !isHost && (
-        <Text style={styles.hint}>Discutez et trouvez les loups !</Text>
-      )}
-      {isHost && (
-        <>
-          <Pressable style={styles.muteButton} onPress={() => setIsMuted((m) => !m)}>
-            <Text style={styles.muteButtonText}>{isMuted ? "Reactiver la musique" : "Couper la musique"}</Text>
-          </Pressable>
-          <Pressable style={styles.button} onPress={onStartVote}>
-            <Text style={styles.buttonText}>Passer au vote</Text>
-          </Pressable>
-        </>
-      )}
-      {isOver && !isHost && (
-        <Text style={styles.waiting}>En attente du vote...</Text>
-      )}
+      <GCardFrame variant="glass" corners style={{ alignSelf: "stretch" }}>
+        <View style={styles.inner}>
+          <Text style={styles.phase}>Jour</Text>
+          <Text style={styles.timer}>{minutes}:{seconds.toString().padStart(2, "0")}</Text>
+          <Text style={styles.timerLabel}>Temps de debat restant</Text>
+
+          {!isOver && !isHost && (
+            <Text style={styles.hint}>Discutez et trouvez les loups !</Text>
+          )}
+
+          {isOver && !isHost && (
+            <Text style={styles.waiting}>En attente du vote...</Text>
+          )}
+
+          {isHost && (
+            <View style={styles.actions}>
+              <GButton variant="outline" onPress={onStartVote}>
+                Passer au vote
+              </GButton>
+              <Pressable onPress={() => setIsMuted((m) => !m)}>
+                <Text style={styles.muteText}>
+                  {isMuted ? "Reactiver la musique" : "Couper la musique"}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </GCardFrame>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  title: { fontFamily: fonts.cinzelBold, fontSize: 24, color: colors.primary, marginBottom: 24 },
-  timer: { fontSize: 64, fontWeight: "bold", color: colors.text },
-  timerOver: { color: colors.danger },
-  hint: { fontSize: 16, color: colors.textSecondary, marginTop: 24 },
-  muteButton: { backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10, marginTop: 24 },
-  muteButtonText: { color: colors.textSecondary, fontSize: 14 },
-  button: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 16, borderRadius: 12, marginTop: 16 },
-  buttonText: { color: colors.black, fontSize: 20, fontWeight: "bold" },
-  waiting: { fontSize: 16, color: colors.textSecondary, marginTop: 32, textAlign: "center" },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl,
+  },
+  inner: {
+    alignItems: "center",
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.md,
+  },
+  phase: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.warm,
+    letterSpacing: 4,
+    textTransform: "uppercase",
+    marginBottom: spacing.sm,
+  },
+  timer: {
+    fontFamily: fonts.displayBold,
+    fontSize: 72,
+    color: colors.text,
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  timerLabel: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginBottom: spacing.xl,
+  },
+  hint: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: spacing.xl,
+  },
+  waiting: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
+    color: colors.textMuted,
+    fontStyle: "italic",
+  },
+  actions: {
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  muteText: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+  },
 });

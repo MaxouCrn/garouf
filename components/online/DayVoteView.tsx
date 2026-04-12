@@ -1,8 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { View, Text, FlatList, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { spacing, radii } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
+import GButton from "../GButton";
 import type { VoteLogPayload, VoteStatusPayload } from "../../types/online";
 
 interface Props {
@@ -68,16 +70,25 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
   if (voted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.waitingTitle}>Vote enregistre</Text>
+        <View style={styles.checkCircle}>
+          <Text style={styles.checkMark}>{"\u2714"}</Text>
+        </View>
+        <Text style={styles.doneTitle}>Vote enregistre</Text>
         {statusText && <Text style={styles.statusText}>{statusText}</Text>}
         <VoteLogs logs={displayLogs} scrollRef={logsRef} />
+        <View style={styles.waitingRow}>
+          <Text style={styles.waitingText}>En attente des autres joueurs...</Text>
+          <ActivityIndicator size="small" color={colors.accent} style={{ marginTop: spacing.md }} />
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Vote</Text>
+      <Text style={styles.phase}>Jour</Text>
+      <Text style={styles.title}>Vote du village</Text>
+      <Text style={styles.instruction}>Qui le village elimine-t-il ?</Text>
       <View style={styles.timerRow}>
         <ActionTimer seconds={15} onExpire={handleTimeout} />
         {statusText && <Text style={styles.statusText}>{statusText}</Text>}
@@ -86,21 +97,32 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
         data={others}
         keyExtractor={(item) => item.id}
         style={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={[styles.playerRow, selected === item.id && styles.selected]}
-            onPress={() => setSelected(item.id)}
-          >
-            <Text style={[styles.playerName, selected === item.id && styles.selectedText]}>
-              {item.name}
-            </Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const isSelected = selected === item.id;
+          return (
+            <Pressable
+              style={[styles.option, isSelected && styles.optionSelected]}
+              onPress={() => setSelected(item.id)}
+            >
+              <View style={[styles.avatar, isSelected && styles.avatarSelected]}>
+                <Text style={[styles.avatarText, isSelected && styles.avatarTextSelected]}>
+                  {item.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <Text style={[styles.optionName, isSelected && styles.optionNameSelected]}>
+                {item.name}
+              </Text>
+            </Pressable>
+          );
+        }}
       />
       <VoteLogs logs={voteLogs} scrollRef={logsRef} />
       <View style={styles.actions}>
-        <Pressable style={styles.voteButton} onPress={handleVote}>
-          <Text style={styles.buttonText}>{selected ? "Voter" : "S'abstenir"}</Text>
+        <GButton variant="danger" onPress={handleVote} disabled={!selected}>
+          Voter
+        </GButton>
+        <Pressable style={styles.abstainBtn} onPress={() => { addOwnLog(null); setVoted(true); onVote(null); }}>
+          <Text style={styles.abstainText}>S'abstenir</Text>
         </Pressable>
       </View>
     </View>
@@ -112,13 +134,17 @@ function VoteLogs({ logs, scrollRef }: { logs: VoteLogPayload[]; scrollRef: Reac
 
   return (
     <View style={styles.logsContainer}>
+      <Text style={styles.logsHeader}>Votes en cours</Text>
       <ScrollView ref={scrollRef} style={styles.logsScroll} nestedScrollEnabled>
         {logs.map((log, i) => (
-          <Text key={i} style={styles.logEntry}>
-            {log.target
-              ? `${log.voter} a vote contre ${log.target}`
-              : `${log.voter} s'est abstenu`}
-          </Text>
+          <View key={i} style={styles.logRow}>
+            <Text style={styles.logEntry}>
+              <Text style={styles.logVoter}>{log.voter}</Text>
+              {log.target
+                ? <Text> a vote contre <Text style={styles.logTarget}>{log.target}</Text></Text>
+                : <Text style={styles.logAbstain}> s'est abstenu</Text>}
+            </Text>
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -126,31 +152,197 @@ function VoteLogs({ logs, scrollRef }: { logs: VoteLogPayload[]; scrollRef: Reac
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { fontSize: 24, fontWeight: "bold", color: colors.primary, textAlign: "center", marginBottom: 8 },
-  waitingTitle: { fontSize: 20, fontWeight: "bold", color: colors.primary, textAlign: "center", marginBottom: 8 },
-  timerRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 4 },
-  statusText: { fontSize: 14, color: colors.textSecondary, textAlign: "center", marginBottom: 4 },
-  list: { flex: 1, marginTop: 12 },
-  playerRow: { backgroundColor: colors.surface, padding: 16, borderRadius: 8, marginBottom: 8 },
-  selected: { backgroundColor: colors.danger },
-  playerName: { fontSize: 16, color: colors.text },
-  selectedText: { color: colors.white },
-  actions: { paddingTop: 12 },
-  voteButton: { backgroundColor: colors.primary, padding: 16, borderRadius: 12, alignItems: "center" },
-  buttonText: { color: colors.black, fontSize: 18, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    padding: spacing.xl,
+  },
+  phase: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.warm,
+    letterSpacing: 4,
+    textTransform: "uppercase",
+    textAlign: "center",
+  },
+  title: {
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 4,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+  instruction: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginBottom: spacing.md,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  timerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 4,
+  },
+  statusText: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginBottom: 4,
+    letterSpacing: 1,
+  },
+  list: { flex: 1, marginTop: spacing.sm },
+  option: {
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: radii.base,
+    padding: 14,
+    marginBottom: 7,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  optionSelected: {
+    borderColor: colors.danger,
+    backgroundColor: "rgba(232,93,93,0.12)",
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.sm,
+    backgroundColor: "rgba(232,93,93,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(232,93,93,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarSelected: {
+    backgroundColor: "rgba(232,93,93,0.15)",
+    borderColor: colors.danger,
+  },
+  avatarText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.danger,
+  },
+  avatarTextSelected: {
+    color: colors.white,
+  },
+  optionName: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
+  },
+  optionNameSelected: {
+    color: colors.white,
+  },
+  actions: {
+    paddingTop: spacing.md,
+    gap: spacing.sm,
+  },
+  abstainBtn: {
+    borderWidth: 1,
+    borderColor: "rgba(126,184,218,0.15)",
+    borderRadius: radii.base,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  abstainText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  // Done state
+  checkCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(93,217,166,0.1)",
+    borderWidth: 2,
+    borderColor: "rgba(93,217,166,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: spacing.md,
+  },
+  checkMark: {
+    fontSize: 24,
+    color: colors.success,
+  },
+  doneTitle: {
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: 4,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+  waitingRow: {
+    alignItems: "center",
+    marginTop: "auto",
+    paddingTop: spacing.base,
+  },
+  waitingText: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 13,
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
+  // Vote logs
   logsContainer: {
-    maxHeight: 120,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 8,
-    marginTop: 8,
-    padding: 8,
+    maxHeight: 140,
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: radii.base,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+  },
+  logsHeader: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginBottom: spacing.md,
   },
   logsScroll: { flex: 1 },
+  logRow: {
+    marginBottom: spacing.sm,
+    paddingLeft: spacing.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: "rgba(126,184,218,0.1)",
+  },
   logEntry: {
-    fontSize: 13,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 14,
     color: "rgba(255,255,255,0.7)",
-    marginBottom: 4,
     fontStyle: "italic",
+  },
+  logVoter: {
+    color: colors.text,
+    fontStyle: "normal",
+    fontFamily: fonts.bodyMedium,
+  },
+  logTarget: {
+    color: colors.danger,
+    fontStyle: "normal",
+    fontFamily: fonts.bodySemiBold,
+  },
+  logAbstain: {
+    color: colors.textMuted,
+    fontStyle: "normal",
   },
 });

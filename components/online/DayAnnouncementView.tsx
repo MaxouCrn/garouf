@@ -3,6 +3,8 @@ import { View, Text, StyleSheet } from "react-native";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
+import { spacing, radii } from "../../theme/spacing";
+import GCardFrame from "../GCardFrame";
 import { ANNONCE_DEATH, ANNONCE_NO_DEATH } from "../../assets/sounds/narrator/day/sounds";
 
 function pickRandom<T>(arr: T[]): T {
@@ -36,11 +38,7 @@ export default function DayAnnouncementView({ nightDeaths, isHost, myPlayerId, o
 
   // Host plays narrator announcement
   useEffect(() => {
-    if (!isHost) {
-      // Non-host: no audio to play, narrator is "done" immediately
-      // (auto-advance is host-only anyway)
-      return;
-    }
+    if (!isHost) return;
 
     let mounted = true;
     const source = nightDeaths.length > 0 ? ANNONCE_DEATH : ANNONCE_NO_DEATH;
@@ -59,7 +57,6 @@ export default function DayAnnouncementView({ nightDeaths, isHost, myPlayerId, o
 
         await sound.playAsync();
       } catch {
-        // If audio fails, mark narrator as done to not block the game
         if (mounted) setNarratorDone(true);
       }
     }
@@ -88,27 +85,93 @@ export default function DayAnnouncementView({ nightDeaths, isHost, myPlayerId, o
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Le village se reveille...</Text>
-      {nightDeaths.length === 0 ? (
-        <Text style={styles.message}>Personne n'est mort cette nuit !</Text>
-      ) : (
-        nightDeaths.map((d) => (
-          <Text key={d.id} style={styles.death}>{d.name} a ete elimine(e)</Text>
-        ))
-      )}
-      {isMyDeath && (
-        <Text style={styles.eliminated}>Vous avez ete elimine cette nuit...</Text>
-      )}
-      <Text style={styles.waiting}>Le debat va bientot commencer...</Text>
+      <GCardFrame variant="glass" corners cornerColor={colors.warm} style={{ alignSelf: "stretch" }}>
+        <View style={styles.inner}>
+          <Text style={styles.phase}>Jour</Text>
+          <Text style={styles.title}>Le village se reveille</Text>
+
+          {nightDeaths.length === 0 ? (
+            <Text style={styles.noDeath}>Personne n'est mort cette nuit !</Text>
+          ) : (
+            <>
+              <Text style={styles.message}>Cette nuit, le village a perdu :</Text>
+              {nightDeaths.map((d) => (
+                <Text key={d.id} style={styles.deadName}>{"\u{1F480}"} {d.name}</Text>
+              ))}
+            </>
+          )}
+
+          {isMyDeath && (
+            <Text style={styles.eliminated}>Vous avez ete elimine cette nuit...</Text>
+          )}
+
+          <Text style={styles.waiting}>Le debat va bientot commencer...</Text>
+        </View>
+      </GCardFrame>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  title: { fontFamily: fonts.cinzelBold, fontSize: 24, color: colors.primary, marginBottom: 24 },
-  message: { fontSize: 18, color: colors.success, marginBottom: 16 },
-  death: { fontSize: 18, color: colors.danger, marginBottom: 8 },
-  eliminated: { fontSize: 18, color: colors.warning, marginTop: 16, textAlign: "center" },
-  waiting: { fontSize: 16, color: colors.textSecondary, marginTop: 32, textAlign: "center", fontStyle: "italic" },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl,
+  },
+  inner: {
+    alignItems: "center",
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.md,
+  },
+  phase: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.warm,
+    letterSpacing: 4,
+    textTransform: "uppercase",
+    marginBottom: spacing.md,
+  },
+  title: {
+    fontFamily: fonts.displayBold,
+    fontSize: 24,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.base,
+  },
+  message: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  deadName: {
+    fontFamily: fonts.displayBold,
+    fontSize: 26,
+    color: colors.danger,
+    textAlign: "center",
+    marginVertical: spacing.sm,
+  },
+  noDeath: {
+    fontFamily: fonts.displayBold,
+    fontSize: 18,
+    color: colors.success,
+    textAlign: "center",
+    marginVertical: spacing.md,
+  },
+  eliminated: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 16,
+    color: colors.warm,
+    marginTop: spacing.base,
+    textAlign: "center",
+  },
+  waiting: {
+    fontFamily: fonts.bodyRegular,
+    fontSize: 13,
+    color: colors.textMuted,
+    fontStyle: "italic",
+    marginTop: spacing.lg,
+    letterSpacing: 1,
+  },
 });
