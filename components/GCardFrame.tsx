@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { View, Text, StyleSheet, ViewStyle } from "react-native";
+import { View, Text, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import { colors } from "../theme/colors";
 import { fonts } from "../theme/typography";
 import { radii, spacing } from "../theme/spacing";
@@ -10,17 +10,19 @@ interface GCardFrameProps {
   children: ReactNode;
   variant?: Variant;
   corners?: boolean;
+  cornerColor?: string;
   title?: string;
   subtitle?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
-function CornerAccent({ position }: { position: "topLeft" | "bottomRight" }) {
+function CornerAccent({ position, color }: { position: "topLeft" | "bottomRight"; color?: string }) {
   const isTop = position === "topLeft";
   return (
     <View
       style={[
         styles.corner,
+        color ? { borderColor: color } : undefined,
         isTop
           ? { top: -1, left: -1, borderTopWidth: 2, borderLeftWidth: 2 }
           : { bottom: -1, right: -1, borderBottomWidth: 2, borderRightWidth: 2 },
@@ -33,6 +35,7 @@ export default function GCardFrame({
   children,
   variant = "solid",
   corners = true,
+  cornerColor,
   title,
   subtitle,
   style,
@@ -47,8 +50,8 @@ export default function GCardFrame({
         style,
       ]}
     >
-      {corners && <CornerAccent position="topLeft" />}
-      {corners && <CornerAccent position="bottomRight" />}
+      {corners && <CornerAccent position="topLeft" color={cornerColor} />}
+      {corners && <CornerAccent position="bottomRight" color={cornerColor} />}
 
       {title && (
         <View style={styles.header}>

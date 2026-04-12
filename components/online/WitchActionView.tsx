@@ -110,72 +110,88 @@ export default function WitchActionView({ action, onSubmit }: Props) {
       <View style={styles.potionsRow}>
         {/* Life Potion Card */}
         <Animated.View style={[
-          styles.potionCard,
-          styles.potionCardLife,
-          !lifeAvailable && styles.potionCardDepleted,
+          styles.potionAnimWrapper,
           lifeAvailable && { transform: [{ scale: lifePulse }] },
         ]}>
-          <View style={[styles.potionCorner, styles.potionCornerTL, { borderColor: "rgba(232,93,93,0.5)" }]} />
-          <View style={[styles.potionCorner, styles.potionCornerBR, { borderColor: "rgba(232,93,93,0.5)" }]} />
-          <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
-          <Text style={styles.potionTitle}>Vie</Text>
+          <GCardFrame
+            variant="glass"
+            corners
+            cornerColor={colors.danger}
+            style={[
+              styles.potionCardLife,
+              !lifeAvailable && styles.potionCardDepleted,
+            ]}
+          >
+            <View style={styles.potionContent}>
+              <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
+              <Text style={styles.potionTitle}>Vie</Text>
 
-          {!lifeAvailable ? (
-            <View style={styles.depletedBadge}>
-              <Text style={styles.depletedText}>🔒 Epuisee</Text>
+              {!lifeAvailable ? (
+                <View style={styles.depletedBadge}>
+                  <Text style={styles.depletedText}>🔒 Epuisee</Text>
+                </View>
+              ) : !werewolfTarget ? (
+                <Text style={styles.potionHint}>Personne a sauver</Text>
+              ) : heal ? (
+                <Pressable
+                  style={styles.potionActionLife}
+                  onPress={() => handleHeal(false)}
+                >
+                  <Text style={styles.potionActionLifeText}>Sauver la cible</Text>
+                  <Text style={styles.undoHintLife}>Appuyer pour annuler</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={styles.potionAction}
+                  onPress={() => handleHeal(true)}
+                >
+                  <Text style={styles.potionActionText}>Sauver la cible</Text>
+                </Pressable>
+              )}
             </View>
-          ) : !werewolfTarget ? (
-            <Text style={styles.potionHint}>Personne a sauver</Text>
-          ) : heal ? (
-            <Pressable
-              style={styles.potionActionLife}
-              onPress={() => handleHeal(false)}
-            >
-              <Text style={styles.potionActionLifeText}>Sauver la cible</Text>
-              <Text style={styles.undoHintLife}>Appuyer pour annuler</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              style={styles.potionAction}
-              onPress={() => handleHeal(true)}
-            >
-              <Text style={styles.potionActionText}>Sauver la cible</Text>
-            </Pressable>
-          )}
+          </GCardFrame>
         </Animated.View>
 
         {/* Death Potion Card */}
         <Animated.View style={[
-          styles.potionCard,
-          styles.potionCardDeath,
-          !deathAvailable && styles.potionCardDepleted,
+          styles.potionAnimWrapper,
           deathAvailable && { transform: [{ scale: deathPulse }] },
         ]}>
-          <View style={[styles.potionCorner, styles.potionCornerTL, { borderColor: "rgba(93,217,166,0.5)" }]} />
-          <View style={[styles.potionCorner, styles.potionCornerBR, { borderColor: "rgba(93,217,166,0.5)" }]} />
-          <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
-          <Text style={styles.potionTitle}>Mort</Text>
+          <GCardFrame
+            variant="glass"
+            corners
+            cornerColor={colors.success}
+            style={[
+              styles.potionCardDeath,
+              !deathAvailable && styles.potionCardDepleted,
+            ]}
+          >
+            <View style={styles.potionContent}>
+              <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
+              <Text style={styles.potionTitle}>Mort</Text>
 
-          {!deathAvailable ? (
-            <View style={styles.depletedBadge}>
-              <Text style={styles.depletedText}>🔒 Epuisee</Text>
+              {!deathAvailable ? (
+                <View style={styles.depletedBadge}>
+                  <Text style={styles.depletedText}>🔒 Epuisee</Text>
+                </View>
+              ) : killTargetId ? (
+                <Pressable
+                  style={styles.potionActionPoison}
+                  onPress={handleClearTarget}
+                >
+                  <Text style={styles.potionActionPoisonText}>Tuer {selectedVictimName}</Text>
+                  <Text style={styles.undoHintPoison}>Appuyer pour annuler</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={styles.potionAction}
+                  onPress={handleShowTargets}
+                >
+                  <Text style={styles.potionActionText}>Empoisonner</Text>
+                </Pressable>
+              )}
             </View>
-          ) : killTargetId ? (
-            <Pressable
-              style={styles.potionActionPoison}
-              onPress={handleClearTarget}
-            >
-              <Text style={styles.potionActionPoisonText}>Tuer {selectedVictimName}</Text>
-              <Text style={styles.undoHintPoison}>Appuyer pour annuler</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              style={styles.potionAction}
-              onPress={handleShowTargets}
-            >
-              <Text style={styles.potionActionText}>Empoisonner</Text>
-            </Pressable>
-          )}
+          </GCardFrame>
         </Animated.View>
       </View>
 
@@ -283,14 +299,13 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
   },
-  potionCard: {
+  potionAnimWrapper: {
     flex: 1,
-    borderRadius: radii.base,
-    padding: 16,
+  },
+  potionContent: {
     alignItems: "center",
-    borderWidth: 1.5,
-    minHeight: 180,
     justifyContent: "center",
+    minHeight: 140,
   },
   potionCardLife: {
     backgroundColor: "rgba(90,30,30,0.45)",
@@ -304,23 +319,6 @@ const styles = StyleSheet.create({
     opacity: 0.4,
     backgroundColor: "rgba(30,30,50,0.5)",
     borderColor: "rgba(100,100,100,0.2)",
-  },
-  potionCorner: {
-    position: "absolute",
-    width: 12,
-    height: 12,
-  },
-  potionCornerTL: {
-    top: -1,
-    left: -1,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-  },
-  potionCornerBR: {
-    bottom: -1,
-    right: -1,
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
   },
   potionImage: {
     width: 64,
