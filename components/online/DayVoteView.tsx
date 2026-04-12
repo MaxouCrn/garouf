@@ -5,6 +5,7 @@ import { fonts } from "../../theme/typography";
 import { spacing, radii } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
 import GButton from "../GButton";
+import GlassRow from "../GlassRow";
 import type { VoteLogPayload, VoteStatusPayload } from "../../types/online";
 
 interface Props {
@@ -100,8 +101,9 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
         renderItem={({ item }) => {
           const isSelected = selected === item.id;
           return (
-            <Pressable
-              style={[styles.option, isSelected && styles.optionSelected]}
+            <GlassRow
+              selected={isSelected}
+              selectedColor={colors.danger}
               onPress={() => setSelected(item.id)}
             >
               <View style={[styles.avatar, isSelected && styles.avatarSelected]}>
@@ -112,7 +114,7 @@ export default function DayVoteView({ alivePlayers, myPlayerId, onVote, voteLogs
               <Text style={[styles.optionName, isSelected && styles.optionNameSelected]}>
                 {item.name}
               </Text>
-            </Pressable>
+            </GlassRow>
           );
         }}
       />
@@ -201,21 +203,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   list: { flex: 1, marginTop: spacing.sm },
-  option: {
-    backgroundColor: colors.glass,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    borderRadius: radii.base,
-    padding: 14,
-    marginBottom: 7,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  optionSelected: {
-    borderColor: colors.danger,
-    backgroundColor: "rgba(232,93,93,0.12)",
-  },
   avatar: {
     width: 36,
     height: 36,

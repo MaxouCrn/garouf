@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
+import GlassRow from "../GlassRow";
 import type { NightActionRequiredPayload } from "../../types/online";
 
 interface Props {
@@ -39,8 +40,9 @@ export default function WolfVoteView({ action, wolfVotes, onSubmit }: Props) {
           const voteCount = wolfVotes[item.id] || 0;
           const isSelected = selected === item.id;
           return (
-            <Pressable
-              style={[styles.playerRow, isSelected && styles.selected]}
+            <GlassRow
+              selected={isSelected}
+              selectedColor={colors.danger}
               onPress={() => handleSelect(item.id)}
             >
               <View style={[styles.avatar, isSelected && styles.avatarSelected]}>
@@ -53,10 +55,10 @@ export default function WolfVoteView({ action, wolfVotes, onSubmit }: Props) {
               </Text>
               {voteCount > 0 && (
                 <Text style={styles.voteCount}>
-                  {"🐺".repeat(voteCount)}
+                  {"\u{1F43A}".repeat(voteCount)}
                 </Text>
               )}
-            </Pressable>
+            </GlassRow>
           );
         }}
       />
@@ -77,21 +79,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   list: { flex: 1, marginTop: spacing.md },
-  playerRow: {
-    backgroundColor: colors.glass,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    padding: spacing.base,
-    borderRadius: radii.base,
-    marginBottom: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  selected: {
-    borderColor: colors.danger,
-    backgroundColor: "rgba(232,93,93,0.08)",
-  },
   avatar: {
     width: 36,
     height: 36,

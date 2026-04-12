@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
 import GButton from "../GButton";
+import GlassRow from "../GlassRow";
 import type { NightActionRequiredPayload } from "../../types/online";
 
 interface Props {
@@ -44,21 +45,25 @@ export default function NightActionView({ action, onSubmit }: Props) {
         data={action.targets}
         keyExtractor={(item) => item.id}
         style={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={[styles.playerRow, selected === item.id && styles.selected]}
-            onPress={() => setSelected(item.id)}
-          >
-            <View style={[styles.avatar, selected === item.id && styles.avatarSelected]}>
-              <Text style={[styles.avatarText, selected === item.id && styles.avatarTextSelected]}>
-                {item.name.charAt(0).toUpperCase()}
+        renderItem={({ item }) => {
+          const isSelected = selected === item.id;
+          return (
+            <GlassRow
+              selected={isSelected}
+              selectedColor={colors.accent}
+              onPress={() => setSelected(item.id)}
+            >
+              <View style={[styles.avatar, isSelected && styles.avatarSelected]}>
+                <Text style={[styles.avatarText, isSelected && styles.avatarTextSelected]}>
+                  {item.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <Text style={[styles.playerName, isSelected && styles.selectedText]}>
+                {item.name}
               </Text>
-            </View>
-            <Text style={[styles.playerName, selected === item.id && styles.selectedText]}>
-              {item.name}
-            </Text>
-          </Pressable>
-        )}
+            </GlassRow>
+          );
+        }}
       />
       <GButton
         variant="primary"
@@ -84,21 +89,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   list: { flex: 1, marginTop: spacing.md },
-  playerRow: {
-    backgroundColor: colors.glass,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    padding: spacing.base,
-    borderRadius: radii.base,
-    marginBottom: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  selected: {
-    borderColor: colors.accent,
-    backgroundColor: "rgba(126,184,218,0.08)",
-  },
   avatar: {
     width: 36,
     height: 36,

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "../../theme/colors";
 import { fonts } from "../../theme/typography";
 import { radii, spacing } from "../../theme/spacing";
 import ActionTimer from "./ActionTimer";
 import GButton from "../GButton";
+import GlassRow from "../GlassRow";
 
 interface Props {
   isHunter: boolean;
@@ -41,8 +42,9 @@ export default function HunterView({ isHunter, alivePlayers, myPlayerId, onShoot
         renderItem={({ item }) => {
           const isSelected = selected === item.id;
           return (
-            <Pressable
-              style={[styles.playerRow, isSelected && styles.selected]}
+            <GlassRow
+              selected={isSelected}
+              selectedColor={colors.danger}
               onPress={() => setSelected(item.id)}
             >
               <View style={[styles.avatar, isSelected && styles.avatarSelected]}>
@@ -51,7 +53,7 @@ export default function HunterView({ isHunter, alivePlayers, myPlayerId, onShoot
               <Text style={[styles.playerName, isSelected && styles.selectedText]}>
                 {item.name}
               </Text>
-            </Pressable>
+            </GlassRow>
           );
         }}
       />
@@ -85,21 +87,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   list: { flex: 1, marginTop: spacing.md },
-  playerRow: {
-    backgroundColor: colors.glass,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    padding: spacing.base,
-    borderRadius: radii.base,
-    marginBottom: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  selected: {
-    borderColor: colors.danger,
-    backgroundColor: "rgba(232,93,93,0.08)",
-  },
   avatar: {
     width: 36,
     height: 36,
