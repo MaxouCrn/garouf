@@ -47,8 +47,8 @@ export default function WitchActionView({ action, onSubmit }: Props) {
 
   const hasAction = heal || killTargetId;
 
-  const lifePulse = usePotionPulse(lifeAvailable && !!werewolfTarget && !heal);
-  const deathPulse = usePotionPulse(deathAvailable && !killTargetId);
+  const lifePulse = usePotionPulse(lifeAvailable && !!werewolfTarget);
+  const deathPulse = usePotionPulse(deathAvailable);
 
   const handleSubmit = (healOverride?: boolean, killOverride?: string | null) => {
     onSubmit("witch_action", {
@@ -106,7 +106,7 @@ export default function WitchActionView({ action, onSubmit }: Props) {
         )}
       </GCardFrame>
 
-      {/* Potion cards */}
+      {/* Potion status cards */}
       <View style={styles.potionsRow}>
         {/* Life Potion Card */}
         <Animated.View style={[
@@ -118,36 +118,21 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             corners
             cornerColor={colors.danger}
             style={[
-              styles.potionCardInner,
+              styles.potionCard,
               styles.potionCardLife,
               !lifeAvailable && styles.potionCardDepleted,
+              heal && styles.potionCardLifeActive,
             ]}
           >
             <View style={styles.potionContent}>
               <Image source={require("../../assets/health-potion.png")} style={styles.potionImage} resizeMode="contain" />
               <Text style={styles.potionTitle}>Vie</Text>
-
-              {!lifeAvailable ? (
-                <View style={styles.depletedBadge}>
-                  <Text style={styles.depletedText}>🔒 Epuisee</Text>
-                </View>
-              ) : !werewolfTarget ? (
-                <Text style={styles.potionHint}>Personne a sauver</Text>
-              ) : heal ? (
-                <Pressable
-                  style={styles.potionActionLife}
-                  onPress={() => handleHeal(false)}
-                >
-                  <Text style={styles.potionActionLifeText}>Sauver la cible</Text>
-                  <Text style={styles.undoHintLife}>Appuyer pour annuler</Text>
-                </Pressable>
+              {lifeAvailable ? (
+                <View style={styles.availableDot} />
               ) : (
-                <Pressable
-                  style={styles.potionAction}
-                  onPress={() => handleHeal(true)}
-                >
-                  <Text style={styles.potionActionText}>Sauver la cible</Text>
-                </Pressable>
+                <View style={styles.depletedBadge}>
+                  <Text style={styles.depletedText}>Epuisee</Text>
+                </View>
               )}
             </View>
           </GCardFrame>
@@ -163,38 +148,56 @@ export default function WitchActionView({ action, onSubmit }: Props) {
             corners
             cornerColor={colors.success}
             style={[
-              styles.potionCardInner,
+              styles.potionCard,
               styles.potionCardDeath,
               !deathAvailable && styles.potionCardDepleted,
+              !!killTargetId && styles.potionCardDeathActive,
             ]}
           >
             <View style={styles.potionContent}>
               <Image source={require("../../assets/poison-potion.png")} style={styles.potionImage} resizeMode="contain" />
               <Text style={styles.potionTitle}>Mort</Text>
-
-              {!deathAvailable ? (
-                <View style={styles.depletedBadge}>
-                  <Text style={styles.depletedText}>🔒 Epuisee</Text>
-                </View>
-              ) : killTargetId ? (
-                <Pressable
-                  style={styles.potionActionPoison}
-                  onPress={handleClearTarget}
-                >
-                  <Text style={styles.potionActionPoisonText}>Tuer {selectedVictimName}</Text>
-                  <Text style={styles.undoHintPoison}>Appuyer pour annuler</Text>
-                </Pressable>
+              {deathAvailable ? (
+                <View style={styles.availableDot} />
               ) : (
-                <Pressable
-                  style={styles.potionAction}
-                  onPress={handleShowTargets}
-                >
-                  <Text style={styles.potionActionText}>Empoisonner</Text>
-                </Pressable>
+                <View style={styles.depletedBadge}>
+                  <Text style={styles.depletedText}>Epuisee</Text>
+                </View>
               )}
             </View>
           </GCardFrame>
         </Animated.View>
+      </View>
+
+      {/* Action buttons */}
+      <View style={styles.actionButtons}>
+        {lifeAvailable && werewolfTarget && (
+          <Pressable
+            style={[styles.actionBtn, heal && styles.actionBtnLifeActive]}
+            onPress={() => handleHeal(!heal)}
+          >
+            <Text style={[styles.actionBtnText, heal && styles.actionBtnLifeActiveText]}>Sauver la cible</Text>
+            {heal && <Text style={styles.undoHintLife}>Appuyer pour annuler</Text>}
+          </Pressable>
+        )}
+        {deathAvailable && (
+          killTargetId ? (
+            <Pressable
+              style={[styles.actionBtn, styles.actionBtnDeathActive]}
+              onPress={handleClearTarget}
+            >
+              <Text style={[styles.actionBtnText, styles.actionBtnDeathActiveText]}>Tuer {selectedVictimName}</Text>
+              <Text style={styles.undoHintPoison}>Appuyer pour annuler</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={styles.actionBtn}
+              onPress={handleShowTargets}
+            >
+              <Text style={styles.actionBtnText}>Empoisonner</Text>
+            </Pressable>
+          )
+        )}
       </View>
 
       {/* Bottom actions */}
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   potionAnimWrapper: {
     flex: 1,
   },
-  potionCardInner: {
+  potionCard: {
   },
   potionContent: {
     alignItems: "center",
@@ -315,9 +318,25 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(90,30,30,0.45)",
     borderColor: "rgba(233,69,96,0.4)",
   },
+  potionCardLifeActive: {
+    borderColor: colors.danger,
+    shadowColor: colors.danger,
+    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
+  },
   potionCardDeath: {
     backgroundColor: "rgba(30,70,30,0.45)",
     borderColor: "rgba(78,204,163,0.4)",
+  },
+  potionCardDeathActive: {
+    borderColor: colors.success,
+    shadowColor: colors.success,
+    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
   },
   potionCardDepleted: {
     opacity: 0.4,
@@ -338,15 +357,11 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
-  potionHint: {
-    fontFamily: fonts.bodyRegular,
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 13,
-    textAlign: "center",
-    fontStyle: "italic",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+  availableDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.success,
   },
   depletedBadge: {
     backgroundColor: "rgba(100,100,100,0.4)",
@@ -360,71 +375,47 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
-  potionAction: {
+  actionButtons: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  actionBtn: {
     backgroundColor: "rgba(255,255,255,0.12)",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radii.base,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
-    width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 70,
   },
-  potionActionText: {
+  actionBtnText: {
     fontFamily: fonts.bodySemiBold,
     color: colors.white,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  potionActionLife: {
+  actionBtnLifeActive: {
     backgroundColor: "rgba(233,69,96,0.3)",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: colors.danger,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 70,
   },
-  potionActionLifeText: {
-    fontFamily: fonts.bodySemiBold,
+  actionBtnLifeActiveText: {
     color: colors.danger,
-    fontSize: 13,
     fontWeight: "bold",
-    textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.6)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
-  potionActionPoison: {
+  actionBtnDeathActive: {
     backgroundColor: "rgba(78,204,163,0.3)",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
     borderWidth: 1.5,
     borderColor: colors.success,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 70,
   },
-  potionActionPoisonText: {
-    fontFamily: fonts.bodySemiBold,
+  actionBtnDeathActiveText: {
     color: colors.success,
-    fontSize: 13,
     fontWeight: "bold",
-    textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.6)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   undoHintLife: {
     color: "rgba(233,69,96,0.7)",
